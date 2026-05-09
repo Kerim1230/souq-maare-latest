@@ -15,7 +15,7 @@ const cairo = Cairo({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://suq-maraa.com'),
+  metadataBase: new URL(process.env.NEXT_PUBLIC_BASE_URL || 'https://souq-maare-latest.vercel.app'),
   title: {
     default: 'سوق مارع الإلكتروني | تسوق بكل سهولة وأمان',
     template: '%s | سوق مارع',

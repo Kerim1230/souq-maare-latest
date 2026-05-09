@@ -8,6 +8,16 @@ import { withRoute } from '@/server/lib/route-wrapper';
 const VALID_TYPES = ['store', 'product', 'offer', 'contest'] as const;
 type ValidType = (typeof VALID_TYPES)[number];
 
+const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://souq-maare-latest.vercel.app';
+
+/** Ensure image URL is absolute (for OG tags and share previews). */
+function ensureAbsolute(url: string | null | undefined): string | null {
+  if (!url) return null;
+  if (url.startsWith('http://') || url.startsWith('https://')) return url;
+  if (url.startsWith('/')) return `${BASE_URL}${url}`;
+  return url;
+}
+
 /** Basic UUID format check. */
 function isUUID(value: string): boolean {
   return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value);
@@ -51,8 +61,8 @@ export const GET = withRoute(async (request: NextRequest) => {
         id: store.id,
         name: store.name,
         description: store.description,
-        logo_url: store.logo_url,
-        cover_url: store.cover_url,
+        logo_url: ensureAbsolute(store.logo_url),
+        cover_url: ensureAbsolute(store.cover_url),
         category: store.category,
         products_count: productsCount,
         followers_count: followersCount,
@@ -87,12 +97,12 @@ export const GET = withRoute(async (request: NextRequest) => {
         name: product.name,
         description: product.description,
         price: product.price,
-        image_url: product.image_url,
+        image_url: ensureAbsolute(product.image_url),
         category: product.category,
         is_featured: product.is_featured,
         is_new: product.is_new,
         store_name: storeName,
-        store_logo: storeLogo,
+        store_logo: ensureAbsolute(storeLogo),
       });
     }
 
@@ -116,11 +126,11 @@ export const GET = withRoute(async (request: NextRequest) => {
         id: offer.id,
         title: offer.title,
         description: offer.description,
-        image_url: offer.image_url,
+        image_url: ensureAbsolute(offer.image_url),
         discount: offer.discount,
         expires_at: offer.expires_at || null,
         store_name: (offer.store as Record<string, unknown>)?.name || null,
-        store_logo: (offer.store as Record<string, unknown>)?.logo_url || null,
+        store_logo: ensureAbsolute((offer.store as Record<string, unknown>)?.logo_url as string | null),
         comments_count: commentsCount,
       });
     }
