@@ -237,6 +237,7 @@ export const HomeScreen: React.FC = () => {
 
   // ── Navigation Fetch Guard — skip re-fetch if user navigated back within 30s ──
   const lastFetchTime = useRef(0);
+  const lastFetchSuccess = useRef(false);
   const prevUserIdRef = useRef<string | undefined>(user?.id);
   const HOME_FETCH_COOLDOWN = 30_000; // 30 seconds
 
@@ -254,9 +255,10 @@ export const HomeScreen: React.FC = () => {
     prevUserIdRef.current = user?.id;
 
     const now = Date.now();
-    if (!userIdChanged && now - lastFetchTime.current < HOME_FETCH_COOLDOWN) return;
-    lastFetchTime.current = now;
+    // Skip cooldown only if last fetch was successful; always retry on failure
+    if (!userIdChanged && lastFetchSuccess.current && now - lastFetchTime.current < HOME_FETCH_COOLDOWN) return;
 
+    console.log('[HomeScreen] Fetching home data...', { userId: user?.id, userIdChanged });
     const controller = new AbortController();
     const { signal } = controller;
     let cancelled = false;
@@ -264,6 +266,14 @@ export const HomeScreen: React.FC = () => {
     fetchHomeData(signal)
       .then((data) => {
         if (cancelled) return;
+
+        lastFetchTime.current = Date.now();
+        lastFetchSuccess.current = true;
+        console.log('[HomeScreen] Data loaded successfully', {
+          stores: data?.featured_stores?.length || 0,
+          products: data?.featured_products?.length || 0,
+          offers: data?.offers?.length || 0,
+        });
 
         // CRITICAL: Show stores first (visible above the fold)
         startTransition(() => {
@@ -292,11 +302,14 @@ export const HomeScreen: React.FC = () => {
       })
       .catch(err => {
         if (!cancelled) {
-          console.error('HomeScreen fetch error:', err);
+          console.error('[HomeScreen] Fetch error:', err);
+          // Mark fetch as failed so cooldown doesn't block retry
+          lastFetchSuccess.current = false;
+          // Show empty state so skeletons disappear and retry is possible
+          setStoresLoaded(true);
+          setProductsLoaded(true);
+          setOffersLoaded(true);
         }
-        setStoresLoaded(true);
-        setProductsLoaded(true);
-        setOffersLoaded(true);
       });
 
     return () => { cancelled = true; controller.abort(); };
@@ -356,9 +369,11 @@ export const HomeScreen: React.FC = () => {
               </div>
             </div>
             <div className="flex items-center gap-2">
-              <button onClick={() => setSubScreen('debug-push')} className="w-7 h-7 bg-[var(--color-surface)]/5 rounded-lg flex items-center justify-center hover:bg-[var(--color-surface)]/15 transition-colors opacity-40 hover:opacity-100" aria-label="تشخيص الإشعارات" title="تشخيص الإشعارات">
-                <Wrench className="w-3.5 h-3.5 text-teal-300/60 dark:text-teal-500/50" />
-              </button>
+              {user?.is_admin && (
+                <button onClick={() => setSubScreen('debug-push')} className="w-7 h-7 bg-[var(--color-surface)]/5 rounded-lg flex items-center justify-center hover:bg-[var(--color-surface)]/15 transition-colors opacity-40 hover:opacity-100" aria-label="تشخيص الإشعارات" title="تشخيص الإشعارات">
+                  <Wrench className="w-3.5 h-3.5 text-teal-300/60 dark:text-teal-500/50" />
+                </button>
+              )}
               <button onClick={() => setSubScreen('wallet')} className="relative w-10 h-10 bg-[var(--color-surface)]/10 backdrop-blur-sm rounded-xl flex items-center justify-center hover:bg-[var(--color-surface)]/20 transition-colors" aria-label="محفظة النقاط">
                 <Wallet className="w-[18px] h-[18px] text-teal-300 dark:text-teal-600/70" />
                 {walletBalance > 0 && (

@@ -148,7 +148,7 @@ export const POST = withRoute(async (request: NextRequest) => {
             });
 
             // Send push notifications (fire-and-forget, don't block response)
-            sendPushToUsers(userIds, notifTitle, notifBody || '', '/').catch(err => {
+            sendPushToUsers(userIds, notifTitle, notifBody || '', '/notifications').catch(err => {
               logger.warn('Push broadcast failed for admin notification', 'Notifications', { error: String(err) });
             });
           }
@@ -165,7 +165,7 @@ export const POST = withRoute(async (request: NextRequest) => {
             logger.warn('Failed to create in-app notification for admin single-user send', 'Notifications', { error: String(err) });
           });
 
-          sendPushToUsers([targetId], notifTitle, notifBody || '', '/').catch(err => {
+          sendPushToUsers([targetId], notifTitle, notifBody || '', '/notifications').catch(err => {
             logger.warn('Push send failed for admin notification', 'Notifications', { error: String(err) });
           });
         } else if (target === 'store' && targetId) {
@@ -188,7 +188,7 @@ export const POST = withRoute(async (request: NextRequest) => {
               logger.warn('Failed to create in-app notification for store owner', 'Notifications', { error: String(err) });
             });
 
-            sendPushToUsers([storeData.user_id], notifTitle, notifBody || '', '/').catch(err => {
+            sendPushToUsers([storeData.user_id], notifTitle, notifBody || '', '/notifications').catch(err => {
               logger.warn('Push send failed for store owner notification', 'Notifications', { error: String(err) });
             });
           }

@@ -174,7 +174,7 @@ export const POST = withRoute(async (request: NextRequest) => {
       body: `أضاف ${storeName || 'متجر'} ${offerLabel}اً جديداً: ${title}`,
       icon: type === 'contest' ? 'Trophy' : 'Gift',
       priority: 'medium' as const,
-      deepLink: `/store/${storeId}`,
+      deepLink: `/offer/${(offer as any)?.id || ''}`,
     };
 
     // Return notifications to client for creation via notificationStore
@@ -182,7 +182,7 @@ export const POST = withRoute(async (request: NextRequest) => {
     const notifications = followerIds.map(fId => ({
       userId: fId,
       ...notifData,
-      data: { offerId: offer.id, offerTitle: title, storeId, storeName, offerType: type },
+      data: { offerId: (offer as any)?.id || '', offerTitle: title, storeId, storeName, offerType: type },
     }));
 
     // Send push notifications to followers (fire-and-forget)

@@ -168,49 +168,65 @@ const MainLayout: React.FC = () => {
     const deepLink = params.get('deepLink');
     if (!deepLink) return;
 
+    console.log('[DeepLink] Detected deep link:', deepLink);
+
     // Clean the URL so it doesn't re-trigger on navigation
     const url = new URL(window.location.href);
     url.searchParams.delete('deepLink');
     window.history.replaceState({}, '', url.pathname);
 
+    // Normalize: ensure deepLink starts with /
+    const normalizedLink = deepLink.startsWith('/') ? deepLink : `/${deepLink}`;
+
     // Parse deep link and navigate
     try {
-      if (deepLink.startsWith('/store/')) {
-        const storeId = deepLink.replace('/store/', '').split('?')[0];
+      if (normalizedLink.startsWith('/store/')) {
+        const storeId = normalizedLink.replace('/store/', '').split('?')[0];
         if (storeId) {
           setSelectedStoreId(storeId);
           setSubScreen('store-detail');
+          console.log('[DeepLink] Navigated to store:', storeId);
         }
-      } else if (deepLink.startsWith('/product/')) {
-        const productId = deepLink.replace('/product/', '').split('?')[0];
+      } else if (normalizedLink.startsWith('/product/')) {
+        const productId = normalizedLink.replace('/product/', '').split('?')[0];
         if (productId) {
           setSelectedProductId(productId);
           setSubScreen('product-detail');
+          console.log('[DeepLink] Navigated to product:', productId);
         }
-      } else if (deepLink.startsWith('/offer/')) {
-        const offerId = deepLink.replace('/offer/', '').split('?')[0];
+      } else if (normalizedLink.startsWith('/offer/')) {
+        const offerId = normalizedLink.replace('/offer/', '').split('?')[0];
         if (offerId) {
           setSelectedOfferId(offerId);
           setSubScreen('offer-detail');
+          console.log('[DeepLink] Navigated to offer:', offerId);
         }
-      } else if (deepLink.startsWith('/chat')) {
-        // Navigate to chat tab
-        setActiveTab(0);
+      } else if (normalizedLink.startsWith('/chat')) {
         // If there's a storeId or userId in the chat deep link, handle it
-        const chatParams = new URLSearchParams(deepLink.split('?')[1] || '');
+        const chatParams = new URLSearchParams(normalizedLink.split('?')[1] || '');
         const storeId = chatParams.get('storeId');
         const userId = chatParams.get('userId');
         if (storeId) {
           setSelectedStoreId(storeId);
           setSubScreen('store-messages');
+          console.log('[DeepLink] Navigated to store-messages, storeId:', storeId);
         } else if (userId) {
           setSubScreen('user-messages');
+          console.log('[DeepLink] Navigated to user-messages');
         }
-      } else if (deepLink === '/notifications' || deepLink.startsWith('/admin')) {
+      } else if (normalizedLink === '/notifications' || normalizedLink.startsWith('/admin')) {
         setSubScreen('notifications');
+        console.log('[DeepLink] Navigated to notifications');
+      } else if (normalizedLink === '/wallet') {
+        setSubScreen('wallet');
+        console.log('[DeepLink] Navigated to wallet');
+      } else if (normalizedLink === '/verification') {
+        setSubScreen('verification');
+        console.log('[DeepLink] Navigated to verification');
       }
     } catch {
       // Invalid deep link format, ignore
+      console.warn('[DeepLink] Failed to parse deep link:', deepLink);
     }
   }, []); // Run once on mount
 

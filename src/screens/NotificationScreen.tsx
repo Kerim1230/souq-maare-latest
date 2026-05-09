@@ -10,7 +10,6 @@ import {
 import { useNotificationStore, NotificationType, NOTIFICATION_TYPE_CONFIG, Notification, NotificationStats } from '@/store/notificationStore';
 import { useAuthStore } from '@/store/authStore';
 import { useAppStore } from '@/store/appStore';
-import toast from 'react-hot-toast';
 import { timeAgo } from '@/lib/date-utils';
 
 function getIconForType(type: NotificationType, icon?: string) {
@@ -150,6 +149,8 @@ export const NotificationScreen: React.FC = () => {
   const user = useAuthStore(s => s.user);
   const setSubScreen = useAppStore(s => s.setSubScreen);
   const setSelectedStoreId = useAppStore(s => s.setSelectedStoreId);
+  const setSelectedProductId = useAppStore(s => s.setSelectedProductId);
+  const setSelectedOfferId = useAppStore(s => s.setSelectedOfferId);
   const notifInitialize = useNotificationStore(s => s.initialize);
   const allNotifications = useNotificationStore(s => s.notifications);
   const markAsRead = useNotificationStore(s => s.markAsRead);
@@ -233,16 +234,30 @@ export const NotificationScreen: React.FC = () => {
   const handleNotificationClick = useCallback((notif: Notification) => {
     if (!notif.deepLink) return;
     const link = notif.deepLink;
-    if (link.startsWith('/store/')) {
-      const storeId = link.replace('/store/', '');
-      setSelectedStoreId(storeId);
-      setSubScreen('store-detail');
-    } else if (link.startsWith('/product/')) {
-      link.replace('/product/', ''); // product navigation not yet implemented
-      toast('عرض المنتج قريباً', { icon: '📦' });
-    } else if (link.startsWith('/chat')) {
+    // Normalize: ensure link starts with /
+    const normalizedLink = link.startsWith('/') ? link : `/${link}`;
+
+    if (normalizedLink.startsWith('/store/')) {
+      const storeId = normalizedLink.replace('/store/', '').split('?')[0];
+      if (storeId) {
+        setSelectedStoreId(storeId);
+        setSubScreen('store-detail');
+      }
+    } else if (normalizedLink.startsWith('/product/')) {
+      const productId = normalizedLink.replace('/product/', '').split('?')[0];
+      if (productId) {
+        setSelectedProductId(productId);
+        setSubScreen('product-detail');
+      }
+    } else if (normalizedLink.startsWith('/offer/')) {
+      const offerId = normalizedLink.replace('/offer/', '').split('?')[0];
+      if (offerId) {
+        setSelectedOfferId(offerId);
+        setSubScreen('offer-detail');
+      }
+    } else if (normalizedLink.startsWith('/chat')) {
       // Chat notification deep link — e.g. /chat?storeId=xxx
-      const urlObj = new URL(link, 'https://dummy.base');
+      const urlObj = new URL(normalizedLink, 'https://dummy.base');
       const storeId = urlObj.searchParams.get('storeId');
       if (storeId) {
         setSelectedStoreId(storeId);
@@ -254,20 +269,22 @@ export const NotificationScreen: React.FC = () => {
       } else {
         setSubScreen('user-messages');
       }
-    } else if (link === 'wallet') {
+    } else if (normalizedLink === '/notifications' || normalizedLink.startsWith('/admin')) {
+      setSubScreen('notifications');
+    } else if (normalizedLink === '/wallet') {
       setSubScreen('wallet');
-    } else if (link === 'verification') {
+    } else if (normalizedLink === '/verification') {
       setSubScreen('verification');
-    } else if (link === 'purchase-points') {
+    } else if (normalizedLink === '/purchase-points') {
       setSubScreen('purchase-points');
-    } else if (link === 'transactions') {
+    } else if (normalizedLink === '/transactions') {
       setSubScreen('transactions');
-    } else if (link === 'share-earn') {
+    } else if (normalizedLink === '/share-earn') {
       setSubScreen('share-earn');
-    } else if (link === 'expired-content') {
+    } else if (normalizedLink === '/expired-content') {
       setSubScreen('expired-content');
     }
-  }, [setSubScreen, setSelectedStoreId]);
+  }, [setSubScreen, setSelectedStoreId, setSelectedProductId, setSelectedOfferId]);
 
   const handleDelete = useCallback((id: string) => {
     deleteNotification(id);

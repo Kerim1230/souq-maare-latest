@@ -15,7 +15,7 @@ import { sendPushToUsers } from '@/lib/vapid'
 /**
  * Notify store followers about a new product.
  */
-async function notifyStoreFollowers(storeId: string, excludeUserId: string, productName: string, price: number): Promise<void> {
+async function notifyStoreFollowers(storeId: string, excludeUserId: string, productName: string, price: number, productId: string): Promise<void> {
   try {
     const store = await findStoreById(storeId);
     const storeName = store?.name || 'متجر';
@@ -31,7 +31,7 @@ async function notifyStoreFollowers(storeId: string, excludeUserId: string, prod
           type: 'store',
           category: 'new_product',
           icon: 'product',
-          deep_link: `/store/${storeId}`,
+          deep_link: `/product/${productId}`,
         })),
       );
 
@@ -40,7 +40,7 @@ async function notifyStoreFollowers(storeId: string, excludeUserId: string, prod
         followerIds,
         `منتج جديد من ${storeName}`,
         `تم إضافة منتج "${productName}" بقيمة ${price} ل.س`,
-        `/store/${storeId}`
+        `/product/${productId}`
       ).catch(err => {
         logger.warn('Push notification failed for product creation (non-critical)', 'Products', {
           error: err instanceof Error ? err.message : String(err),
@@ -212,7 +212,7 @@ export const POST = withRoute(async (request: NextRequest) => {
 
     if (effectiveStoreId) {
       const storeIdForNotif = effectiveStoreId;
-      notifyStoreFollowers(storeIdForNotif, effectiveUserId, productName, validatedPrice).catch(err => {
+      notifyStoreFollowers(storeIdForNotif, effectiveUserId, productName, validatedPrice, (product as any)?.id || '').catch(err => {
         logger.warn('Failed to notify store followers (non-critical)', 'Products', {
           error: err instanceof Error ? err.message : String(err),
           storeId: storeIdForNotif,
