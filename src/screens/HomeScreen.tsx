@@ -1,7 +1,7 @@
 'use client';
 import React, { memo, useEffect, useState, useCallback, useMemo, useRef, useTransition } from 'react';
 import { fetchApi, apiPost, apiDelete } from '@/lib/fetchApi';
-import { Search, Star, ChevronLeft, Verified, Flag, Clock, Share2, Bell, Wallet, Gift, Trophy, Store as StoreIcon, Percent, Wrench } from 'lucide-react';
+import { Search, Star, ChevronLeft, Verified, Flag, Clock, Share2, Bell, Wallet, Gift, Trophy, Store as StoreIcon, Percent } from 'lucide-react';
 import { SkeletonCard } from '@/components/market/Card';
 import { SafeImage, StoreLogo } from '@/components/market/SafeImage';
 import { ShareSheet } from '@/components/market/ShareSheet';
@@ -315,23 +315,36 @@ export const HomeScreen: React.FC = () => {
     return () => { cancelled = true; controller.abort(); };
   }, [fetchHomeData]);
 
-  // ── Auto-refresh every 2 minutes (silent, with thin progress bar) ──
+  // ── Auto-refresh every 60 seconds (silent, with thin progress bar) ──
+  // Skips refresh if the user is interacting (modal open, typing in a field)
   useEffect(() => {
     const interval = setInterval(() => {
+      // Skip if user is interacting with a modal or input
+      const activeEl = document.activeElement;
+      const isTyping = activeEl instanceof HTMLInputElement || activeEl instanceof HTMLTextAreaElement;
+      const hasOpenModal = document.querySelector('[role="dialog"][aria-modal="true"]');
+      if (isTyping || hasOpenModal) {
+        console.log('[HomeScreen] Skipping auto-refresh — user is interacting');
+        return;
+      }
+
       setIsRefreshing(true);
       fetchHomeData()
         .then((data) => {
           if (!data) return;
+          lastFetchTime.current = Date.now();
+          lastFetchSuccess.current = true;
           startTransition(() => {
             setFS(data?.featured_stores || []);
             setFP((data?.featured_products || []) as ProductCardData[]);
             setNP((data?.new_products || []) as ProductCardData[]);
             setAllOffers(data?.offers || []);
           });
+          console.log('[HomeScreen] Auto-refreshed successfully');
         })
         .catch(() => { /* silent refresh failure */ })
         .finally(() => setIsRefreshing(false));
-    }, 120_000); // 2 minutes
+    }, 60_000); // 60 seconds
     return () => clearInterval(interval);
   }, [fetchHomeData, startTransition]);
 
@@ -369,11 +382,6 @@ export const HomeScreen: React.FC = () => {
               </div>
             </div>
             <div className="flex items-center gap-2">
-              {user?.is_admin && (
-                <button onClick={() => setSubScreen('debug-push')} className="w-7 h-7 bg-[var(--color-surface)]/5 rounded-lg flex items-center justify-center hover:bg-[var(--color-surface)]/15 transition-colors opacity-40 hover:opacity-100" aria-label="تشخيص الإشعارات" title="تشخيص الإشعارات">
-                  <Wrench className="w-3.5 h-3.5 text-teal-300/60 dark:text-teal-500/50" />
-                </button>
-              )}
               <button onClick={() => setSubScreen('wallet')} className="relative w-10 h-10 bg-[var(--color-surface)]/10 backdrop-blur-sm rounded-xl flex items-center justify-center hover:bg-[var(--color-surface)]/20 transition-colors" aria-label="محفظة النقاط">
                 <Wallet className="w-[18px] h-[18px] text-teal-300 dark:text-teal-600/70" />
                 {walletBalance > 0 && (

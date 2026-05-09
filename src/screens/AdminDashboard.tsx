@@ -1,5 +1,5 @@
 'use client';
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import {
   ArrowRight, Shield, Home, Flag, Users, Store, Package,
   Tag, Coins, Settings, Activity, Eye, Trash2, Star, StarOff,
@@ -9,7 +9,7 @@ import {
   Trophy, Save, CreditCard,
   FileWarning, Info, Calendar, Megaphone,
   Award, Gift, Building2, ShoppingBag, Hash,
-  Pencil, Key, Wrench, UserCog, Bot, MessageSquare
+  Pencil, Key, Wrench, UserCog, Bot, MessageSquare, Loader2
 } from 'lucide-react';
 import { useAuthStore } from '@/store/authStore';
 import { useAppStore } from '@/store/appStore';
@@ -29,7 +29,7 @@ import { MaintenancePanel } from '@/screens/admin/MaintenancePanel';
 import { AiHelpSettings } from '@/screens/admin/AiHelpSettings';
 
 // ===== Constants =====
-type TabKey = 'home' | 'reports' | 'users' | 'stores' | 'products' | 'offers' | 'points' | 'verification' | 'notifications' | 'activity' | 'systemMonitor' | 'systemKeys' | 'userManager' | 'maintenance' | 'monitoring' | 'aiHelp' | 'support' | 'settings';
+type TabKey = 'home' | 'reports' | 'users' | 'stores' | 'products' | 'offers' | 'points' | 'verification' | 'notifications' | 'activity' | 'systemMonitor' | 'systemKeys' | 'userManager' | 'maintenance' | 'monitoring' | 'aiHelp' | 'pushDebug' | 'support' | 'settings';
 
 const TAB_CONFIG: { key: TabKey; label: string; icon: React.ReactNode; badge?: () => number }[] = [
   { key: 'home', label: 'الرئيسية', icon: <Home className="w-[18px] h-[18px]" /> },
@@ -48,6 +48,7 @@ const TAB_CONFIG: { key: TabKey; label: string; icon: React.ReactNode; badge?: (
   { key: 'maintenance', label: 'الصيانة', icon: <Wrench className="w-[18px] h-[18px]" /> },
   { key: 'monitoring', label: 'المراقبة', icon: <Eye className="w-[18px] h-[18px]" /> },
   { key: 'aiHelp', label: 'المساعد الذكي 🤖', icon: <Bot className="w-[18px] h-[18px]" /> },
+  { key: 'pushDebug', label: 'تشخيص الإشعارات 🔔', icon: <BellRing className="w-[18px] h-[18px]" /> },
   { key: 'support', label: 'الدعم 📩', icon: <Mail className="w-[18px] h-[18px]" /> },
   { key: 'settings', label: 'الإعدادات', icon: <Settings className="w-[18px] h-[18px]" /> },
 ];
@@ -211,7 +212,7 @@ export const AdminDashboard: React.FC = () => {
       </div>
 
       {/* Search */}
-      {activeTab !== 'home' && activeTab !== 'settings' && activeTab !== 'systemMonitor' && activeTab !== 'systemKeys' && activeTab !== 'maintenance' && activeTab !== 'monitoring' && activeTab !== 'aiHelp' && activeTab !== 'support' && (
+      {activeTab !== 'home' && activeTab !== 'settings' && activeTab !== 'systemMonitor' && activeTab !== 'systemKeys' && activeTab !== 'maintenance' && activeTab !== 'monitoring' && activeTab !== 'aiHelp' && activeTab !== 'pushDebug' && activeTab !== 'support' && (
         <div className="px-4 mb-4">
           <SearchBar value={searchQuery} onChange={setSearchQuery} placeholder={`بحث في ${TAB_CONFIG.find(t => t.key === activeTab)?.label}...`} />
         </div>
@@ -235,6 +236,7 @@ export const AdminDashboard: React.FC = () => {
         {activeTab === 'maintenance' && <MaintenancePanel />}
         {activeTab === 'monitoring' && <MonitoringTab />}
         {activeTab === 'aiHelp' && <AiHelpSettings />}
+        {activeTab === 'pushDebug' && <PushDebugTab />}
         {activeTab === 'support' && <SupportTab />}
         {activeTab === 'settings' && <SettingsTab store={store} />}
       </div>
@@ -1660,6 +1662,208 @@ function SupportTab() {
           </DataCard>
         ))
       )}
+    </div>
+  );
+}
+
+// ===== PUSH DEBUG TAB =====
+function PushDebugTab() {
+  const [testResults, setTestResults] = useState<Array<{ id: number; title: string; status: 'pending' | 'running' | 'pass' | 'fail'; detail: string }>>([
+    { id: 1, title: 'دعم المتصفح للإشعارات', status: 'pending', detail: '' },
+    { id: 2, title: 'تسجيل Service Worker', status: 'pending', detail: '' },
+    { id: 3, title: 'مفتاح VAPID', status: 'pending', detail: '' },
+    { id: 4, title: 'إذن الإشعارات', status: 'pending', detail: '' },
+    { id: 5, title: 'اشتراك Push', status: 'pending', detail: '' },
+    { id: 6, title: 'حفظ الاشتراك في الخادم', status: 'pending', detail: '' },
+    { id: 7, title: 'إشعار تجريبي', status: 'pending', detail: '' },
+  ]);
+  const [isRunning, setIsRunning] = useState(false);
+  const [testPushResult, setTestPushResult] = useState<string | null>(null);
+
+  const updateResult = useCallback((id: number, update: Partial<typeof testResults[number]>) => {
+    setTestResults(prev => prev.map(r => r.id === id ? { ...r, ...update } : r));
+  }, []);
+
+  const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
+  const runDiagnostics = useCallback(async () => {
+    setIsRunning(true);
+    setTestPushResult(null);
+    setTestResults(prev => prev.map(r => ({ ...r, status: 'pending', detail: '' })));
+
+    // Test 1: Browser Support
+    updateResult(1, { status: 'running', detail: 'جاري الفحص...' });
+    await delay(400);
+    const browserSupported = 'Notification' in window && 'PushManager' in window && 'serviceWorker' in navigator;
+    updateResult(1, { status: browserSupported ? 'pass' : 'fail', detail: browserSupported ? 'المتصفح يدعم الإشعارات' : 'المتصفح لا يدعم الإشعارات' });
+
+    if (!browserSupported) { setIsRunning(false); return; }
+    await delay(300);
+
+    // Test 2: Service Worker
+    updateResult(2, { status: 'running', detail: 'جاري الفحص...' });
+    await delay(400);
+    try {
+      const reg = await navigator.serviceWorker.ready;
+      updateResult(2, { status: reg.active ? 'pass' : 'fail', detail: reg.active ? `نشط — ${reg.scope}` : 'غير نشط' });
+    } catch (e: any) {
+      updateResult(2, { status: 'fail', detail: e?.message || 'فشل' });
+    }
+    await delay(300);
+
+    // Test 3: VAPID Key
+    updateResult(3, { status: 'running', detail: 'جاري الفحص...' });
+    await delay(400);
+    const vapidKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
+    const keyValid = !!vapidKey && vapidKey.startsWith('B') && Math.abs(vapidKey.length - 87) <= 2;
+    updateResult(3, { status: keyValid ? 'pass' : 'fail', detail: keyValid ? `صالح — ${vapidKey!.substring(0, 10)}...` : vapidKey ? 'غير صالح' : 'غير موجود' });
+    await delay(300);
+
+    // Test 4: Permission
+    updateResult(4, { status: 'running', detail: 'جاري الفحص...' });
+    await delay(400);
+    const perm = Notification.permission;
+    updateResult(4, { status: perm === 'granted' ? 'pass' : 'fail', detail: `الإذن: ${perm === 'granted' ? 'مقبول ✓' : perm === 'denied' ? 'مرفوض ✗' : 'غير محدد'}` });
+    await delay(300);
+
+    // Test 5: Push Subscription
+    updateResult(5, { status: 'running', detail: 'جاري الفحص...' });
+    await delay(400);
+    let subscription: PushSubscription | null = null;
+    try {
+      if (Notification.permission === 'default') {
+        const res = await Notification.requestPermission();
+        if (res !== 'granted') { updateResult(5, { status: 'fail', detail: 'تم رفض الإذن' }); setIsRunning(false); return; }
+      }
+      const reg = await navigator.serviceWorker.ready;
+      const existing = await reg.pushManager.getSubscription();
+      if (existing) { subscription = existing; }
+      else if (vapidKey) {
+        const key = Uint8Array.from(atob((vapidKey + '='.repeat((4 - vapidKey.length % 4) % 4)).replace(/-/g, '+').replace(/_/g, '/')), c => c.charCodeAt(0));
+        subscription = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: key });
+      }
+      updateResult(5, { status: subscription ? 'pass' : 'fail', detail: subscription ? 'تم الاشتراك بنجاح' : 'فشل الاشتراك' });
+    } catch (e: any) { updateResult(5, { status: 'fail', detail: e?.message || 'فشل' }); }
+    await delay(300);
+
+    // Test 6: Server Save
+    updateResult(6, { status: 'running', detail: 'جاري الفحص...' });
+    await delay(400);
+    if (!subscription) {
+      updateResult(6, { status: 'fail', detail: 'لا يوجد اشتراك لحفظه' });
+    } else {
+      try {
+        const res = await apiPost('/api/push/subscribe', { subscription: subscription.toJSON() });
+        updateResult(6, { status: res.ok ? 'pass' : 'fail', detail: res.ok ? 'تم الحفظ في الخادم' : `فشل: ${res.error || 'خطأ'}` });
+      } catch (e: any) { updateResult(6, { status: 'fail', detail: e?.message || 'فشل' }); }
+    }
+    await delay(300);
+
+    // Test 7: Test Notification
+    updateResult(7, { status: 'running', detail: 'جاري الإرسال...' });
+    await delay(400);
+    try {
+      const reg = await navigator.serviceWorker.ready;
+      await reg.showNotification('🔍 إشعار تجريبي — سوق مارع', {
+        body: 'إذا ترى هذا الإشعار، فالنظام يعمل بشكل صحيح! ✅',
+        icon: '/app-icon.png', badge: '/app-icon.png', tag: 'admin-debug-test', requireInteraction: true,
+      });
+      updateResult(7, { status: 'pass', detail: 'تم عرض الإشعار التجريبي' });
+    } catch (e: any) { updateResult(7, { status: 'fail', detail: e?.message || 'فشل' }); }
+
+    setIsRunning(false);
+  }, [updateResult]);
+
+  // Server-side push test
+  const runServerPushTest = useCallback(async () => {
+    try {
+      setTestPushResult('جاري الإرسال...');
+      const { data, error } = await apiPost<{ sentCount: number }>('/api/push/send', {
+        title: '🔔 اختبار إشعار من لوحة المدير',
+        body: 'هذا إشعار تجريبي من لوحة تحكم المدير',
+      });
+      if (error) {
+        setTestPushResult(`❌ فشل: ${error}`);
+      } else {
+        setTestPushResult(`✅ تم إرسال ${data?.sentCount || 0} إشعار`);
+      }
+    } catch (e: any) {
+      setTestPushResult(`❌ خطأ: ${e?.message || 'غير معروف'}`);
+    }
+  }, []);
+
+  const passCount = testResults.filter(r => r.status === 'pass').length;
+  const failCount = testResults.filter(r => r.status === 'fail').length;
+
+  return (
+    <div className="space-y-4 pb-4">
+      {/* Summary */}
+      <DataCard>
+        <SectionHeader title="تشخيص الإشعارات 🔔" />
+        <p className="text-[12px] text-[var(--color-text-tertiary)] mb-4 leading-relaxed">
+          اختبار شامل لنظام الإشعارات — من دعم المتصفح حتى إرسال الإشعارات للمستخدمين
+        </p>
+
+        <div className="flex gap-3 mb-4">
+          <Button variant="primary" onClick={runDiagnostics} disabled={isRunning}
+            icon={isRunning ? <Loader2 className="w-4 h-4 animate-spin" /> : <Activity className="w-4 h-4" />}>
+            {isRunning ? 'جاري التشخيص...' : 'تشغيل التشخيص'}
+          </Button>
+        </div>
+
+        {/* Results */}
+        <div className="space-y-2">
+          {testResults.map((result) => (
+            <div key={result.id} className={`flex items-center gap-3 p-3 rounded-xl border ${
+              result.status === 'pass' ? 'bg-emerald-50/50 dark:bg-emerald-900/10 border-emerald-200/50 dark:border-emerald-800/30' :
+              result.status === 'fail' ? 'bg-rose-50/50 dark:bg-rose-900/10 border-rose-200/50 dark:border-rose-800/30' :
+              result.status === 'running' ? 'bg-amber-50/50 dark:bg-amber-900/10 border-amber-200/50 dark:border-amber-800/30' :
+              'bg-slate-50/50 border-slate-200/50'
+            }`}>
+              <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${
+                result.status === 'pass' ? 'bg-emerald-100 dark:bg-emerald-900/30' :
+                result.status === 'fail' ? 'bg-rose-100 dark:bg-rose-900/30' :
+                result.status === 'running' ? 'bg-amber-100 dark:bg-amber-900/30' :
+                'bg-slate-100'
+              }`}>
+                {result.status === 'pass' ? <CheckCircle className="w-4 h-4 text-emerald-600" /> :
+                 result.status === 'fail' ? <XCircle className="w-4 h-4 text-rose-600" /> :
+                 result.status === 'running' ? <Loader2 className="w-4 h-4 text-amber-600 animate-spin" /> :
+                 <span className="text-xs font-bold text-slate-400">{result.id}</span>}
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-[12px] font-bold text-[var(--color-text)]">{result.title}</p>
+                {result.detail && <p className="text-[11px] text-[var(--color-text-tertiary)] mt-0.5">{result.detail}</p>}
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {testResults.some(r => r.status !== 'pending') && (
+          <div className="flex gap-4 mt-3 pt-3 border-t border-[var(--color-border)]">
+            <span className="text-[12px] font-bold text-emerald-600">✅ {passCount} نجح</span>
+            <span className="text-[12px] font-bold text-rose-600">❌ {failCount} فشل</span>
+          </div>
+        )}
+      </DataCard>
+
+      {/* Server-side Push Test */}
+      <DataCard>
+        <SectionHeader title="إرسال إشعار تجريبي للمستخدمين 📨" />
+        <p className="text-[12px] text-[var(--color-text-tertiary)] mb-4">
+          إرسال إشعار تجريبي لجميع المستخدمين المشتركين في الإشعارات
+        </p>
+        <Button variant="success" onClick={runServerPushTest} icon={<Send className="w-4 h-4" />}>
+          إرسال إشعار تجريبي
+        </Button>
+        {testPushResult && (
+          <div className={`mt-3 p-3 rounded-xl text-[12px] font-bold ${
+            testPushResult.startsWith('✅') ? 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700' : 'bg-rose-50 dark:bg-rose-900/20 text-rose-700'
+          }`}>
+            {testPushResult}
+          </div>
+        )}
+      </DataCard>
     </div>
   );
 }
