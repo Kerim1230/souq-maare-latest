@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import toast from 'react-hot-toast';
-import { apiPost, ensureCsrfReady } from '@/lib/fetchApi';
+import { apiPost, apiDelete, ensureCsrfReady } from '@/lib/fetchApi';
 
 /**
  * Convert a VAPID base64 public key to a Uint8Array.
@@ -166,36 +166,32 @@ export const usePushSubscription = (onStateChange?: (subscribed: boolean) => voi
       const applicationServerKey = urlBase64ToUint8Array(vapidKey);
       console.log('[Push] ✅ Step 5: Key converted, byte length =', applicationServerKey.length);
 
-      // 6. Check for existing subscription first
-      let subscription = await registration.pushManager.getSubscription();
-      if (subscription) {
-        console.log('[Push] Step 6: Existing subscription found, unsubscribing first...');
-        await subscription.unsubscribe();
+      // 6. Check for existing subscription
+      const existingSubscription = await registration.pushManager.getSubscription();
+
+      // 7. Subscribe to push — if already subscribed with same key, reuse it
+      let subscription = existingSubscription;
+      if (!subscription) {
+        console.log('[Push] Step 6: No existing subscription, creating new one...');
+        subscription = await registration.pushManager.subscribe({
+          userVisibleOnly: true,
+          applicationServerKey,  // Pass Uint8Array directly — most compatible
+        });
+        console.log('[Push] ✅ Step 6: Subscription created, endpoint =', subscription.endpoint?.substring(0, 60) + '...');
+      } else {
+        console.log('[Push] Step 6: Existing subscription found, reusing it...');
       }
 
-      // 7. Subscribe to push
-      console.log('[Push] Step 7: Calling pushManager.subscribe()...');
-      subscription = await registration.pushManager.subscribe({
-        userVisibleOnly: true,
-        applicationServerKey: applicationServerKey.buffer as ArrayBuffer,
-      });
-      console.log('[Push] ✅ Step 7: Subscription created, endpoint =', subscription.endpoint?.substring(0, 60) + '...');
-
-      // 8. Ensure CSRF is ready before sending to server
-      console.log('[Push] Step 8: Ensuring CSRF token is ready...');
-      await ensureCsrfReady();
-      console.log('[Push] ✅ Step 8: CSRF ready');
-
-      // 9. Send subscription to server
+      // 8. Send subscription to server (apiPost auto-handles CSRF)
       const subJson = subscription.toJSON();
-      console.log('[Push] Step 9: Sending subscription to server...', {
+      console.log('[Push] Step 7: Sending subscription to server...', {
         hasEndpoint: !!subJson.endpoint,
         hasKeys: !!(subJson.keys?.p256dh && subJson.keys?.auth),
       });
       const res = await apiPost('/api/push/subscribe', {
         subscription: subJson,
       });
-      console.log('[Push] Step 9 result: ok =', res.ok, 'error =', res.error, 'status =', res.status);
+      console.log('[Push] Step 7 result: ok =', res.ok, 'error =', res.error, 'status =', res.status);
 
       if (!res.ok) {
         throw new Error(res.error || `فشل حفظ الاشتراك (${res.status})`);
@@ -222,11 +218,15 @@ export const usePushSubscription = (onStateChange?: (subscribed: boolean) => voi
       const subscription = await registration.pushManager.getSubscription();
 
       if (subscription) {
-        await ensureCsrfReady();
-        await fetch(`/api/push/subscribe?endpoint=${encodeURIComponent(subscription.endpoint)}`, {
-          method: 'DELETE',
-          credentials: 'include',
-        });
+        // Delete from server first (using apiDelete for CSRF support)
+        const endpoint = subscription.endpoint;
+        const res = await apiDelete(`/api/push/subscribe?endpoint=${encodeURIComponent(endpoint)}`);
+
+        if (!res.ok && res.status !== 404) {
+          console.warn('[Push] Server delete failed:', res.error);
+        }
+
+        // Unsubscribe from browser
         await subscription.unsubscribe();
       }
 
