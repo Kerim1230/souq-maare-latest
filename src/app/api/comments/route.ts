@@ -11,6 +11,7 @@ import { checkRateGuard } from '@/server/lib/rate-guard';
 import { requireAuth } from '@/server/lib/auth-guard';
 import { logger } from '@/lib/logger';
 import { getErrorMessage } from '@/lib/error-utils';
+import { sendPushToUser } from '@/lib/vapid';
 
 export const GET = withRoute(async (request: NextRequest) => {
   try {
@@ -172,6 +173,21 @@ export const POST = withRoute(async (request: NextRequest) => {
         // Non-fatal: comment was created successfully, just notification failed
         console.warn('[Comments] Notification creation failed (non-fatal)', String(notifErr));
         logger.warn('Comment notification creation failed', 'Comments', { commentId: comment.id, error: String(notifErr) });
+      }
+
+      // Send push notification to content owner
+      try {
+        await sendPushToUser(
+          contentOwnerId,
+          'تعليق جديد',
+          contentName
+            ? `قام ${commentWithRelations.user?.full_name || 'مستخدم'} بالتعليق على "${contentName}"`
+            : `قام ${commentWithRelations.user?.full_name || 'مستخدم'} بإضافة تعليق جديد`,
+          deepLink
+        );
+      } catch (pushErr) {
+        // Non-fatal: push notification failed, comment was still created
+        logger.warn('Push notification failed for comment', 'Comments', { error: (pushErr as Error)?.message });
       }
     }
 

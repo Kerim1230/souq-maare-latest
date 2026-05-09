@@ -7,6 +7,7 @@ import { requireAuth } from '@/server/lib/auth-guard';
 import { validateId, sanitizeAndValidate } from '@/utils/validation';
 import { logger } from '@/lib/logger';
 import { withRoute } from '@/server/lib/route-wrapper';
+import { sendPushToUser } from '@/lib/vapid';
 
 /**
  * POST /api/chat/send
@@ -143,6 +144,27 @@ export const POST = withRoute(async (request: NextRequest) => {
       });
     } catch (notifErr) {
       logger.warn('Failed to create chat notification', 'ChatSend', { error: (notifErr as Error)?.message });
+    }
+
+    // Send push notification to receiver
+    try {
+      const senderUser = await findUserById(senderId);
+      const senderName = senderUser?.full_name || senderUser?.phone || 'مستخدم';
+      const preview = sanitizedContent.length > 50 ? sanitizedContent.slice(0, 50) + '...' : sanitizedContent;
+      const relevantStore = storeId
+        ? (senderStore?.id === storeId ? senderStore : receiverStore)
+        : receiverStore;
+      const storeName = relevantStore?.name || '';
+
+      await sendPushToUser(
+        receiverId,
+        storeName ? `رسالة جديدة في ${storeName}` : `رسالة جديدة من ${senderName}`,
+        `${senderName}: ${preview}`,
+        storeId ? `/chat?storeId=${storeId}` : undefined
+      );
+    } catch (pushErr) {
+      // Non-fatal: push notification failed, message was still sent
+      logger.warn('Push notification failed for chat message', 'ChatSend', { error: (pushErr as Error)?.message });
     }
 
     // Supabase already returns snake_case, no need for camelToSnake

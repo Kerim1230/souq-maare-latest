@@ -12,6 +12,7 @@ import { useAppStore } from '@/store/appStore';
 import { useNotificationStore } from '@/store/notificationStore';
 import { Button } from '@/components/market/Button';
 import { Input } from '@/components/market/Input';
+import { PushSubscribe } from '@/components/PushSubscribe';
 import toast from 'react-hot-toast';
 import { apiPut } from '@/lib/fetchApi';
 
@@ -308,6 +309,9 @@ export const SettingsScreen: React.FC = () => {
               </h3>
               <p className="text-[11px] text-[var(--color-text-tertiary)] mb-3">تحكم في الإشعارات التي تتلقاها</p>
               <div className="divide-y divide-[var(--color-border)]">
+                {/* Push Notifications Subscription */}
+                <PushSubscribe />
+
                 <Toggle
                   enabled={notifStoreSettings.enabled}
                   onChange={(v) => updateNotifStoreSettings({ enabled: v })}

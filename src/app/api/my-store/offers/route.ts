@@ -18,6 +18,7 @@ import {
   handleCount,
 } from '@/lib/supabase-db';
 import { serverCache } from '@/lib/cache';
+import { sendPushToUsers } from '@/lib/vapid';
 
 export const GET = withRoute(async (request: NextRequest) => {
   try {
@@ -183,6 +184,20 @@ export const POST = withRoute(async (request: NextRequest) => {
       ...notifData,
       data: { offerId: offer.id, offerTitle: title, storeId, storeName, offerType: type },
     }));
+
+    // Send push notifications to followers (fire-and-forget)
+    if (followerIds.length > 0) {
+      sendPushToUsers(
+        followerIds,
+        notifData.title,
+        notifData.body,
+        notifData.deepLink
+      ).catch(err => {
+        logger.warn('Push notification failed for offer creation (non-critical)', 'StoreOffers', {
+          error: err instanceof Error ? err.message : String(err),
+        });
+      });
+    }
 
     // Invalidate home and search caches after offer creation
     serverCache.invalidateByPrefix('home:');

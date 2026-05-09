@@ -49,6 +49,7 @@ export const TABLES = {
   ENCRYPTED_SETTINGS: 'encrypted_settings',
   CATEGORIES: 'categories',
   REFERRALS: 'referrals',
+  PUSH_SUBSCRIPTIONS: 'push_subscriptions',
 } as const;
 
 // ── Query Helpers ───────────────────────────────────────────────────────

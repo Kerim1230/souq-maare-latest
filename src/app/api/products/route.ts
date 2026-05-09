@@ -10,6 +10,7 @@ import { validatePrice, validateId, sanitizeAndValidate } from '@/utils/validati
 import { sanitizeString } from '@/server/lib/sanitize'
 import { mapProduct } from '@/lib/api-utils'
 import { cachedQuery, CACHE_TTL, serverCache } from '@/lib/cache'
+import { sendPushToUsers } from '@/lib/vapid'
 
 /**
  * Notify store followers about a new product.
@@ -33,6 +34,18 @@ async function notifyStoreFollowers(storeId: string, excludeUserId: string, prod
           deep_link: `/store/${storeId}`,
         })),
       );
+
+      // Also send push notifications
+      sendPushToUsers(
+        followerIds,
+        `منتج جديد من ${storeName}`,
+        `تم إضافة منتج "${productName}" بقيمة ${price} ل.س`,
+        `/store/${storeId}`
+      ).catch(err => {
+        logger.warn('Push notification failed for product creation (non-critical)', 'Products', {
+          error: err instanceof Error ? err.message : String(err),
+        });
+      });
     }
   } catch (err) {
     logger.warn('Failed to notify store followers (non-critical)', 'Products', {
