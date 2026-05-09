@@ -9,9 +9,8 @@ import { success, serverError } from '@/lib/api-response';
 import { withRoute } from '@/server/lib/route-wrapper';
 import { cachedQuery, CACHE_TTL, serverCache } from '@/lib/cache';
 
-const PRODUCTS_PER_PAGE = 10;
 const FEATURED_PRODUCTS_LIMIT = 3;
-const NEW_PRODUCTS_LIMIT = 6;
+const NEW_PRODUCTS_LIMIT = 3;
 
 function parsePositiveInt(value: string | null, fallback: number): number {
   if (!value) return fallback;
@@ -39,8 +38,8 @@ export const GET = withRoute(async (request: NextRequest) => {
     const userId = request.nextUrl.searchParams.get('userId');
     const fpPage = parsePositiveInt(request.nextUrl.searchParams.get('fpPage'), 1);
     const npPage = parsePositiveInt(request.nextUrl.searchParams.get('npPage'), 1);
-    const fpOffset = (fpPage - 1) * PRODUCTS_PER_PAGE;
-    const npOffset = (npPage - 1) * PRODUCTS_PER_PAGE;
+    const fpOffset = (fpPage - 1) * FEATURED_PRODUCTS_LIMIT;
+    const npOffset = (npPage - 1) * NEW_PRODUCTS_LIMIT;
 
     return await getHomeData(userId, fpOffset, FEATURED_PRODUCTS_LIMIT, npOffset, NEW_PRODUCTS_LIMIT);
   } catch (error) {
@@ -141,34 +140,34 @@ async function getHomeData(userId: string | null, fpOffset: number, fpLimit: num
 
     if (cachedFollowers) {
       Object.assign(followerCounts, cachedFollowers);
-    } else {
-      const sb = getSupabaseAdmin();
-      const followsRes = await sb
-        .from(TABLES.STORE_FOLLOWS)
-        .select('store_id')
-        .in('store_id', storeIds);
-
-      if (followsRes.data) {
-        for (const f of followsRes.data) {
-          followerCounts[f.store_id] = (followerCounts[f.store_id] || 0) + 1;
-        }
-        // Cache follower counts for 2 minutes
-        serverCache.set(followerCacheKey, { ...followerCounts }, CACHE_TTL.HOME);
-      }
     }
 
-    // User-specific follow status (never cached per-user for correctness)
-    if (userId) {
-      const sb = getSupabaseAdmin();
-      const userFollowsRes = await sb
-        .from(TABLES.STORE_FOLLOWS)
-        .select('store_id')
-        .eq('user_id', userId)
-        .in('store_id', storeIds);
+    // Fetch follower counts AND user follow status in parallel
+    const [followerResult, userFollowResult] = await Promise.all([
+      cachedFollowers
+        ? Promise.resolve(null)
+        : getSupabaseAdmin()
+            .from(TABLES.STORE_FOLLOWS)
+            .select('store_id')
+            .in('store_id', storeIds),
+      userId
+        ? getSupabaseAdmin()
+            .from(TABLES.STORE_FOLLOWS)
+            .select('store_id')
+            .eq('user_id', userId)
+            .in('store_id', storeIds)
+        : Promise.resolve(null),
+    ]);
 
-      if (userFollowsRes.data) {
-        for (const f of userFollowsRes.data) followStatus[f.store_id] = true;
+    if (!cachedFollowers && followerResult?.data) {
+      for (const f of followerResult.data) {
+        followerCounts[f.store_id] = (followerCounts[f.store_id] || 0) + 1;
       }
+      serverCache.set(followerCacheKey, { ...followerCounts }, CACHE_TTL.HOME);
+    }
+
+    if (userFollowResult?.data) {
+      for (const f of userFollowResult.data) followStatus[f.store_id] = true;
     }
   }
 

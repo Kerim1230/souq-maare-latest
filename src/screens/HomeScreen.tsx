@@ -1,7 +1,7 @@
 'use client';
 import React, { memo, useEffect, useState, useCallback, useMemo, useRef, useTransition } from 'react';
 import { fetchApi, apiPost, apiDelete } from '@/lib/fetchApi';
-import { Search, Star, ChevronLeft, Verified, Flag, Clock, Share2, Bell, Wallet, Gift, Trophy, Store as StoreIcon, Percent } from 'lucide-react';
+import { Search, Star, ChevronLeft, Verified, Flag, Clock, Share2, Bell, Wallet, Gift, Trophy, Store as StoreIcon, Percent, Wrench } from 'lucide-react';
 import { SkeletonCard } from '@/components/market/Card';
 import { SafeImage, StoreLogo } from '@/components/market/SafeImage';
 import { ShareSheet } from '@/components/market/ShareSheet';
@@ -144,7 +144,7 @@ export const HomeScreen: React.FC = () => {
   // ── Sliced display arrays ──
   const displayedOffers = useMemo(() => allOffers.slice(0, 5), [allOffers]);
   const displayedFeaturedProducts = useMemo(() => featuredProducts.slice(0, 3), [featuredProducts]);
-  const displayedNewProducts = useMemo(() => newProducts.slice(0, 4), [newProducts]);
+  const displayedNewProducts = useMemo(() => newProducts.slice(0, 3), [newProducts]);
 
   // ── Stable callbacks ──
   const handleCategoryClick = useCallback((catName: string) => {
@@ -356,6 +356,9 @@ export const HomeScreen: React.FC = () => {
               </div>
             </div>
             <div className="flex items-center gap-2">
+              <button onClick={() => setSubScreen('debug-push')} className="w-7 h-7 bg-[var(--color-surface)]/5 rounded-lg flex items-center justify-center hover:bg-[var(--color-surface)]/15 transition-colors opacity-40 hover:opacity-100" aria-label="تشخيص الإشعارات" title="تشخيص الإشعارات">
+                <Wrench className="w-3.5 h-3.5 text-teal-300/60 dark:text-teal-500/50" />
+              </button>
               <button onClick={() => setSubScreen('wallet')} className="relative w-10 h-10 bg-[var(--color-surface)]/10 backdrop-blur-sm rounded-xl flex items-center justify-center hover:bg-[var(--color-surface)]/20 transition-colors" aria-label="محفظة النقاط">
                 <Wallet className="w-[18px] h-[18px] text-teal-300 dark:text-teal-600/70" />
                 {walletBalance > 0 && (

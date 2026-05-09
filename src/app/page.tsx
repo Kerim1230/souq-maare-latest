@@ -37,6 +37,7 @@ const SettingsScreen = lazy(() => import('@/screens/SettingsScreen').then(m => (
 const HelpScreen = lazy(() => import('@/screens/HelpScreen').then(m => ({ default: m.HelpScreen })));
 const ContactSupportScreen = lazy(() => import('@/screens/ContactSupportScreen').then(m => ({ default: m.ContactSupportScreen })));
 const PolicyScreen = lazy(() => import('@/screens/PolicyScreen').then(m => ({ default: m.PolicyScreen })));
+const DebugPushScreen = lazy(() => import('@/screens/DebugPushScreen').then(m => ({ default: m.DebugPushScreen })));
 
 // Minimal loading fallback
 const ScreenLoader: React.FC = () => (
@@ -133,6 +134,7 @@ function SubScreenLoader({ subScreen }: { subScreen: string }) {
       case 'help': return HelpScreen;
       case 'contact-support': return ContactSupportScreen;
       case 'policy': return PolicyScreen;
+      case 'debug-push': return DebugPushScreen;
       default: return null;
     }
   }, [subScreen]);
@@ -321,23 +323,37 @@ export default function App() {
 
     const loadGlobalData = async () => {
       try {
+        const tasks: Promise<void>[] = [];
+
         // 1. Favorites — one-time via hydration guard
         if (!isHydrated('favorites')) {
-          await useAppStore.getState().fetchFavorites(userId);
+          tasks.push(useAppStore.getState().fetchFavorites(userId).then(() => {}));
         }
 
         // 2. Followed stores — one-time via hydration guard
         if (!isHydrated('followedStores')) {
-          await useAppStore.getState().fetchFollowedStores(userId);
+          tasks.push(useAppStore.getState().fetchFollowedStores(userId).then(() => {}));
         }
 
         // 3. Wallet — one-time via hydration guard
         if (!isHydrated('wallet')) {
-          const { usePointsStore } = await import('@/store/pointsStore');
-          const ps = usePointsStore.getState();
-          ps.initialize(); // Load settings only (user-agnostic)
-          await ps.fetchWallet(userId); // markHydrated('wallet') called inside on success
+          tasks.push((async () => {
+            const { usePointsStore } = await import('@/store/pointsStore');
+            const ps = usePointsStore.getState();
+            ps.initialize(); // Load settings only (user-agnostic)
+            await ps.fetchWallet(userId); // markHydrated('wallet') called inside on success
+          })());
         }
+
+        // 4. Notifications — one-time via hydration guard
+        if (!isHydrated('notifications')) {
+          tasks.push((async () => {
+            await useNotificationStore.getState().fetchNotifications(userId);
+            markHydrated('notifications');
+          })());
+        }
+
+        await Promise.all(tasks);
       } catch {
         // Global init failures are non-critical — screens have fallback fetch
       }
@@ -345,16 +361,6 @@ export default function App() {
 
     loadGlobalData();
   }, [user?.id]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  // ── Notifications: Initial hydration ──
-  useEffect(() => {
-    if (!user?.id) return;
-    // One-time hydration: fetch notifications from server
-    if (!isHydrated('notifications')) {
-      useNotificationStore.getState().fetchNotifications(user.id);
-      markHydrated('notifications');
-    }
-  }, [user?.id]);
 
   if (!initialized) return <SplashScreen />;
 

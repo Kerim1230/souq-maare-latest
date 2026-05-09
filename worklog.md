@@ -19,3 +19,63 @@ Stage Summary:
 - CSRF cookie flow confirmed working: proxy sets cookie → client reads it → apiPost includes header
 - 4 bugs fixed in PushSubscribe.tsx and pushed to GitHub
 - The push notification system should now work correctly on the Vercel deployment after auto-rebuild
+
+---
+Task ID: 2
+Agent: Performance Agent
+Task: Fix Homepage Load Delay
+
+Work Log:
+- Read worklog.md for context from previous agent (Task 1: Push notifications fix)
+- Read and analyzed src/app/page.tsx, src/app/api/home/route.ts, src/screens/HomeScreen.tsx
+- Fix 1: Changed sequential global data loading (favorites → followedStores → wallet) to parallel using Promise.all in page.tsx. Merged the separate notifications useEffect into the parallel loader and removed the redundant useEffect.
+- Fix 2: Reduced NEW_PRODUCTS_LIMIT from 6 to 3 in route.ts. Fixed pagination offset bug: changed offset calculation from using PRODUCTS_PER_PAGE (10) to using the actual limits (FEATURED_PRODUCTS_LIMIT / NEW_PRODUCTS_LIMIT). Removed unused PRODUCTS_PER_PAGE constant.
+- Fix 3: Parallelized follower counts and user follow status queries using Promise.all in route.ts. When follower counts are cached, only user follow status query runs (via Promise.resolve(null) for the cached branch).
+- Fix 4: Changed newProducts.slice(0, 4) to newProducts.slice(0, 3) in HomeScreen.tsx for consistency with the reduced API limit.
+- Ran bun run lint: 0 errors, 9 warnings (all pre-existing unused eslint-disable directives)
+- Dev server running successfully on port 3000
+
+Stage Summary:
+- All 4 fixes applied successfully
+- Homepage data loading is now parallel instead of sequential (favorites, followedStores, wallet, notifications all load concurrently)
+- API returns fewer initial items (3 new products instead of 6) for faster first paint
+- Pagination offset bug fixed (now uses actual limit values instead of hardcoded 10)
+- Follower counts and user follow status queries run in parallel on the server
+- No breaking changes to UI/styling
+
+---
+Task ID: 3
+Agent: Debug Screen Agent
+Task: Create Push Notification Diagnostic Page
+
+Work Log:
+- Read worklog.md for context from previous agents (Task 1: Push fix, Task 2: Performance fix)
+- Read and analyzed existing files: page.tsx, HomeScreen.tsx, PushSubscribe.tsx, fetchApi.ts, appStore.ts, types/index.ts
+- Added 'debug-push' to SubScreen type union in src/types/index.ts
+- Created src/screens/DebugPushScreen.tsx with 7-step sequential diagnostic:
+  - Test 1: Browser Support (Notification, PushManager, ServiceWorker APIs)
+  - Test 2: Service Worker Registration (state, scope)
+  - Test 3: VAPID Public Key (presence, starts with B, length ≈ 87)
+  - Test 4: Notification Permission (granted/denied/default)
+  - Test 5: Push Subscription (subscribe with VAPID key, show endpoint)
+  - Test 6: Server Save (POST to /api/push/subscribe via apiPost)
+  - Test 7: Send Test Notification (registration.showNotification)
+- Added lazy import for DebugPushScreen in src/app/page.tsx
+- Added 'debug-push' case to SubScreenLoader in src/app/page.tsx
+- Added subtle wrench (🔧) button in HomeScreen.tsx header next to wallet/notification buttons
+  - Small 28px button with low opacity (0.4), becomes fully visible on hover
+  - Uses Wrench icon from lucide-react
+  - Navigates to debug-push subscreen via setSubScreen('debug-push')
+- Copied urlBase64ToUint8Array function from PushSubscribe.tsx into DebugPushScreen.tsx
+- Used apiPost from fetchApi.ts for server save test (auto-handles CSRF)
+- Ran bun run lint: 0 errors, 9 warnings (all pre-existing)
+- Dev server running successfully on port 3000
+
+Stage Summary:
+- Diagnostic screen accessible via subtle wrench icon in home header
+- RTL layout with dark gradient header matching app's existing design
+- Each test shows ✅/❌ with detailed sub-information
+- Animated progress indicator during testing
+- Tips section for troubleshooting common issues
+- Summary bar shows pass/fail count when all tests complete
+- No separate route created — works as subscreen within existing app architecture
