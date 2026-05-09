@@ -1,0 +1,518 @@
+{
+  "baseUrl": "https://souq-maare-latest.vercel.app",
+  "totalUsers": 3,
+  "totalTests": 80,
+  "passed": 54,
+  "failed": 26,
+  "averageResponseTime": "735ms",
+  "p95ResponseTime": "1743ms",
+  "categories": {
+    "server-health": {
+      "passed": 1,
+      "failed": 0,
+      "avgTime": "563ms",
+      "minTime": 563,
+      "maxTime": 563,
+      "totalRequests": 1,
+      "errors": []
+    },
+    "signup": {
+      "passed": 3,
+      "failed": 0,
+      "avgTime": "1722ms",
+      "minTime": 1698,
+      "maxTime": 1751,
+      "totalRequests": 3,
+      "errors": []
+    },
+    "signin": {
+      "passed": 3,
+      "failed": 0,
+      "avgTime": "1111ms",
+      "minTime": 1055,
+      "maxTime": 1176,
+      "totalRequests": 3,
+      "errors": []
+    },
+    "home": {
+      "passed": 3,
+      "failed": 0,
+      "avgTime": "1350ms",
+      "minTime": 1062,
+      "maxTime": 1529,
+      "totalRequests": 3,
+      "errors": []
+    },
+    "categories": {
+      "passed": 3,
+      "failed": 0,
+      "avgTime": "441ms",
+      "minTime": 279,
+      "maxTime": 530,
+      "totalRequests": 3,
+      "errors": []
+    },
+    "my-store": {
+      "passed": 3,
+      "failed": 0,
+      "avgTime": "745ms",
+      "minTime": 741,
+      "maxTime": 748,
+      "totalRequests": 3,
+      "errors": []
+    },
+    "search": {
+      "passed": 6,
+      "failed": 2,
+      "avgTime": "541ms",
+      "minTime": 283,
+      "maxTime": 1123,
+      "totalRequests": 8,
+      "errors": [
+        "حدث خطأ غير متوقع في الخادم"
+      ]
+    },
+    "favorites": {
+      "passed": 3,
+      "failed": 0,
+      "avgTime": "1022ms",
+      "minTime": 773,
+      "maxTime": 1157,
+      "totalRequests": 3,
+      "errors": []
+    },
+    "user-profile": {
+      "passed": 3,
+      "failed": 0,
+      "avgTime": "870ms",
+      "minTime": 721,
+      "maxTime": 1143,
+      "totalRequests": 3,
+      "errors": []
+    },
+    "points": {
+      "passed": 3,
+      "failed": 0,
+      "avgTime": "1256ms",
+      "minTime": 1020,
+      "maxTime": 1382,
+      "totalRequests": 3,
+      "errors": []
+    },
+    "notifications": {
+      "passed": 3,
+      "failed": 0,
+      "avgTime": "787ms",
+      "minTime": 749,
+      "maxTime": 848,
+      "totalRequests": 3,
+      "errors": []
+    },
+    "referrals": {
+      "passed": 3,
+      "failed": 0,
+      "avgTime": "798ms",
+      "minTime": 740,
+      "maxTime": 892,
+      "totalRequests": 3,
+      "errors": []
+    },
+    "create-store": {
+      "passed": 0,
+      "failed": 3,
+      "avgTime": "64ms",
+      "minTime": 57,
+      "maxTime": 68,
+      "totalRequests": 3,
+      "errors": [
+        "طلب غير صالح: رمز CSRF غير متطابق أو مفقود"
+      ]
+    },
+    "add-favorite": {
+      "passed": 0,
+      "failed": 3,
+      "avgTime": "62ms",
+      "minTime": 60,
+      "maxTime": 65,
+      "totalRequests": 3,
+      "errors": [
+        "طلب غير صالح: رمز CSRF غير متطابق أو مفقود"
+      ]
+    },
+    "follow-store": {
+      "passed": 0,
+      "failed": 3,
+      "avgTime": "64ms",
+      "minTime": 61,
+      "maxTime": 66,
+      "totalRequests": 3,
+      "errors": [
+        "طلب غير صالح: رمز CSRF غير متطابق أو مفقود"
+      ]
+    },
+    "chat-send": {
+      "passed": 0,
+      "failed": 3,
+      "avgTime": "58ms",
+      "minTime": 54,
+      "maxTime": 63,
+      "totalRequests": 3,
+      "errors": [
+        "طلب غير صالح: رمز CSRF غير متطابق أو مفقود"
+      ]
+    },
+    "points-order": {
+      "passed": 0,
+      "failed": 3,
+      "avgTime": "65ms",
+      "minTime": 59,
+      "maxTime": 70,
+      "totalRequests": 3,
+      "errors": [
+        "طلب غير صالح: رمز CSRF غير متطابق أو مفقود"
+      ]
+    },
+    "share-track": {
+      "passed": 0,
+      "failed": 3,
+      "avgTime": "60ms",
+      "minTime": 58,
+      "maxTime": 62,
+      "totalRequests": 3,
+      "errors": [
+        "طلب غير صالح: رمز CSRF غير متطابق أو مفقود"
+      ]
+    },
+    "create-report": {
+      "passed": 0,
+      "failed": 1,
+      "avgTime": "57ms",
+      "minTime": 57,
+      "maxTime": 57,
+      "totalRequests": 1,
+      "errors": [
+        "طلب غير صالح: رمز CSRF غير متطابق أو مفقود"
+      ]
+    },
+    "create-comment": {
+      "passed": 0,
+      "failed": 3,
+      "avgTime": "61ms",
+      "minTime": 57,
+      "maxTime": 66,
+      "totalRequests": 3,
+      "errors": [
+        "طلب غير صالح: رمز CSRF غير متطابق أو مفقود"
+      ]
+    },
+    "admin-signin": {
+      "passed": 1,
+      "failed": 0,
+      "avgTime": "1429ms",
+      "minTime": 1429,
+      "maxTime": 1429,
+      "totalRequests": 1,
+      "errors": []
+    },
+    "admin-data": {
+      "passed": 1,
+      "failed": 0,
+      "avgTime": "2268ms",
+      "minTime": 2268,
+      "maxTime": 2268,
+      "totalRequests": 1,
+      "errors": []
+    },
+    "admin-reports": {
+      "passed": 1,
+      "failed": 0,
+      "avgTime": "980ms",
+      "minTime": 980,
+      "maxTime": 980,
+      "totalRequests": 1,
+      "errors": []
+    },
+    "admin-verifications": {
+      "passed": 1,
+      "failed": 0,
+      "avgTime": "1743ms",
+      "minTime": 1743,
+      "maxTime": 1743,
+      "totalRequests": 1,
+      "errors": []
+    },
+    "admin-system-health": {
+      "passed": 1,
+      "failed": 0,
+      "avgTime": "6811ms",
+      "minTime": 6811,
+      "maxTime": 6811,
+      "totalRequests": 1,
+      "errors": []
+    },
+    "admin-system-keys": {
+      "passed": 1,
+      "failed": 0,
+      "avgTime": "1016ms",
+      "minTime": 1016,
+      "maxTime": 1016,
+      "totalRequests": 1,
+      "errors": []
+    },
+    "admin-wallets": {
+      "passed": 1,
+      "failed": 0,
+      "avgTime": "1159ms",
+      "minTime": 1159,
+      "maxTime": 1159,
+      "totalRequests": 1,
+      "errors": []
+    },
+    "admin-users": {
+      "passed": 1,
+      "failed": 0,
+      "avgTime": "1469ms",
+      "minTime": 1469,
+      "maxTime": 1469,
+      "totalRequests": 1,
+      "errors": []
+    },
+    "admin-bans": {
+      "passed": 1,
+      "failed": 0,
+      "avgTime": "1211ms",
+      "minTime": 1211,
+      "maxTime": 1211,
+      "totalRequests": 1,
+      "errors": []
+    },
+    "admin-notifications": {
+      "passed": 1,
+      "failed": 0,
+      "avgTime": "1165ms",
+      "minTime": 1165,
+      "maxTime": 1165,
+      "totalRequests": 1,
+      "errors": []
+    },
+    "home-anonymous": {
+      "passed": 1,
+      "failed": 0,
+      "avgTime": "276ms",
+      "minTime": 276,
+      "maxTime": 276,
+      "totalRequests": 1,
+      "errors": []
+    },
+    "categories-anonymous": {
+      "passed": 1,
+      "failed": 0,
+      "avgTime": "272ms",
+      "minTime": 272,
+      "maxTime": 272,
+      "totalRequests": 1,
+      "errors": []
+    },
+    "products-anonymous": {
+      "passed": 0,
+      "failed": 1,
+      "avgTime": "284ms",
+      "minTime": 284,
+      "maxTime": 284,
+      "totalRequests": 1,
+      "errors": [
+        "حدث خطأ غير متوقع في الخادم"
+      ]
+    },
+    "health": {
+      "passed": 1,
+      "failed": 0,
+      "avgTime": "520ms",
+      "minTime": 520,
+      "maxTime": 520,
+      "totalRequests": 1,
+      "errors": []
+    },
+    "robots-txt": {
+      "passed": 1,
+      "failed": 0,
+      "avgTime": "68ms",
+      "minTime": 68,
+      "maxTime": 68,
+      "totalRequests": 1,
+      "errors": []
+    },
+    "sitemap-xml": {
+      "passed": 1,
+      "failed": 0,
+      "avgTime": "64ms",
+      "minTime": 64,
+      "maxTime": 64,
+      "totalRequests": 1,
+      "errors": []
+    },
+    "manifest-json": {
+      "passed": 1,
+      "failed": 0,
+      "avgTime": "60ms",
+      "minTime": 60,
+      "maxTime": 60,
+      "totalRequests": 1,
+      "errors": []
+    },
+    "rate-limit-signup": {
+      "passed": 0,
+      "failed": 1,
+      "avgTime": "0ms",
+      "minTime": 0,
+      "maxTime": 0,
+      "totalRequests": 1,
+      "errors": [
+        "Rate limit not triggered after 5 signup attempts"
+      ]
+    },
+    "rate-limit-general": {
+      "passed": 1,
+      "failed": 0,
+      "avgTime": "0ms",
+      "minTime": 0,
+      "maxTime": 0,
+      "totalRequests": 1,
+      "errors": [
+        "Handled 70 requests without rate limit"
+      ]
+    }
+  },
+  "errors": [
+    {
+      "test": "search",
+      "userId": "f054cd04-e0d1-4505-9056-887918594964",
+      "error": "حدث خطأ غير متوقع في الخادم"
+    },
+    {
+      "test": "create-store",
+      "userId": "b5f61926-61d4-4851-b0a2-8364fa9e8033",
+      "error": "طلب غير صالح: رمز CSRF غير متطابق أو مفقود"
+    },
+    {
+      "test": "create-store",
+      "userId": "a9ff7b81-76e2-4800-b20f-e5232a665e15",
+      "error": "طلب غير صالح: رمز CSRF غير متطابق أو مفقود"
+    },
+    {
+      "test": "create-store",
+      "userId": "f054cd04-e0d1-4505-9056-887918594964",
+      "error": "طلب غير صالح: رمز CSRF غير متطابق أو مفقود"
+    },
+    {
+      "test": "add-favorite",
+      "userId": "a9ff7b81-76e2-4800-b20f-e5232a665e15",
+      "error": "طلب غير صالح: رمز CSRF غير متطابق أو مفقود"
+    },
+    {
+      "test": "add-favorite",
+      "userId": "b5f61926-61d4-4851-b0a2-8364fa9e8033",
+      "error": "طلب غير صالح: رمز CSRF غير متطابق أو مفقود"
+    },
+    {
+      "test": "add-favorite",
+      "userId": "f054cd04-e0d1-4505-9056-887918594964",
+      "error": "طلب غير صالح: رمز CSRF غير متطابق أو مفقود"
+    },
+    {
+      "test": "follow-store",
+      "userId": "a9ff7b81-76e2-4800-b20f-e5232a665e15",
+      "error": "طلب غير صالح: رمز CSRF غير متطابق أو مفقود"
+    },
+    {
+      "test": "follow-store",
+      "userId": "f054cd04-e0d1-4505-9056-887918594964",
+      "error": "طلب غير صالح: رمز CSRF غير متطابق أو مفقود"
+    },
+    {
+      "test": "follow-store",
+      "userId": "b5f61926-61d4-4851-b0a2-8364fa9e8033",
+      "error": "طلب غير صالح: رمز CSRF غير متطابق أو مفقود"
+    },
+    {
+      "test": "chat-send",
+      "userId": "b5f61926-61d4-4851-b0a2-8364fa9e8033",
+      "error": "طلب غير صالح: رمز CSRF غير متطابق أو مفقود"
+    },
+    {
+      "test": "chat-send",
+      "userId": "f054cd04-e0d1-4505-9056-887918594964",
+      "error": "طلب غير صالح: رمز CSRF غير متطابق أو مفقود"
+    },
+    {
+      "test": "chat-send",
+      "userId": "a9ff7b81-76e2-4800-b20f-e5232a665e15",
+      "error": "طلب غير صالح: رمز CSRF غير متطابق أو مفقود"
+    },
+    {
+      "test": "points-order",
+      "userId": "a9ff7b81-76e2-4800-b20f-e5232a665e15",
+      "error": "طلب غير صالح: رمز CSRF غير متطابق أو مفقود"
+    },
+    {
+      "test": "points-order",
+      "userId": "b5f61926-61d4-4851-b0a2-8364fa9e8033",
+      "error": "طلب غير صالح: رمز CSRF غير متطابق أو مفقود"
+    },
+    {
+      "test": "points-order",
+      "userId": "f054cd04-e0d1-4505-9056-887918594964",
+      "error": "طلب غير صالح: رمز CSRF غير متطابق أو مفقود"
+    },
+    {
+      "test": "share-track",
+      "userId": "f054cd04-e0d1-4505-9056-887918594964",
+      "error": "طلب غير صالح: رمز CSRF غير متطابق أو مفقود"
+    },
+    {
+      "test": "share-track",
+      "userId": "a9ff7b81-76e2-4800-b20f-e5232a665e15",
+      "error": "طلب غير صالح: رمز CSRF غير متطابق أو مفقود"
+    },
+    {
+      "test": "share-track",
+      "userId": "b5f61926-61d4-4851-b0a2-8364fa9e8033",
+      "error": "طلب غير صالح: رمز CSRF غير متطابق أو مفقود"
+    },
+    {
+      "test": "create-report",
+      "userId": "a9ff7b81-76e2-4800-b20f-e5232a665e15",
+      "error": "طلب غير صالح: رمز CSRF غير متطابق أو مفقود"
+    },
+    {
+      "test": "create-comment",
+      "userId": "b5f61926-61d4-4851-b0a2-8364fa9e8033",
+      "error": "طلب غير صالح: رمز CSRF غير متطابق أو مفقود"
+    },
+    {
+      "test": "create-comment",
+      "userId": "a9ff7b81-76e2-4800-b20f-e5232a665e15",
+      "error": "طلب غير صالح: رمز CSRF غير متطابق أو مفقود"
+    },
+    {
+      "test": "create-comment",
+      "userId": "f054cd04-e0d1-4505-9056-887918594964",
+      "error": "طلب غير صالح: رمز CSRF غير متطابق أو مفقود"
+    },
+    {
+      "test": "products-anonymous",
+      "error": "حدث خطأ غير متوقع في الخادم"
+    },
+    {
+      "test": "search[منتج]",
+      "error": "حدث خطأ غير متوقع في الخادم"
+    },
+    {
+      "test": "rate-limit-signup",
+      "error": "Rate limit not triggered after 5 signup attempts"
+    }
+  ],
+  "startedAt": "2026-05-09T15:45:00.887Z",
+  "finishedAt": "2026-05-09T15:47:06.662Z",
+  "durationSec": 126
+}
