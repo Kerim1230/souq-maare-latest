@@ -21,83 +21,44 @@ Stage Summary:
 - The push notification system should now work correctly on the Vercel deployment after auto-rebuild
 
 ---
-Task ID: 2
-Agent: Performance Agent
-Task: Fix Homepage Load Delay
-
-Work Log:
-- Read worklog.md for context from previous agent (Task 1: Push notifications fix)
-- Read and analyzed src/app/page.tsx, src/app/api/home/route.ts, src/screens/HomeScreen.tsx
-- Fix 1: Changed sequential global data loading to parallel using Promise.all in page.tsx
-- Fix 2: Reduced NEW_PRODUCTS_LIMIT from 6 to 3 in route.ts
-- Fix 3: Parallelized follower counts and user follow status queries
-- Fix 4: Changed newProducts.slice(0, 4) to newProducts.slice(0, 3) in HomeScreen.tsx
-
-Stage Summary:
-- All 4 fixes applied successfully
-- Homepage data loading is now parallel instead of sequential
-- API returns fewer initial items (3 new products instead of 6)
-
----
-Task ID: 3
-Agent: Debug Screen Agent
-Task: Create Push Notification Diagnostic Page
-
-Work Log:
-- Created /debug/push diagnostic page with 6 automated tests
-- Added subtle wrench icon in HomeScreen.tsx header
-- Used apiPost from fetchApi.ts for server save test
-
-Stage Summary:
-- Diagnostic page at /debug/push with 6 automated tests
-- Works as separate route, not subscreen
-
----
-Task ID: 4
+Task ID: 6
 Agent: Main Agent
-Task: Fix push subscribe 500 error - table schema mismatch
+Task: Fix debug icon visibility, deep link navigation, homepage loading
 
 Work Log:
-- Discovered root cause: push_subscriptions table uses `subscription` jsonb column, not separate endpoint/p256dh/auth columns
-- Fixed subscribe/route.ts POST to store full PushSubscription in jsonb
-- Fixed subscribe/route.ts DELETE to find by user_id + endpoint match in jsonb
-- Fixed vapid.ts: Updated PushSubscriptionRow interface and added parseSubscription() helper
-- Created /debug/push/page.tsx diagnostic page
-- Pushed to GitHub: commit bcc122b
-
-Stage Summary:
-- Root cause: Supabase table schema mismatch (jsonb vs separate columns)
-- Code now correctly stores/retrieves full PushSubscription object in jsonb
+- Fixed debug icon to show only for admin users (user?.is_admin check)
+- Fixed in-app notification click handler: added product/offer navigation, normalized links
+- Fixed deep link handler in page.tsx for push notifications from outside app
+- Fixed admin notification URLs: changed from '/' to '/notifications'
+- Fixed product notification URLs: changed from '/store/xxx' to '/product/{productId}'
+- Fixed offer notification URLs: changed from '/store/xxx' to '/offer/{offerId}'
+- Fixed homepage loading: moved lastFetchTime assignment after successful fetch
+- Added lastFetchSuccess ref to prevent cooldown from blocking retries on failure
+- Added console.log for debugging home screen data loading
+- Pushed to GitHub: commit ec4acd3
 
 ---
-Task ID: 5
+Task ID: 7
 Agent: Main Agent
-Task: Fix admin notifications, notification links, and share preview
+Task: Fix auto-refresh homepage, share design, hide debug icon
 
 Work Log:
-- Read all notification-related files: notifications/route.ts, adminDashboardStore.ts, sw.js, page.tsx, share/[type]/[id]/page.tsx, ShareSheet.tsx, share/data/route.ts, vapid.ts
-- Fix 1: Added sendPushToUsers + createManyNotifications to admin notification POST handler
-  - target=all: fetches all user IDs, creates in-app notifications in batch, sends push to all
-  - target=user: sends push + in-app to single user
-  - target=store: resolves store owner, sends push + in-app
-- Fix 1b: Added push notification sending for regular user notifications too (via sendPushToUsers)
-- Fix 2: Fixed notification click 404 by changing sw.js to open '/?deepLink=...' instead of raw URLs
-  - Added deep link handler in page.tsx that reads deepLink param and navigates to correct subScreen
-  - Supports /store/xxx, /product/xxx, /offer/xxx, /chat, /notifications
-  - Cleans URL after processing via replaceState
-  - Bumped SW cache version to v7
-- Fix 3: Fixed share page OG images
-  - Added NEXT_PUBLIC_BASE_URL env var (https://souq-maare-latest.vercel.app)
-  - OG images now use absolute URLs instead of relative paths
-  - Default fallback: BASE_URL/app-icon.png
-  - Images optimized via optimizeImage with 1200x630 dimensions
-  - Added alt text to OG images
-  - Added NEXT_PUBLIC_BASE_URL to Vercel env vars
-- Fixed TypeScript errors: unused imports, possibly null notification, store type casting
-- Pushed to GitHub: commit 0af3e3e
+- Changed auto-refresh interval from 2 minutes to 60 seconds
+- Added interaction guard: skips refresh when user is typing or modal is open
+- Updated lastFetchTime and lastFetchSuccess during auto-refresh
+- Added console.log for auto-refresh tracking
+- Redesigned share/[type]/[id]/page.tsx: large hero image, type-specific colors, better layout
+- Share page now shows large image at top (380px), with gradient fallback when no image
+- Type-specific color schemes: store=emerald, product=teal, offer=amber, contest=rose
+- Removed debug icon (🔧 Wrench) from homepage completely
+- Added PushDebugTab to AdminDashboard as new tab "تشخيص الإشعارات 🔔"
+- PushDebugTab includes 7 diagnostic tests + server-side push test
+- Added Loader2 and useCallback imports to AdminDashboard
+- Fixed TypeScript errors: vapidKey possibly undefined, missing Loader2 import
+- Pushed to GitHub: commit 0c540fd
 
 Stage Summary:
-- Admin notifications now properly deliver push + in-app notifications to all users
-- Notification click no longer causes 404 - uses SPA deep linking via query param
-- Share preview images use absolute URLs for proper OG rendering on social media
-- All 3 issues resolved in single commit
+- Homepage auto-refreshes every 60s with interaction guard
+- Share page redesigned with beautiful hero image and type-specific colors
+- Debug icon completely removed from homepage
+- Push diagnostics moved to AdminDashboard as dedicated tab
