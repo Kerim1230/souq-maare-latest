@@ -19,12 +19,15 @@ export const POST = withRoute(async (request: NextRequest) => {
     const body = await request.json();
     const { subscription } = body;
 
+    console.log('[Push API] Subscribe request received:', { hasSubscription: !!subscription, hasEndpoint: !!subscription?.endpoint });
+
     if (!subscription || !subscription.endpoint) {
       return badRequest('بيانات الاشتراك غير صالحة');
     }
 
     const { endpoint, keys } = subscription;
     if (!keys?.p256dh || !keys?.auth) {
+      console.warn('[Push API] Missing keys:', { hasP256dh: !!keys?.p256dh, hasAuth: !!keys?.auth });
       return badRequest('مفاتيح الاشتراك مفقودة');
     }
 

@@ -12,7 +12,7 @@ import { useAppStore } from '@/store/appStore';
 import { useNotificationStore } from '@/store/notificationStore';
 import { Button } from '@/components/market/Button';
 import { Input } from '@/components/market/Input';
-import { PushSubscribe } from '@/components/PushSubscribe';
+import { usePushSubscription } from '@/components/PushSubscribe';
 import toast from 'react-hot-toast';
 import { apiPut } from '@/lib/fetchApi';
 
@@ -64,6 +64,9 @@ export const SettingsScreen: React.FC = () => {
   // Notification settings (persisted via notificationStore)
   const notifStoreSettings = useNotificationStore(s => s.settings);
   const updateNotifStoreSettings = useNotificationStore(s => s.updateSettings);
+
+  // Push notification subscription
+  const pushSub = usePushSubscription();
 
   // Privacy settings (via notificationStore — single source of truth)
   const privacySettings = useNotificationStore(s => s.privacy);
@@ -309,16 +312,42 @@ export const SettingsScreen: React.FC = () => {
               </h3>
               <p className="text-[11px] text-[var(--color-text-tertiary)] mb-3">تحكم في الإشعارات التي تتلقاها</p>
               <div className="divide-y divide-[var(--color-border)]">
-                {/* Push Notifications Subscription */}
-                <PushSubscribe />
-
-                <Toggle
-                  enabled={notifStoreSettings.enabled}
-                  onChange={(v) => updateNotifStoreSettings({ enabled: v })}
-                  label="تفعيل الإشعارات"
-                  description="تفعيل/تعطيل جميع الإشعارات"
-                  icon={<Bell className="w-4 h-4" />}
-                />
+                {/* Push Notifications — merged with the main toggle */}
+                {pushSub.isUnsupported ? (
+                  <div className="flex items-center gap-3 py-3.5">
+                    <div className="w-9 h-9 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-400 flex-shrink-0">
+                      <Bell className="w-4 h-4" />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-[13px] font-bold text-[var(--color-text-tertiary)]">إشعارات Push</p>
+                      <p className="text-[11px] text-[var(--color-text-tertiary)] mt-0.5">المتصفح لا يدعم الإشعارات</p>
+                    </div>
+                  </div>
+                ) : pushSub.isDenied ? (
+                  <div className="flex items-center gap-3 py-3.5">
+                    <div className="w-9 h-9 rounded-xl bg-red-50 dark:bg-red-900/30 flex items-center justify-center text-red-500 flex-shrink-0">
+                      <Bell className="w-4 h-4" />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-[13px] font-bold text-red-600 dark:text-red-400">الإشعارات محظورة</p>
+                      <p className="text-[11px] text-[var(--color-text-tertiary)] mt-0.5">فعّل الإشعارات من إعدادات المتصفح</p>
+                    </div>
+                  </div>
+                ) : (
+                  <Toggle
+                    enabled={pushSub.isSubscribed}
+                    onChange={async (v) => {
+                      if (v) {
+                        await pushSub.subscribe();
+                      } else {
+                        await pushSub.unsubscribe();
+                      }
+                    }}
+                    label="تفعيل الإشعارات"
+                    description={pushSub.isSubscribed ? 'ستصلك الإشعارات فورياً' : 'فعّل لتلقي إشعارات الرسائل والعروض'}
+                    icon={<Bell className="w-4 h-4" />}
+                  />
+                )}
                 <Toggle
                   enabled={notifStoreSettings.types.message !== false}
                   onChange={(v) => updateNotifStoreSettings({ types: { ...notifStoreSettings.types, message: v } })}
