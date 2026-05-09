@@ -52,20 +52,10 @@ Work Log:
 - Read worklog.md for context from previous agents (Task 1: Push fix, Task 2: Performance fix)
 - Read and analyzed existing files: page.tsx, HomeScreen.tsx, PushSubscribe.tsx, fetchApi.ts, appStore.ts, types/index.ts
 - Added 'debug-push' to SubScreen type union in src/types/index.ts
-- Created src/screens/DebugPushScreen.tsx with 7-step sequential diagnostic:
-  - Test 1: Browser Support (Notification, PushManager, ServiceWorker APIs)
-  - Test 2: Service Worker Registration (state, scope)
-  - Test 3: VAPID Public Key (presence, starts with B, length ≈ 87)
-  - Test 4: Notification Permission (granted/denied/default)
-  - Test 5: Push Subscription (subscribe with VAPID key, show endpoint)
-  - Test 6: Server Save (POST to /api/push/subscribe via apiPost)
-  - Test 7: Send Test Notification (registration.showNotification)
+- Created src/screens/DebugPushScreen.tsx with 7-step sequential diagnostic
 - Added lazy import for DebugPushScreen in src/app/page.tsx
 - Added 'debug-push' case to SubScreenLoader in src/app/page.tsx
-- Added subtle wrench (🔧) button in HomeScreen.tsx header next to wallet/notification buttons
-  - Small 28px button with low opacity (0.4), becomes fully visible on hover
-  - Uses Wrench icon from lucide-react
-  - Navigates to debug-push subscreen via setSubScreen('debug-push')
+- Added subtle wrench button in HomeScreen.tsx header
 - Copied urlBase64ToUint8Array function from PushSubscribe.tsx into DebugPushScreen.tsx
 - Used apiPost from fetchApi.ts for server save test (auto-handles CSRF)
 - Ran bun run lint: 0 errors, 9 warnings (all pre-existing)
@@ -74,8 +64,34 @@ Work Log:
 Stage Summary:
 - Diagnostic screen accessible via subtle wrench icon in home header
 - RTL layout with dark gradient header matching app's existing design
-- Each test shows ✅/❌ with detailed sub-information
+- Each test shows pass/fail with detailed sub-information
 - Animated progress indicator during testing
 - Tips section for troubleshooting common issues
 - Summary bar shows pass/fail count when all tests complete
 - No separate route created — works as subscreen within existing app architecture
+
+---
+Task ID: 4
+Agent: Main Agent
+Task: Fix push subscribe 500 error - table schema mismatch
+
+Work Log:
+- Diagnosed the 500 error by querying Supabase OpenAPI spec for push_subscriptions table
+- Discovered root cause: table schema uses `subscription` (jsonb) column, but code tried to insert `endpoint`, `p256dh`, `auth` as separate columns
+- The old code used `upsert({ user_id, endpoint, p256dh, auth }, { onConflict: 'endpoint' })` which failed because those columns don't exist
+- Fixed subscribe/route.ts: POST handler now stores full PushSubscription object in `subscription` jsonb column
+- Changed upsert logic to two-step: find existing by user_id + endpoint match in jsonb, then update or insert
+- Fixed subscribe/route.ts: DELETE handler now finds subscription by user_id + endpoint match in jsonb
+- Fixed vapid.ts: Updated PushSubscriptionRow interface to use `subscription: { endpoint, keys } | string`
+- Added parseSubscription() helper in vapid.ts to handle both parsed objects and raw JSON strings from Supabase
+- Updated sendToSubscription() to extract endpoint/keys from the jsonb column
+- Created /debug/push/page.tsx with 6 automated diagnostic tests
+- Fixed TypeScript error: Uint8Array not assignable to BufferSource (added cast)
+- All code passes lint (0 errors) and tsc --noEmit for changed files
+- Pushed to GitHub: commit bcc122b
+
+Stage Summary:
+- Root cause: Supabase table `push_subscriptions` has `subscription` jsonb column, NOT separate endpoint/p256dh/auth columns
+- Code now correctly stores/retrieves full PushSubscription object in jsonb
+- Diagnostic page at /debug/push tests: browser support, SW registration, VAPID key, permission, subscribe, server save
+- Fix should resolve the step 6 (server save) 500 error in the diagnostic tool
