@@ -2,11 +2,12 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import toast from 'react-hot-toast';
-import { apiPost } from '@/lib/fetchApi';
+import { apiPost, ensureCsrfReady } from '@/lib/fetchApi';
 
 /**
  * Convert a VAPID base64 public key to a Uint8Array.
  * This is REQUIRED by pushManager.subscribe({ applicationServerKey }).
+ * Handles URL-safe base64 (replaces - with +, _ with /).
  */
 function urlBase64ToUint8Array(base64String: string): Uint8Array {
   const padding = '='.repeat((4 - base64String.length % 4) % 4);
@@ -19,10 +20,66 @@ function urlBase64ToUint8Array(base64String: string): Uint8Array {
   return outputArray;
 }
 
+/**
+ * Ensure the Service Worker is registered and ready.
+ * If not registered yet, register it and wait for it to become active.
+ */
+async function ensureServiceWorkerReady(): Promise<ServiceWorkerRegistration> {
+  if (!('serviceWorker' in navigator)) {
+    throw new Error('المتصفح لا يدعم Service Worker');
+  }
+
+  // First, try to get an already-ready registration
+  try {
+    const registration = await navigator.serviceWorker.ready;
+    if (registration.active) {
+      console.log('[Push] SW already active');
+      return registration;
+    }
+  } catch {
+    // Not ready yet, continue to register
+  }
+
+  // Register the service worker
+  console.log('[Push] Registering Service Worker...');
+  const registration = await navigator.serviceWorker.register('/sw.js', { scope: '/' });
+  console.log('[Push] SW registered, state:', registration.active?.state || registration.installing?.state);
+
+  // Wait for it to become active
+  if (registration.active) {
+    return registration;
+  }
+
+  return new Promise((resolve, reject) => {
+    const worker = registration.installing || registration.waiting;
+    if (!worker) {
+      reject(new Error('فشل تسجيل Service Worker'));
+      return;
+    }
+
+    const timeout = setTimeout(() => {
+      reject(new Error('انتهت مهلة تفعيل Service Worker'));
+    }, 10000);
+
+    worker.addEventListener('statechange', () => {
+      console.log('[Push] SW state changed to:', worker.state);
+      if (worker.state === 'activated') {
+        clearTimeout(timeout);
+        resolve(registration);
+      }
+    });
+
+    // Also check if it's already activated
+    if (worker.state === 'activated') {
+      clearTimeout(timeout);
+      resolve(registration);
+    }
+  });
+}
 
 /**
  * Headless push-subscription manager.
- * Does NOT render any UI — exposes subscribe/unsubscribe via ref
+ * Does NOT render any UI — exposes subscribe/unsubscribe as a hook
  * so the parent Toggle can drive it.
  */
 export const usePushSubscription = (onStateChange?: (subscribed: boolean) => void) => {
@@ -30,6 +87,7 @@ export const usePushSubscription = (onStateChange?: (subscribed: boolean) => voi
 
   const checkPushState = useCallback(async () => {
     if (typeof window === 'undefined' || !('serviceWorker' in navigator) || !('PushManager' in window)) {
+      console.log('[Push] Browser does not support push notifications');
       setPushState('unsupported');
       onStateChange?.(false);
       return;
@@ -37,6 +95,7 @@ export const usePushSubscription = (onStateChange?: (subscribed: boolean) => voi
 
     try {
       const permission = Notification.permission;
+      console.log('[Push] Current notification permission:', permission);
       if (permission === 'denied') {
         setPushState('denied');
         onStateChange?.(false);
@@ -46,6 +105,7 @@ export const usePushSubscription = (onStateChange?: (subscribed: boolean) => voi
       const registration = await navigator.serviceWorker.ready;
       const subscription = await registration.pushManager.getSubscription();
 
+      console.log('[Push] Existing subscription:', subscription ? 'found' : 'none');
       if (subscription && permission === 'granted') {
         setPushState('subscribed');
         onStateChange?.(true);
@@ -53,7 +113,8 @@ export const usePushSubscription = (onStateChange?: (subscribed: boolean) => voi
         setPushState('default');
         onStateChange?.(false);
       }
-    } catch {
+    } catch (err) {
+      console.error('[Push] checkPushState failed:', err);
       setPushState('unsupported');
       onStateChange?.(false);
     }
@@ -65,58 +126,90 @@ export const usePushSubscription = (onStateChange?: (subscribed: boolean) => voi
 
   const subscribe = useCallback(async (): Promise<boolean> => {
     try {
-      console.log('[Push] Starting subscription flow...');
+      console.log('[Push] ═══════ Starting subscription flow ═══════');
 
-      // 1. Request notification permission
+      // 1. Check browser support
+      if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+        toast.error('المتصفح لا يدعم الإشعارات');
+        return false;
+      }
+      console.log('[Push] ✅ Step 1: Browser supports push');
+
+      // 2. Request notification permission
+      console.log('[Push] Step 2: Requesting notification permission...');
       const permission = await Notification.requestPermission();
-      console.log('[Push] Permission result:', permission);
+      console.log('[Push] ✅ Step 2: Permission result =', permission);
       if (permission !== 'granted') {
-        toast.error(permission === 'denied' ? 'تم رفض إذن الإشعارات من المتصفح' : 'لم يتم منح إذن الإشعارات');
+        const msg = permission === 'denied' ? 'تم رفض إذن الإشعارات من المتصفح' : 'لم يتم منح إذن الإشعارات';
+        toast.error(msg);
         setPushState(permission === 'denied' ? 'denied' : 'default');
         onStateChange?.(false);
         return false;
       }
 
-      // 2. Wait for service worker to be ready
-      const registration = await navigator.serviceWorker.ready;
-      console.log('[Push] SW ready');
+      // 3. Ensure Service Worker is ready
+      console.log('[Push] Step 3: Ensuring Service Worker is ready...');
+      const registration = await ensureServiceWorkerReady();
+      console.log('[Push] ✅ Step 3: SW ready, active:', !!registration.active);
 
-      // 3. Get VAPID public key
+      // 4. Get VAPID public key
       const vapidKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
+      console.log('[Push] Step 4: VAPID key from env =', vapidKey ? `${vapidKey.substring(0, 10)}... (${vapidKey.length} chars)` : 'UNDEFINED');
       if (!vapidKey) {
-        console.error('[Push] VAPID public key not found in env');
-        toast.error('مفاتيح الإشعارات غير مهيأة');
+        console.error('[Push] ❌ NEXT_PUBLIC_VAPID_PUBLIC_KEY is not defined!');
+        toast.error('مفاتيح الإشعارات غير مهيأة — تحقق من إعدادات الخادم');
         return false;
       }
-      console.log('[Push] VAPID key found, length:', vapidKey.length);
 
-      // 4. Convert VAPID key to Uint8Array (CRITICAL — raw base64 won't work!)
+      // 5. Convert VAPID key to Uint8Array (CRITICAL — raw base64 won't work!)
+      console.log('[Push] Step 5: Converting VAPID key to Uint8Array...');
       const applicationServerKey = urlBase64ToUint8Array(vapidKey);
+      console.log('[Push] ✅ Step 5: Key converted, byte length =', applicationServerKey.length);
 
-      // 5. Subscribe to push
-      const subscription = await registration.pushManager.subscribe({
+      // 6. Check for existing subscription first
+      let subscription = await registration.pushManager.getSubscription();
+      if (subscription) {
+        console.log('[Push] Step 6: Existing subscription found, unsubscribing first...');
+        await subscription.unsubscribe();
+      }
+
+      // 7. Subscribe to push
+      console.log('[Push] Step 7: Calling pushManager.subscribe()...');
+      subscription = await registration.pushManager.subscribe({
         userVisibleOnly: true,
-        applicationServerKey: applicationServerKey as BufferSource,
+        applicationServerKey: applicationServerKey.buffer as ArrayBuffer,
       });
-      console.log('[Push] Subscription created:', subscription.endpoint?.substring(0, 50));
+      console.log('[Push] ✅ Step 7: Subscription created, endpoint =', subscription.endpoint?.substring(0, 60) + '...');
 
-      // 6. Send subscription to server
+      // 8. Ensure CSRF is ready before sending to server
+      console.log('[Push] Step 8: Ensuring CSRF token is ready...');
+      await ensureCsrfReady();
+      console.log('[Push] ✅ Step 8: CSRF ready');
+
+      // 9. Send subscription to server
+      const subJson = subscription.toJSON();
+      console.log('[Push] Step 9: Sending subscription to server...', {
+        hasEndpoint: !!subJson.endpoint,
+        hasKeys: !!(subJson.keys?.p256dh && subJson.keys?.auth),
+      });
       const res = await apiPost('/api/push/subscribe', {
-        subscription: subscription.toJSON(),
+        subscription: subJson,
       });
-      console.log('[Push] Server response:', res.ok, res.error);
+      console.log('[Push] Step 9 result: ok =', res.ok, 'error =', res.error, 'status =', res.status);
 
-      if (res.error) {
-        throw new Error(res.error);
+      if (!res.ok) {
+        throw new Error(res.error || `فشل حفظ الاشتراك (${res.status})`);
       }
 
       setPushState('subscribed');
       onStateChange?.(true);
       toast.success('تم تفعيل الإشعارات بنجاح 🔔');
+      console.log('[Push] ═══════ Subscription complete! ═══════');
       return true;
     } catch (err) {
-      console.error('[Push] Subscription failed:', err);
-      toast.error('حدث خطأ أثناء تفعيل الإشعارات');
+      console.error('[Push] ❌ Subscription failed:', err);
+      const message = err instanceof Error ? err.message : 'حدث خطأ أثناء تفعيل الإشعارات';
+      toast.error(message);
       setPushState('default');
       onStateChange?.(false);
       return false;
@@ -129,6 +222,7 @@ export const usePushSubscription = (onStateChange?: (subscribed: boolean) => voi
       const subscription = await registration.pushManager.getSubscription();
 
       if (subscription) {
+        await ensureCsrfReady();
         await fetch(`/api/push/subscribe?endpoint=${encodeURIComponent(subscription.endpoint)}`, {
           method: 'DELETE',
           credentials: 'include',
@@ -140,7 +234,8 @@ export const usePushSubscription = (onStateChange?: (subscribed: boolean) => voi
       onStateChange?.(false);
       toast.success('تم إلغاء تفعيل الإشعارات');
       return true;
-    } catch {
+    } catch (err) {
+      console.error('[Push] Unsubscribe failed:', err);
       toast.error('حدث خطأ أثناء إلغاء الإشعارات');
       return false;
     }

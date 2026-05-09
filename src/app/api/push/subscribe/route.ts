@@ -12,16 +12,29 @@ import { withRoute } from '@/server/lib/route-wrapper';
  */
 export const POST = withRoute(async (request: NextRequest) => {
   try {
+    console.log('[Push API] POST /api/push/subscribe — request received');
+
     const auth = await requireAuth(request);
-    if (!auth.success) return auth.response;
+    if (!auth.success) {
+      console.warn('[Push API] Auth failed:', auth.response?.status);
+      return auth.response;
+    }
     const userId = auth.userId;
+    console.log('[Push API] Authenticated user:', userId);
 
     const body = await request.json();
     const { subscription } = body;
 
-    console.log('[Push API] Subscribe request received:', { hasSubscription: !!subscription, hasEndpoint: !!subscription?.endpoint });
+    console.log('[Push API] Subscription data:', {
+      hasSubscription: !!subscription,
+      hasEndpoint: !!subscription?.endpoint,
+      endpointPrefix: subscription?.endpoint?.substring(0, 50),
+      hasP256dh: !!subscription?.keys?.p256dh,
+      hasAuth: !!subscription?.keys?.auth,
+    });
 
     if (!subscription || !subscription.endpoint) {
+      console.warn('[Push API] Missing subscription or endpoint');
       return badRequest('بيانات الاشتراك غير صالحة');
     }
 
@@ -35,6 +48,7 @@ export const POST = withRoute(async (request: NextRequest) => {
 
     // Upsert by endpoint — a user may have multiple devices,
     // but each endpoint should only exist once.
+    console.log('[Push API] Upserting subscription for user:', userId);
     const result = handleResponse(
       await sb
         .from(TABLES.PUSH_SUBSCRIPTIONS)
@@ -52,9 +66,11 @@ export const POST = withRoute(async (request: NextRequest) => {
       'push/subscribe upsert'
     );
 
+    console.log('[Push API] ✅ Subscription saved successfully');
     return created({ subscription: result });
   } catch (error) {
     logger.error('Push subscription save error', 'PushSubscribe', { error: (error as Error)?.message });
+    console.error('[Push API] ❌ Error:', (error as Error)?.message);
     return apiError('حدث خطأ أثناء حفظ الاشتراك', 500, { code: 'PUSH_SUBSCRIBE_FAILED' });
   }
 });
