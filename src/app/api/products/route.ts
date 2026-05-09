@@ -1,6 +1,6 @@
 export const runtime = 'nodejs'
 import { NextRequest } from 'next/server'
-import { getSupabaseAdmin, findProductById, createProduct, updateProduct, deleteProduct, findStoreByUserId, findStoreById, getFollowerIds, createManyNotifications, TABLES, paginate, searchFilter } from '@/lib/supabase-db'
+import { getSupabaseAdmin, findProductById, createProduct, updateProduct, deleteProduct, findStoreByUserId, findStoreById, getFollowerIds, createManyNotifications, TABLES, searchFilter } from '@/lib/supabase-db'
 import { requireAuth } from '@/server/lib/auth-guard'
 import { checkRateGuard } from '@/server/lib/rate-guard'
 import { success, created, badRequest, forbidden, notFound, serverError } from '@/lib/api-response'
@@ -220,10 +220,11 @@ export const POST = withRoute(async (request: NextRequest) => {
       });
     }
 
+    const createdProduct = product as any;
     return created({
       product: {
-        ...mapProduct(product),
-        title: product.name,
+        ...mapProduct(createdProduct),
+        title: createdProduct?.name,
       },
     });
   } catch {
@@ -288,10 +289,11 @@ export const PUT = withRoute(async (request: NextRequest) => {
     serverCache.invalidateByPrefix('products:');
     serverCache.invalidateByPrefix('home:');
 
+    const updatedProduct = product as any;
     return success({
       product: {
-        ...mapProduct(product),
-        title: product.name,
+        ...mapProduct(updatedProduct),
+        title: updatedProduct?.name,
       },
     });
   } catch {
