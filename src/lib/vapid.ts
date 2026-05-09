@@ -34,12 +34,22 @@ function ensureVapidConfig(): boolean {
 
 // ── Types ───────────────────────────────────────────────────────────────
 
+/**
+ * Row shape from the `push_subscriptions` Supabase table.
+ * The subscription is stored as a jsonb column containing
+ * the full PushSubscription JSON object:
+ *   { endpoint: string, keys: { p256dh: string, auth: string } }
+ */
 interface PushSubscriptionRow {
   id: string;
   user_id: string;
-  endpoint: string;
-  p256dh: string;
-  auth: string;
+  subscription: {
+    endpoint: string;
+    keys: {
+      p256dh: string;
+      auth: string;
+    };
+  } | string; // may be string if Supabase returns raw jsonb
   created_at?: string;
 }
 
@@ -106,16 +116,42 @@ async function deleteSubscription(subscriptionId: string): Promise<void> {
 // ── Send Helpers ────────────────────────────────────────────────────────
 
 /**
+ * Parse the subscription field from a database row.
+ * Handles both parsed objects and raw JSON strings.
+ */
+function parseSubscription(sub: PushSubscriptionRow): { endpoint: string; keys: { p256dh: string; auth: string } } | null {
+  try {
+    const parsed = typeof sub.subscription === 'string'
+      ? JSON.parse(sub.subscription)
+      : sub.subscription;
+    if (!parsed?.endpoint || !parsed?.keys?.p256dh || !parsed?.keys?.auth) {
+      return null;
+    }
+    return parsed;
+  } catch {
+    return null;
+  }
+}
+
+/**
  * Send a push notification to a single subscription row.
  * Returns true if sent successfully, false otherwise.
  * If the subscription is expired (410), deletes it from the database.
  */
 async function sendToSubscription(sub: PushSubscriptionRow, payload: PushPayload): Promise<boolean> {
+  const parsed = parseSubscription(sub);
+  if (!parsed) {
+    logger.warn('Invalid subscription data in DB, skipping', 'VAPID', { subId: sub.id });
+    // Delete invalid subscription
+    await deleteSubscription(sub.id);
+    return false;
+  }
+
   const pushSubscription: webpush.PushSubscription = {
-    endpoint: sub.endpoint,
+    endpoint: parsed.endpoint,
     keys: {
-      p256dh: sub.p256dh,
-      auth: sub.auth,
+      p256dh: parsed.keys.p256dh,
+      auth: parsed.keys.auth,
     },
   };
 

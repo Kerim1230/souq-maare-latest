@@ -9,6 +9,16 @@ import { withRoute } from '@/server/lib/route-wrapper';
 /**
  * POST /api/push/subscribe
  * Save or update a push subscription for the authenticated user.
+ *
+ * The `push_subscriptions` table stores the full PushSubscription object
+ * in a `subscription` jsonb column (not separate endpoint/p256dh/auth columns).
+ * This matches the Supabase table schema:
+ *   - id (uuid, PK)
+ *   - user_id (uuid, FK → users.id)
+ *   - subscription (jsonb)
+ *   - user_agent (text, nullable)
+ *   - created_at (timestamptz)
+ *   - updated_at (timestamptz)
  */
 export const POST = withRoute(async (request: NextRequest) => {
   try {
@@ -38,33 +48,73 @@ export const POST = withRoute(async (request: NextRequest) => {
       return badRequest('بيانات الاشتراك غير صالحة');
     }
 
-    const { endpoint, keys } = subscription;
+    const { keys } = subscription;
     if (!keys?.p256dh || !keys?.auth) {
       console.warn('[Push API] Missing keys:', { hasP256dh: !!keys?.p256dh, hasAuth: !!keys?.auth });
       return badRequest('مفاتيح الاشتراك مفقودة');
     }
 
     const sb = getSupabaseAdmin();
+    const endpoint = subscription.endpoint;
 
-    // Upsert by endpoint — a user may have multiple devices,
-    // but each endpoint should only exist once.
-    console.log('[Push API] Upserting subscription for user:', userId);
-    const result = handleResponse(
-      await sb
-        .from(TABLES.PUSH_SUBSCRIPTIONS)
-        .upsert(
-          {
+    // ── Find existing subscription for this user with the same endpoint ──
+    // The subscription is stored as jsonb, so we query by user_id first
+    // then filter in JS for the matching endpoint.
+    console.log('[Push API] Checking for existing subscription for user:', userId);
+    const { data: existing, error: fetchError } = await sb
+      .from(TABLES.PUSH_SUBSCRIPTIONS)
+      .select('id, subscription')
+      .eq('user_id', userId);
+
+    if (fetchError) {
+      console.error('[Push API] Error fetching existing subscriptions:', fetchError.message);
+      throw new Error(fetchError.message);
+    }
+
+    // Find a row whose stored subscription has the same endpoint
+    const match = (existing || []).find((row: any) => {
+      try {
+        const sub = typeof row.subscription === 'string'
+          ? JSON.parse(row.subscription)
+          : row.subscription;
+        return sub?.endpoint === endpoint;
+      } catch {
+        return false;
+      }
+    });
+
+    let result;
+
+    if (match) {
+      // Update existing subscription
+      console.log('[Push API] Updating existing subscription, id:', match.id);
+      result = handleResponse(
+        await sb
+          .from(TABLES.PUSH_SUBSCRIPTIONS)
+          .update({
+            subscription,
+            updated_at: new Date().toISOString(),
+          })
+          .eq('id', match.id)
+          .select()
+          .single(),
+        'push/subscribe update'
+      );
+    } else {
+      // Insert new subscription
+      console.log('[Push API] Inserting new subscription for user:', userId);
+      result = handleResponse(
+        await sb
+          .from(TABLES.PUSH_SUBSCRIPTIONS)
+          .insert({
             user_id: userId,
-            endpoint,
-            p256dh: keys.p256dh,
-            auth: keys.auth,
-          },
-          { onConflict: 'endpoint' }
-        )
-        .select()
-        .single(),
-      'push/subscribe upsert'
-    );
+            subscription,
+          })
+          .select()
+          .single(),
+        'push/subscribe insert'
+      );
+    }
 
     console.log('[Push API] ✅ Subscription saved successfully');
     return created({ subscription: result });
@@ -78,6 +128,7 @@ export const POST = withRoute(async (request: NextRequest) => {
 /**
  * DELETE /api/push/subscribe
  * Remove a push subscription for the authenticated user.
+ * Accepts the endpoint as a query parameter.
  */
 export const DELETE = withRoute(async (request: NextRequest) => {
   try {
@@ -94,18 +145,45 @@ export const DELETE = withRoute(async (request: NextRequest) => {
 
     const sb = getSupabaseAdmin();
 
-    // Only delete if the subscription belongs to this user
+    // Find subscriptions for this user, then match by endpoint in the jsonb
+    const { data: subs, error: fetchError } = await sb
+      .from(TABLES.PUSH_SUBSCRIPTIONS)
+      .select('id, subscription')
+      .eq('user_id', userId);
+
+    if (fetchError) {
+      logger.warn('Failed to fetch subscriptions for delete', 'PushSubscribe', { userId, error: fetchError.message });
+      return apiError('حدث خطأ أثناء حذف الاشتراك', 500, { code: 'PUSH_UNSUBSCRIBE_FAILED' });
+    }
+
+    const match = (subs || []).find((row: any) => {
+      try {
+        const sub = typeof row.subscription === 'string'
+          ? JSON.parse(row.subscription)
+          : row.subscription;
+        return sub?.endpoint === endpoint;
+      } catch {
+        return false;
+      }
+    });
+
+    if (!match) {
+      // Subscription not found — already deleted, that's OK
+      return success(null);
+    }
+
     const { error } = await sb
       .from(TABLES.PUSH_SUBSCRIPTIONS)
       .delete()
-      .eq('user_id', userId)
-      .eq('endpoint', endpoint);
+      .eq('id', match.id)
+      .eq('user_id', userId);
 
     if (error) {
       logger.warn('Failed to delete push subscription', 'PushSubscribe', { userId, error: error.message });
       return apiError('حدث خطأ أثناء حذف الاشتراك', 500, { code: 'PUSH_UNSUBSCRIBE_FAILED' });
     }
 
+    console.log('[Push API] ✅ Subscription deleted, id:', match.id);
     return success(null);
   } catch (error) {
     logger.error('Push subscription delete error', 'PushSubscribe', { error: (error as Error)?.message });
