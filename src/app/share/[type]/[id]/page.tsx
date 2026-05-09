@@ -5,6 +5,9 @@ import { optimizeImage } from '@/lib/image-optimize';
 // ISR: Revalidate shared pages every hour (reduces serverless invocations)
 export const revalidate = 3600;
 
+const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://souq-maare-latest.vercel.app';
+const DEFAULT_OG_IMAGE = `${BASE_URL}/app-icon.png`;
+
 interface PageProps {
   params: Promise<{ type: string; id: string }>;
 }
@@ -14,7 +17,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
   let title = 'سوق مارع الإلكتروني';
   let description = 'تسوق بكل سهولة وأمان في سوق مارع';
-  let imageUrl = '/app-icon.png';
+  let imageUrl = DEFAULT_OG_IMAGE;
 
   try {
     const sb = getSupabaseAdmin();
@@ -28,7 +31,8 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       if (store) {
         title = `${store.name} - سوق مارع`;
         description = store.description || `${store.name} في سوق مارع الإلكتروني`;
-        imageUrl = store.logo_url || store.cover_url || imageUrl;
+        const rawImage = store.logo_url || store.cover_url;
+        imageUrl = rawImage ? optimizeImage(rawImage, { width: 1200, height: 630, crop: 'fill' }) : DEFAULT_OG_IMAGE;
       }
     } else if (type === 'product') {
       const { data: product } = await sb
@@ -37,10 +41,10 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
         .eq('id', id)
         .maybeSingle();
       if (product) {
-        const storeName = (product.store as { name: string } | null)?.name || '';
+        const storeName = ((product.store as unknown as { name: string } | null)?.name) || '';
         title = `${product.name} - ${storeName}`;
         description = `${Number(product.price).toLocaleString()} ل.س • ${storeName} • سوق مارع`;
-        imageUrl = product.image_url || imageUrl;
+        imageUrl = product.image_url ? optimizeImage(product.image_url, { width: 1200, height: 630, crop: 'fill' }) : DEFAULT_OG_IMAGE;
       }
     } else if (type === 'offer' || type === 'contest') {
       const { data: offer } = await sb
@@ -49,11 +53,11 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
         .eq('id', id)
         .maybeSingle();
       if (offer) {
-        const storeName = (offer.store as { name: string } | null)?.name || '';
+        const storeName = ((offer.store as unknown as { name: string } | null)?.name) || '';
         const label = offer.type === 'contest' ? 'مسابقة' : 'عرض';
         title = `${label}: ${offer.title} - سوق مارع`;
         description = `${offer.description || offer.title} • ${storeName}`;
-        imageUrl = offer.image_url || imageUrl;
+        imageUrl = offer.image_url ? optimizeImage(offer.image_url, { width: 1200, height: 630, crop: 'fill' }) : DEFAULT_OG_IMAGE;
       }
     }
   } catch { /* ignore db errors */ }
@@ -67,7 +71,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       type: 'website',
       locale: 'ar_SY',
       siteName: 'سوق مارع الإلكتروني',
-      images: [{ url: imageUrl, width: 1200, height: 630 }],
+      images: [{ url: imageUrl, width: 1200, height: 630, alt: title }],
     },
     twitter: {
       card: 'summary_large_image',

@@ -1,4 +1,4 @@
-const CACHE_NAME = 'suq-maraa-v6';
+const CACHE_NAME = 'suq-maraa-v7';
 const STATIC_ASSETS = [
   '/',
   '/manifest.json',
@@ -231,7 +231,16 @@ self.addEventListener('push', (event) => {
 self.addEventListener('notificationclick', (event) => {
   event.notification.close();
 
-  const targetUrl = event.notification.data?.url || '/';
+  // The app is an SPA with only the '/' route.
+  // Deep links like /store/xxx or /chat are not real routes — they cause 404.
+  // Instead, we navigate to '/' with a 'deepLink' query param that the app reads.
+  const rawUrl = event.notification.data?.url || '/';
+  let targetUrl = '/';
+
+  if (rawUrl && rawUrl !== '/') {
+    // Pass the deep link as a query parameter
+    targetUrl = `/?deepLink=${encodeURIComponent(rawUrl)}`;
+  }
 
   event.waitUntil(
     self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {

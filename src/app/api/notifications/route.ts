@@ -1,11 +1,13 @@
 export const runtime = 'nodejs'
 import { NextRequest } from 'next/server'
-import { getSupabaseAdmin, createNotification, createAdminNotification, handleResponse, handleCount, TABLES, paginate } from '@/lib/supabase-db'
+import { getSupabaseAdmin, createNotification, createAdminNotification, createManyNotifications, TABLES, paginate } from '@/lib/supabase-db'
 import { checkRateLimit, getClientIp, LIMITS } from '@/server/lib/rate-limiter'
 import { rateLimited, serverError, forbidden, success, created, badRequest } from '@/lib/api-response'
 import { requireAuth } from '@/server/lib/auth-guard'
 import { requireAdmin } from '@/server/lib/admin-auth'
 import { withRoute } from '@/server/lib/route-wrapper'
+import { sendPushToUsers } from '@/lib/vapid'
+import { logger } from '@/lib/logger'
 
 // GET /api/notifications
 export const GET = withRoute(async (request: NextRequest) => {
@@ -116,6 +118,86 @@ export const POST = withRoute(async (request: NextRequest) => {
         user_name: userName || '',
         total_recipients: totalRecipients || 0,
       });
+
+      // ── Send push notifications to all subscribed users ──
+      // Also create in-app notifications for each user
+      try {
+        const sb = getSupabaseAdmin();
+
+        if (target === 'all') {
+          // Fetch all user IDs
+          const { data: allUsers } = await sb
+            .from(TABLES.USERS)
+            .select('id');
+
+          const userIds = (allUsers || []).map((u: { id: string }) => u.id);
+
+          // Create in-app notifications for all users (batch)
+          if (userIds.length > 0) {
+            createManyNotifications(
+              userIds.map(uid => ({
+                user_id: uid,
+                title: notifTitle,
+                body: notifBody || '',
+                type: type || 'announcement',
+                category: 'admin_sent',
+                priority: priority || 'medium',
+              }))
+            ).catch(err => {
+              logger.warn('Failed to create in-app notifications for admin broadcast', 'Notifications', { error: String(err) });
+            });
+
+            // Send push notifications (fire-and-forget, don't block response)
+            sendPushToUsers(userIds, notifTitle, notifBody || '', '/').catch(err => {
+              logger.warn('Push broadcast failed for admin notification', 'Notifications', { error: String(err) });
+            });
+          }
+        } else if (target === 'user' && targetId) {
+          // Single user
+          createNotification({
+            user_id: targetId,
+            title: notifTitle,
+            body: notifBody || '',
+            type: type || 'announcement',
+            category: 'admin_sent',
+            priority: priority || 'medium',
+          }).catch(err => {
+            logger.warn('Failed to create in-app notification for admin single-user send', 'Notifications', { error: String(err) });
+          });
+
+          sendPushToUsers([targetId], notifTitle, notifBody || '', '/').catch(err => {
+            logger.warn('Push send failed for admin notification', 'Notifications', { error: String(err) });
+          });
+        } else if (target === 'store' && targetId) {
+          // Store owner
+          const { data: storeData } = await sb
+            .from(TABLES.STORES)
+            .select('user_id')
+            .eq('id', targetId)
+            .maybeSingle();
+
+          if (storeData?.user_id) {
+            createNotification({
+              user_id: storeData.user_id,
+              title: notifTitle,
+              body: notifBody || '',
+              type: type || 'announcement',
+              category: 'admin_sent',
+              priority: priority || 'medium',
+            }).catch(err => {
+              logger.warn('Failed to create in-app notification for store owner', 'Notifications', { error: String(err) });
+            });
+
+            sendPushToUsers([storeData.user_id], notifTitle, notifBody || '', '/').catch(err => {
+              logger.warn('Push send failed for store owner notification', 'Notifications', { error: String(err) });
+            });
+          }
+        }
+      } catch (pushErr) {
+        // Non-fatal: push notification failed, admin record was still saved
+        logger.warn('Push/in-app notification delivery failed for admin notification', 'Notifications', { error: (pushErr as Error)?.message });
+      }
+
       return created({ notification });
     }
 
@@ -182,10 +264,17 @@ export const POST = withRoute(async (request: NextRequest) => {
 
     // Apply is_read if explicitly set
     if (is_read !== undefined && is_read !== false) {
-      const sb = getSupabaseAdmin();
-      await sb.from(TABLES.NOTIFICATIONS).update({ is_read: !!is_read }).eq('id', notification.id);
-      notification.is_read = !!is_read;
+      const notifId = (notification as any)?.id;
+      if (notifId) {
+        const sb = getSupabaseAdmin();
+        await sb.from(TABLES.NOTIFICATIONS).update({ is_read: !!is_read }).eq('id', notifId);
+      }
     }
+
+    // ── Send push notification to the user (fire-and-forget) ──
+    sendPushToUsers([effectiveUserId], title, notifBody || '', deep_link || '/').catch(err => {
+      logger.warn('Push notification failed for user notification', 'Notifications', { error: String(err) });
+    });
 
     return created({ notification });
   } catch {

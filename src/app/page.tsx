@@ -154,6 +154,66 @@ const MainLayout: React.FC = () => {
   const archiveAndCleanup = useAutoDeleteStore(s => s.archiveAndCleanup);
   const timerStarted = useRef(false);
 
+  // ── Deep link handler ──
+  // When a push notification is clicked, sw.js opens '/?deepLink=/store/xxx'
+  // This effect reads the deepLink param and navigates to the correct subScreen
+  const setSubScreen = useAppStore(s => s.setSubScreen);
+  const setSelectedStoreId = useAppStore(s => s.setSelectedStoreId);
+  const setSelectedProductId = useAppStore(s => s.setSelectedProductId);
+  const setSelectedOfferId = useAppStore(s => s.setSelectedOfferId);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const params = new URLSearchParams(window.location.search);
+    const deepLink = params.get('deepLink');
+    if (!deepLink) return;
+
+    // Clean the URL so it doesn't re-trigger on navigation
+    const url = new URL(window.location.href);
+    url.searchParams.delete('deepLink');
+    window.history.replaceState({}, '', url.pathname);
+
+    // Parse deep link and navigate
+    try {
+      if (deepLink.startsWith('/store/')) {
+        const storeId = deepLink.replace('/store/', '').split('?')[0];
+        if (storeId) {
+          setSelectedStoreId(storeId);
+          setSubScreen('store-detail');
+        }
+      } else if (deepLink.startsWith('/product/')) {
+        const productId = deepLink.replace('/product/', '').split('?')[0];
+        if (productId) {
+          setSelectedProductId(productId);
+          setSubScreen('product-detail');
+        }
+      } else if (deepLink.startsWith('/offer/')) {
+        const offerId = deepLink.replace('/offer/', '').split('?')[0];
+        if (offerId) {
+          setSelectedOfferId(offerId);
+          setSubScreen('offer-detail');
+        }
+      } else if (deepLink.startsWith('/chat')) {
+        // Navigate to chat tab
+        setActiveTab(0);
+        // If there's a storeId or userId in the chat deep link, handle it
+        const chatParams = new URLSearchParams(deepLink.split('?')[1] || '');
+        const storeId = chatParams.get('storeId');
+        const userId = chatParams.get('userId');
+        if (storeId) {
+          setSelectedStoreId(storeId);
+          setSubScreen('store-messages');
+        } else if (userId) {
+          setSubScreen('user-messages');
+        }
+      } else if (deepLink === '/notifications' || deepLink.startsWith('/admin')) {
+        setSubScreen('notifications');
+      }
+    } catch {
+      // Invalid deep link format, ignore
+    }
+  }, []); // Run once on mount
+
   // --- Transition: tab slide helpers ---
   // CSS transitions don't fire on initial mount (no previous value to transition from),
   // so no mounted guard is needed.
