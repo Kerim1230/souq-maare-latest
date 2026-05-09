@@ -192,7 +192,7 @@ export const MAX_IMAGE_SIZE_MB = 5;
 export const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
 
 // ===== Auto Delete =====
-export const AUTO_DELETE_CHECK_INTERVAL_MS = 60000; // 1 minute
+export const AUTO_DELETE_CHECK_INTERVAL_MS = 60 * 60 * 1000; // 1 hour (was 1 min — caused duplicate notifications)
 
 // ===== Inactive Account Cleanup =====
 export const INACTIVE_ACCOUNT_DAYS = 60; // حذف الحسابات غير النشطة بعد 60 يوم

@@ -143,6 +143,31 @@ export const POST = withRoute(async (request: NextRequest) => {
       }
     }
 
+    // ── Dedup: expiry notifications — only ONE per item per category ──
+    const isExpiryCategory = category === 'expiry_warning' || category === 'expiry_urgent' || category === 'expiry';
+    if (isExpiryCategory && body.data?.contentId) {
+      const sb = getSupabaseAdmin();
+      const contentId = String(body.data.contentId);
+      const { data: existing } = await sb.from(TABLES.NOTIFICATIONS)
+        .select('id, data')
+        .eq('user_id', effectiveUserId)
+        .eq('category', category)
+        .eq('is_deleted', false);
+
+      // Check if any existing notification for this category has the same contentId in its data
+      const alreadyExists = (existing || []).some((n: Record<string, unknown>) => {
+        try {
+          const nd = n.data as Record<string, unknown> | undefined;
+          return nd?.contentId === contentId;
+        } catch { return false; }
+      });
+
+      if (alreadyExists) {
+        // Already sent this exact expiry notification — skip duplicate
+        return created({ notification: { id: 'dedup-skipped', deduplicated: true }, skipped: true });
+      }
+    }
+
     // Supabase path
     const notification = await createNotification({
       user_id: effectiveUserId,
