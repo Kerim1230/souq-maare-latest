@@ -221,3 +221,31 @@ Stage Summary:
 - **layout.tsx**: Viewport now uses `viewport-fit=cover`, `maximumScale=1`, `userScalable=false`
 - **ProductCard.tsx**: Removed disappearing-causing CSS containment
 - **Production**: Deployed and verified at suq-shamel.vercel.app ✅
+
+---
+Task ID: 10
+Agent: Main Agent
+Task: Fix homepage content not appearing until manual refresh - comprehensive rewrite
+
+Work Log:
+- Analyzed root causes: data loading depended on stale closure values, startTransition delayed renders, fetch cooldown prevented re-fetches, data was scattered across local component state instead of centralized store
+- Rewrote appStore.ts: Added HomeData interface, homeData/homeDataLoading state, fetchHomePage() for API calls, loadHomeFromCache() for localStorage cache (10-min TTL), saveHomeToCache() for persistence
+- Rewrote HomeScreen.tsx completely:
+  - New loadAllData() function: reads localStorage cache → displays instantly → fetches fresh data → updates display
+  - isInitialLoading state: shows full SkeletonHome on first visit, shows cached data instantly on repeat visits
+  - Data now sourced from centralized appStore.homeData instead of local state
+  - Removed all local loading state (storesLoaded, productsLoaded, offersLoaded, etc.)
+  - Removed startTransition, fetch cooldown guard, user-dependent delays
+  - Added full-page SkeletonHome component with mock header, search, offers, categories, products, stores
+  - Thin 2px progress bar for background refresh with transition-all duration-300
+  - No setTimeout, no waiting for auth, no if(!user) guards - works for visitors too
+  - Removed LazySection wrapper (no longer needed)
+- Added Cache-Control header to /api/home route: public, max-age=30, s-maxage=30 for Vercel CDN caching
+- Pushed to GitHub (commit fbe4066), Vercel deployment READY
+- Verified: Production site returns 200, API returns cache-control header
+
+Stage Summary:
+- **appStore.ts**: New homeData management (fetchHomePage, loadHomeFromCache, saveHomeToCache)
+- **HomeScreen.tsx**: Complete rewrite with centralized data, instant cache display, SkeletonHome
+- **API route**: Added Cache-Control: public, max-age=30 for CDN caching
+- **Production**: Deployed and verified at suq-shamel.vercel.app ✅
