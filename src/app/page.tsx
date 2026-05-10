@@ -49,15 +49,17 @@ const ScreenLoader: React.FC = () => (
   </div>
 );
 
+const APP_NAME = 'سوق شامل';
+
 const SplashScreen: React.FC = () => (
   <div className="min-h-screen flex flex-col items-center justify-center gradient-dark relative overflow-hidden">
     <div className="absolute top-[-120px] right-[-80px] w-[300px] h-[300px] rounded-full bg-teal-600/20 blur-[80px]" />
     <div className="absolute bottom-[-100px] left-[-60px] w-[250px] h-[250px] rounded-full bg-emerald-600/15 blur-[80px]" />
     <div className="relative z-10">
       <div className="w-24 h-24 rounded-3xl overflow-hidden shadow-xl shadow-emerald-500/30 mb-6 glow-primary">
-        <img src="/app-icon.png" alt="سوق شامل" className="w-full h-full object-cover" />
+        <img src="/app-icon.png" alt={APP_NAME} className="w-full h-full object-cover" suppressHydrationWarning />
       </div>
-      <h1 className="text-[28px] font-black text-white text-center">سوق شامل</h1>
+      <h1 className="text-[28px] font-black text-white text-center" suppressHydrationWarning>{APP_NAME}</h1>
       <p className="text-teal-300/60 text-[14px] mt-1.5 font-medium text-center">الإلكتروني</p>
     </div>
     <div className="mt-8 flex gap-2">

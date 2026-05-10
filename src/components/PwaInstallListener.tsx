@@ -11,6 +11,17 @@ export function PwaInstallListener() {
   useEffect(() => {
     // ── Register Service Worker ──
     if ('serviceWorker' in navigator) {
+      // Unregister old service workers from previous app name (migration cleanup)
+      navigator.serviceWorker.getRegistrations().then((registrations) => {
+        for (const reg of registrations) {
+          // Force update: if there's an old SW, unregister it so the new one takes over
+          if (reg.active && !reg.active.scriptURL.includes('suq-shamel')) {
+            console.log('[PWA] Unregistering old service worker:', reg.active.scriptURL);
+            reg.unregister();
+          }
+        }
+      });
+
       navigator.serviceWorker.register('/sw.js').then((registration) => {
         console.log('[PWA] Service Worker registered, scope:', registration.scope);
 
