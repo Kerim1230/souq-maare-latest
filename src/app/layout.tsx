@@ -75,6 +75,15 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="ar" dir="rtl" suppressHydrationWarning>
+      <head>
+        {/*
+          Service Worker Migration Script — runs BEFORE React hydrates.
+          Detects old Service Workers (from "سوق الحرية" era), unregisters them,
+          clears all caches, and reloads the page so fresh JS bundles are loaded.
+          Uses localStorage flag to ensure this only runs once.
+        */}
+        <script dangerouslySetInnerHTML={{ __html: `(function(){try{var k='suq-shamel-sw-migration-v2';if(localStorage.getItem(k))return;if(!('serviceWorker' in navigator))return;localStorage.setItem(k,'1');navigator.serviceWorker.getRegistrations().then(function(rs){return Promise.all(rs.map(function(r){return r.unregister()}))}).then(function(){return caches.keys()}).then(function(ks){return Promise.all(ks.map(function(k){return caches.delete(k)}))}).then(function(){window.location.reload()})}catch(e){}})()` }} />
+      </head>
       <body className={`${cairo.variable} antialiased`}>
         <ThemeProvider
           attribute="class"

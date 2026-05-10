@@ -93,6 +93,13 @@ export function proxy(request: NextRequest) {
   response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin')
   response.headers.set('Permissions-Policy', 'camera=(), microphone=(), geolocation=()')
 
+  // ── Service Worker Cache Migration ──
+  // Clear SW caches to force loading new JS bundles (resolves hydration mismatch
+  // from old "سوق الحرية" SW caches). Only on root page. Can be removed after migration.
+  if (pathname === '/') {
+    response.headers.set('Clear-Site-Data', '"cache"')
+  }
+
   // CORS headers for iframe / preview panel compatibility
   const origin = request.headers.get('origin')
   if (origin) {

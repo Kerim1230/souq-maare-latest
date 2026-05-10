@@ -1,26 +1,26 @@
 ---
 Task ID: 1
 Agent: Main Agent
-Task: Fix persistent hydration mismatch error (سوق الحرية vs سوق شامل)
+Task: Fix persistent hydration mismatch error (سوق الحرية vs سوق شامل) - SECOND ATTEMPT
 
 Work Log:
-- Analyzed root cause: Browser's old Service Worker was serving cached JS bundles containing "سوق الحرية" while SSR rendered "سوق شامل"
-- Previous attempts (clean .next, hard refresh) failed because old SW caches persisted in browser
-- Fixed SplashScreen to use client-only rendering: useState(false) + useEffect to set showText=true after mount
-  - During SSR and initial client render: no text is rendered (empty placeholder div)
-  - After hydration completes: APP_NAME and APP_SUBTITLE render on client only
-  - This eliminates the hydration mismatch entirely since both server and client render the same initial state
-- Bumped CACHE_NAME from 'suq-shamel-v1' to 'suq-shamel-v2' to force SW cache invalidation
-- Enhanced SW activate handler to aggressively delete ALL old caches (including suq-hurriya-v1) with console logging
-- Updated PwaInstallListener with 3-step migration:
-  1. Force-unregister ALL old service workers (checking active/installing/waiting scriptURLs)
-  2. Direct cache cleanup from page (delete suq-hurriya* and old suq-shamel-v1 caches)
-  3. Register new SW with forced update check and skipWaiting on install
-- Cleaned .next cache and restarted dev server
-- Verified: HTML contains "سوق شامل" with zero instances of "الحرية"
+- Analyzed the root cause more deeply: The old Service Worker's `cacheFirst` strategy for `/_next/static/` assets serves old cached JS bundles containing "سوق الحرية". The browser runs this old JS during React hydration, causing mismatch against new server HTML.
+- Previous fix (client-only SplashScreen text) was correct but ineffective because the BROWSER IS STILL RUNNING OLD CACHED JS - the old JS doesn't have our fix.
+- Discovered that the PwaInstallListener's `scriptURL.includes('suq-shamel')` check was BROKEN - all SWs have URL `/sw.js`, which never contains 'suq-shamel'. This means the check always returned true, potentially unregistering the new SW too.
+- Implemented a 3-layer comprehensive fix:
+  1. Inline migration script in layout.tsx that runs BEFORE React hydrates - detects old SWs via localStorage flag, unregisters ALL SWs, clears ALL caches, reloads page
+  2. Clear-Site-Data: "cache" header in proxy.ts - forces browser to clear SW Cache Storage on every root page response
+  3. Simplified PwaInstallListener - removed broken scriptURL check, now just handles SW registration and updates (migration is handled by inline script)
+- Bumped CACHE_NAME to v2 in sw.js
+- Kept client-only SplashScreen rendering as additional safety net
+- Removed conflicting middleware.ts (Next.js 16 uses proxy.ts, not middleware.ts - caused crash)
+- Server is running and verified: migration script is in HTML, Clear-Site-Data header present, no old name references
 
 Stage Summary:
-- SplashScreen hydration-safe: text only renders after useEffect fires (post-hydration)
-- SW cache v2: all old caches deleted on activate
-- PwaInstallListener: comprehensive migration from old SW to new
-- Dev server running on port 3000, serving correct content
+- **layout.tsx**: Added inline `<script>` in `<head>` that runs before React hydrates to force SW migration
+- **proxy.ts**: Added `Clear-Site-Data: "cache"` header for root page responses
+- **PwaInstallListener.tsx**: Simplified to just register SW and handle updates (migration handled by inline script)
+- **sw.js**: CACHE_NAME bumped to v2, aggressive old cache deletion on activate
+- **page.tsx**: SplashScreen uses client-only text rendering (useState + useEffect pattern)
+- **middleware.ts**: Removed (conflicts with proxy.ts in Next.js 16)
+- The hydration error should be resolved: on first load, inline script detects old SW, clears everything, reloads; on second load, fresh JS is loaded without old SW interference
