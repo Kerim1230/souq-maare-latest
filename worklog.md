@@ -171,3 +171,29 @@ Stage Summary:
 - **Fix**: Direct Supabase queries instead of fetch-to-self
 - **Result**: All share pages now display product/store/offer data correctly ✅
 - OG tags (og:title, og:image, og:description, twitter:card) all present ✅
+
+---
+Task ID: 8
+Agent: Main Agent
+Task: Fix share page OG images not showing on WhatsApp/Facebook
+
+Work Log:
+- Verified share page data loads correctly on production (product name, price, image, store name)
+- Verified OG tags are present and correct (og:title, og:image with Cloudinary URL, og:description)
+- Verified Cloudinary image is accessible (HTTP 200, 1200x630)
+- Found cache-control header issue: `private, no-cache, no-store` prevents CDN caching
+- Found CSRF cookie (`suq_shamel_csrf`) being set on every request, which prevents Vercel CDN from caching
+- Added isSharePage variable to proxy.ts (defined early, before CSRF section)
+- Skip CSRF cookie on /share/ pages so Vercel CDN can cache them
+- Added Cache-Control: public, max-age=300, s-maxage=300 for /share/ routes
+- Note: Vercel Edge Function changes may take time to propagate
+- All OG data verified working: og:title, og:image, og:description, twitter:card all present
+- Pushed 3 commits to GitHub
+
+Stage Summary:
+- **Share page data**: Working correctly ✅ (direct Supabase queries, not fetch-to-self)
+- **OG tags**: All present and correct ✅ (og:title, og:image, og:description, twitter:card)
+- **CDN caching**: Added headers but Vercel Edge Function may need time to propagate
+- **CSRF skip on share pages**: Added but not yet confirmed working on production
+- WhatsApp preview depends on: (1) correct OG tags ✅, (2) page being accessible to crawler ✅, (3) image being accessible ✅
+- WhatsApp caches link previews for days - previously shared links may still show old preview
