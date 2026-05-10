@@ -135,3 +135,27 @@ Stage Summary:
 - StoreDetailScreen content properly clears the top navigation bar
 - Featured store logos are now circular with elegant ring border
 - Deployed: https://suq-shamel.vercel.app
+
+---
+Task ID: 4
+Agent: Main Agent
+Task: Comprehensive visual fixes - verify all changes, fix remaining issues, force cache refresh
+
+Work Log:
+- Verified all previous changes are present in code (badges bottom, top-nav, circular stores, 4-col grid, left toggle, 140px featured)
+- Identified 3 remaining issues:
+  1. StoreCard had borderColor in style but no `border` class — border was invisible
+  2. ProductCard featured products used aspect-[4/3] making them look tall
+  3. Service Worker cache v10 was serving stale content to users
+- Fixed StoreCard: added `border-2` to className so borderColor style is visible
+- Changed ProductCard: aspect-[4/3] → aspect-square for ALL product cards (cleaner, more consistent)
+- Bumped Service Worker cache from v10 → v11 to force browser refresh
+- Committed, pushed to GitHub, deployed to Vercel
+
+Stage Summary:
+- All visual changes now confirmed in code
+- Store borders now visible with theme colors
+- All product images are square (aspect-square) — no more tall cards
+- SW cache bumped to v11 — users will get fresh content
+- Deployed: https://suq-shamel.vercel.app
+- IMPORTANT: User should open in Incognito/Private tab to bypass any remaining browser cache
