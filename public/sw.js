@@ -1,4 +1,4 @@
-const CACHE_NAME = 'suq-shamel-v4';
+const CACHE_NAME = 'suq-shamel-v5';
 const STATIC_ASSETS = [
   '/',
   '/manifest.json',
@@ -11,11 +11,11 @@ const CACHEABLE_API_ROUTES = [
   '/api/home',
 ];
 
-// TTL for cached API responses (10 minutes — increased for performance)
+// TTL for cached API responses (10 minutes)
 const API_CACHE_TTL = 10 * 60 * 1000;
 
 // Static asset file extensions for Cache First strategy
-const STATIC_EXT_REGEX = /\.(css|js|woff2?|ttf|eot|png|jpg|jpeg|gif|svg|ico|webp|avif)$/i;
+const STATIC_EXT_REGEX = /\.(css|woff2?|ttf|eot|png|jpg|jpeg|gif|svg|ico|webp|avif)$/i;
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
@@ -28,7 +28,6 @@ self.addEventListener('install', (event) => {
 
 self.addEventListener('activate', (event) => {
   // Aggressively delete ALL old caches from previous versions
-  // and any previous versions of suq-shamel cache to ensure fresh JS bundles are served
   event.waitUntil(
     caches.keys().then((keys) => {
       return Promise.all(
@@ -58,9 +57,35 @@ function isCacheFresh(cachedResponse, cachedDate) {
 }
 
 /**
- * Cache First strategy for static assets (CSS, JS, fonts, images).
- * Returns cached version immediately, only falls back to network if not cached.
- * This is the fastest strategy for immutable assets with hashed filenames.
+ * Network First strategy for _next/static chunks.
+ * Always tries network first (to get the latest chunk after deployments),
+ * falls back to cache only when offline.
+ * This prevents "Failed to load chunk" errors after new deployments.
+ */
+async function networkFirstForChunks(event) {
+  const { request } = event;
+  const cache = await caches.open(CACHE_NAME);
+
+  try {
+    const networkResponse = await fetch(request);
+    if (networkResponse && networkResponse.ok) {
+      // Cache for offline use (don't await — non-blocking)
+      event.waitUntil(cache.put(request, networkResponse.clone()));
+    }
+    return networkResponse;
+  } catch (error) {
+    // Network failed — try cache (offline mode)
+    const cachedResponse = await cache.match(request);
+    if (cachedResponse) {
+      return cachedResponse;
+    }
+    return new Response('Offline', { status: 503, statusText: 'Service Unavailable' });
+  }
+}
+
+/**
+ * Cache First strategy for truly static assets (fonts, images — NOT JS chunks).
+ * Only used for assets with file extensions that are truly immutable.
  */
 async function cacheFirst(event) {
   const { request } = event;
@@ -74,7 +99,6 @@ async function cacheFirst(event) {
   try {
     const networkResponse = await fetch(request);
     if (networkResponse && networkResponse.ok) {
-      // Cache for future use (don't await — non-blocking)
       event.waitUntil(cache.put(request, networkResponse.clone()));
     }
     return networkResponse;
@@ -93,13 +117,10 @@ async function staleWhileRevalidate(event) {
   const { request } = event;
   const cache = await caches.open(CACHE_NAME);
 
-  // Try to get cached version
   const cachedResponse = await cache.match(request);
   const cachedDate = cachedResponse?.headers?.get('sw-cache-date');
 
-  // If we have a fresh cached response, return it immediately
   if (cachedResponse && isCacheFresh(cachedResponse, cachedDate)) {
-    // Revalidate in background (fire and forget)
     event.waitUntil(
       fetch(request).then((networkResponse) => {
         if (networkResponse && networkResponse.ok) {
@@ -113,15 +134,11 @@ async function staleWhileRevalidate(event) {
           });
           cache.put(request, responseToCache);
         }
-      }).catch(() => {
-        // Background revalidation failed — that's fine, cached version was already returned
-      })
+      }).catch(() => {})
     );
-
     return cachedResponse;
   }
 
-  // No fresh cache — try network first, then fall back to stale cache
   try {
     const networkResponse = await fetch(request);
     if (networkResponse && networkResponse.ok) {
@@ -133,12 +150,10 @@ async function staleWhileRevalidate(event) {
           'sw-cache-date': Date.now().toString(),
         },
       });
-      // Clone and cache (don't await — non-blocking)
       event.waitUntil(cache.put(request, responseToCache));
     }
     return networkResponse;
   } catch (error) {
-    // Network failed — return stale cache if available
     if (cachedResponse) {
       return cachedResponse;
     }
@@ -169,31 +184,67 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // ── _next/static assets: Cache First (immutable, hashed filenames) ──
+  // ── _next/static JS chunks: Network First (prevents stale chunk errors) ──
+  // This is the KEY fix: JS chunks must be fetched from network first
+  // because after deployments, old chunk filenames no longer exist on the server.
   if (url.pathname.startsWith('/_next/static/')) {
+    // Only use network-first for JS files (the ones that cause chunk errors)
+    // CSS and other static files can still use cache-first since they're less problematic
+    if (url.pathname.endsWith('.js') || url.pathname.includes('/chunks/') || url.pathname.includes('/webpack-')) {
+      event.respondWith(networkFirstForChunks(event));
+      return;
+    }
+    // Non-JS static assets (CSS, etc.) can use cache-first safely
     event.respondWith(cacheFirst(event));
     return;
   }
 
-  // ── Other static assets: Cache First ──
-  // CSS, JS, fonts, images — serve from cache immediately, fastest strategy
+  // ── Other static assets (fonts, images): Cache First ──
   if (STATIC_EXT_REGEX.test(url.pathname)) {
     event.respondWith(cacheFirst(event));
     return;
   }
 
-  // ── HTML pages: Network-first with cache fallback ──
-  event.respondWith(
-    fetch(request)
-      .then((response) => {
-        if (response.ok) {
-          const clone = response.clone();
-          caches.open(CACHE_NAME).then((cache) => cache.put(request, clone));
-        }
-        return response;
-      })
-      .catch(() => caches.match(request))
-  );
+  // ── HTML pages: Network-only (never cache HTML) ──
+  // Caching HTML is the root cause of stale chunk references.
+  // HTML must always be fresh so it references the correct chunk hashes.
+  if (request.mode === 'navigate' || request.headers.get('accept')?.includes('text/html')) {
+    event.respondWith(
+      fetch(request)
+        .then((response) => {
+          // Still cache for offline fallback, but with a very short TTL
+          if (response.ok) {
+            const clone = response.clone();
+            const offlineCache = new Response(clone.body, {
+              status: clone.status,
+              statusText: clone.statusText,
+              headers: {
+                ...Object.fromEntries(clone.headers.entries()),
+                'sw-cache-date': Date.now().toString(),
+              },
+            });
+            event.waitUntil(
+              caches.open(CACHE_NAME).then((cache) => cache.put(request, offlineCache))
+            );
+          }
+          return response;
+        })
+        .catch(() => {
+          // Only use cache as absolute last resort (offline)
+          return caches.match(request).then((cached) => {
+            if (cached) {
+              const cachedDate = cached.headers.get('sw-cache-date');
+              // Only use cached HTML if it's less than 1 hour old
+              if (cachedDate && (Date.now() - parseInt(cachedDate, 10)) < 3600000) {
+                return cached;
+              }
+            }
+            return new Response('Offline', { status: 503, statusText: 'Service Unavailable' });
+          });
+        })
+    );
+    return;
+  }
 });
 
 // ── Push Notification Handler ──────────────────────────────────────────
@@ -211,7 +262,6 @@ self.addEventListener('push', (event) => {
       const parsed = event.data.json();
       data = { ...data, ...parsed };
     } catch {
-      // Fallback to text
       data.body = event.data.text() || data.body;
     }
   }
@@ -235,27 +285,21 @@ self.addEventListener('push', (event) => {
 self.addEventListener('notificationclick', (event) => {
   event.notification.close();
 
-  // The app is an SPA with only the '/' route.
-  // Deep links like /store/xxx or /chat are not real routes — they cause 404.
-  // Instead, we navigate to '/' with a 'deepLink' query param that the app reads.
   const rawUrl = event.notification.data?.url || '/';
   let targetUrl = '/';
 
   if (rawUrl && rawUrl !== '/') {
-    // Pass the deep link as a query parameter
     targetUrl = `/?deepLink=${encodeURIComponent(rawUrl)}`;
   }
 
   event.waitUntil(
     self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
-      // If there's already an open window, focus it and navigate
       for (const client of clientList) {
         if (client.url.includes(self.location.origin) && 'focus' in client) {
           client.navigate(targetUrl);
           return client.focus();
         }
       }
-      // Otherwise, open a new window
       return self.clients.openWindow(targetUrl);
     })
   );

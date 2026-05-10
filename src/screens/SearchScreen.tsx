@@ -73,7 +73,7 @@ export const SearchScreen: React.FC = () => {
     async function fetchDefaultData() {
       setInitialLoading(true);
       try {
-        const [productsRes, storesRes, offersRes] = await Promise.all([
+        const [productsRes, storesRes, offersRes] = await Promise.allSettled([
           fetchApi<{ products: Product[] }>(`/api/products?limit=${DEFAULT_LIMIT}`),
           fetchApi<{ stores: Store[] }>(`/api/stores?limit=${DEFAULT_LIMIT}`),
           fetchApi<{ offers: OfferItem[] }>(`/api/offers?limit=${DEFAULT_LIMIT}`),
@@ -81,9 +81,9 @@ export const SearchScreen: React.FC = () => {
 
         if (cancelled) return;
 
-        const defaultProducts = productsRes.data?.products || [];
-        const defaultStores = storesRes.data?.stores || [];
-        const defaultOffers = offersRes.data?.offers || [];
+        const defaultProducts = (productsRes.status === 'fulfilled' ? productsRes.value?.data?.products : null) || [];
+        const defaultStores = (storesRes.status === 'fulfilled' ? storesRes.value?.data?.stores : null) || [];
+        const defaultOffers = (offersRes.status === 'fulfilled' ? offersRes.value?.data?.offers : null) || [];
 
         initialDataRef.current = { products: defaultProducts, stores: defaultStores, offers: defaultOffers };
 
@@ -323,7 +323,7 @@ export const SearchScreen: React.FC = () => {
   const hasMoreProducts = products.length % PAGE_SIZE === 0 && products.length > 0;
 
   return (
-    <div className="bg-[var(--color-bg)] min-h-screen pb-24">
+    <div className="bg-[var(--color-bg)] min-h-screen pb-28">
       {/* Header */}
       <div className="gradient-dark px-5 pt-8 pb-6 relative overflow-hidden">
         <div className="absolute top-[-30px] right-[-20px] w-[140px] h-[140px] rounded-full bg-teal-600/15 blur-[50px]" />

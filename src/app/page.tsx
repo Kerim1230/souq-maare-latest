@@ -424,6 +424,29 @@ export default function App() {
     notificationInit();
   }, [initialize, notificationInit]);
 
+  // ── Global chunk error recovery ──
+  // When a new deployment invalidates old chunk filenames,
+  // the browser may fail to load them. Detect this and force a hard reload
+  // with cache busting to get fresh assets.
+  useEffect(() => {
+    const handleChunkError = (event: ErrorEvent) => {
+      const msg = event.message || '';
+      if (
+        /Loading chunk|Loading CSS chunk|Failed to fetch dynamically imported module|chunk\s+\w+\s+failed/i.test(msg)
+      ) {
+        console.warn('[ChunkError] Detected stale chunk, clearing caches and reloading...');
+        // Clear all caches
+        if ('caches' in window) {
+          caches.keys().then((keys) => Promise.all(keys.map((k) => caches.delete(k))));
+        }
+        // Force hard reload with cache bust
+        window.location.reload();
+      }
+    };
+    window.addEventListener('error', handleChunkError);
+    return () => window.removeEventListener('error', handleChunkError);
+  }, []);
+
   // ── Global data initialization on login ──
   useEffect(() => {
     if (!user) {
