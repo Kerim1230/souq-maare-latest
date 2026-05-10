@@ -68,3 +68,21 @@ Stage Summary:
 - **logo.svg**: New SVG with golden frame, shopping icons, gradient letter
 - **Vercel deployments**: Both READY and promoted to production
 - All changes pushed to GitHub
+
+---
+Task ID: 4
+Agent: Main Agent
+Task: Configure domain redirect from old to new domain on Vercel
+
+Work Log:
+- Listed current Vercel project domains via API (both suq-shamel.vercel.app and souq-maare-latest.vercel.app present)
+- Used PATCH API to set redirect on old domain: souq-maare-latest.vercel.app → suq-shamel.vercel.app with HTTP 301 (permanent redirect)
+- Verified new domain (suq-shamel.vercel.app) has no redirect and is the primary domain
+- Tested redirect with curl: old domain returns HTTP 301 with Location: https://suq-shamel.vercel.app/
+- New domain returns HTTP 200 with full page content
+
+Stage Summary:
+- **suq-shamel.vercel.app**: Primary domain, no redirect, verified ✅
+- **souq-maare-latest.vercel.app**: Redirects (301) to suq-shamel.vercel.app ✅
+- Users visiting old domain are automatically redirected to new domain
+- No users are lost during the transition
