@@ -76,6 +76,7 @@ function isLocalOrPrivateHost(hostname: string): boolean {
 export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl
   const response = NextResponse.next()
+  const isSharePage = request.method === 'GET' && pathname.startsWith('/share/');
 
   // ── Request ID Generation ──
   const requestId =
@@ -132,10 +133,11 @@ export function proxy(request: NextRequest) {
   )
 
   // ── CSRF Protection ──
+  // Skip CSRF on share pages — they're public static previews that need to be CDN-cacheable
 
-  // 1. Issue CSRF cookie if not present on any request
+  // 1. Issue CSRF cookie if not present on any request (except share pages)
   const existingCsrf = request.cookies.get(CSRF_COOKIE)?.value
-  if (!existingCsrf || existingCsrf.length < 32) {
+  if (!isSharePage && (!existingCsrf || existingCsrf.length < 32)) {
     ensureCsrfCookie(response)
   }
 
@@ -184,7 +186,8 @@ export function proxy(request: NextRequest) {
   }
 
   // ── Cache headers for share pages (social media crawlers need cacheable responses) ──
-  if (request.method === 'GET' && pathname.startsWith('/share/')) {
+  // Skip CSRF cookie on share pages so Vercel CDN can cache them (set-cookie prevents caching)
+  if (isSharePage) {
     response.headers.set('Cache-Control', 'public, max-age=300, s-maxage=300, stale-while-revalidate=600');
   }
 
