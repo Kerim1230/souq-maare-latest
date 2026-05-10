@@ -115,3 +115,23 @@ Stage Summary:
 - New products section uses 4-column compact grid (12 products max)
 - Featured products cards slightly narrower (140px vs 160px)
 - Deployed: https://suq-shamel.vercel.app
+
+---
+Task ID: 3
+Agent: Main Agent
+Task: Fix three visual issues - badge overlap, store layout, circular store icons
+
+Work Log:
+- Fixed ProductCard badges: moved from top-2 right-2/left-10 to bottom of image (bottom-2 right-2 / bottom-2 left-2) with z-10 and opacity-90
+- Compact mode badges: smaller text (8px), positioned at bottom-1.5, minimal padding
+- Fixed StoreDetailScreen: added top-nav-safe to main container, changed back button from top-10 to top-4
+- Changed featured store icons from rounded-2xl (w-20 h-20) to rounded-full (w-16 h-16) with ring-2 ring-offset-2
+- Updated store skeleton loaders to match circular style
+- Updated SkeletonHome stores and products grid (cols-4 gap-1.5)
+- Committed, pushed to GitHub, deployed to Vercel
+
+Stage Summary:
+- ProductCard badges no longer cover the center of product images
+- StoreDetailScreen content properly clears the top navigation bar
+- Featured store logos are now circular with elegant ring border
+- Deployed: https://suq-shamel.vercel.app
