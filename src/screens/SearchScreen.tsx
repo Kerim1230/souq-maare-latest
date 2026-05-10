@@ -36,6 +36,7 @@ export const SearchScreen: React.FC = () => {
   const [offers, setOffers] = useState<OfferItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [initialLoading, setInitialLoading] = useState(true);
+  const [initialError, setInitialError] = useState<string | null>(null);
   const [_productsPage, setProductsPage] = useState(1);
   const [_storesPage, setStoresPage] = useState(1);
   const [_offersPage, setOffersPage] = useState(1);
@@ -72,6 +73,7 @@ export const SearchScreen: React.FC = () => {
 
     async function fetchDefaultData() {
       setInitialLoading(true);
+      setInitialError(null);
       try {
         const [productsRes, storesRes, offersRes] = await Promise.allSettled([
           fetchApi<{ products: Product[] }>(`/api/products?limit=${DEFAULT_LIMIT}`),
@@ -80,6 +82,16 @@ export const SearchScreen: React.FC = () => {
         ]);
 
         if (cancelled) return;
+
+        // Check if ALL requests failed
+        const allFailed =
+          (productsRes.status === 'rejected' || (productsRes.status === 'fulfilled' && productsRes.value?.ok === false)) &&
+          (storesRes.status === 'rejected' || (storesRes.status === 'fulfilled' && storesRes.value?.ok === false)) &&
+          (offersRes.status === 'rejected' || (offersRes.status === 'fulfilled' && offersRes.value?.ok === false));
+
+        if (allFailed) {
+          setInitialError('تعذر تحميل البيانات. تحقق من اتصالك بالإنترنت');
+        }
 
         const defaultProducts = (productsRes.status === 'fulfilled' ? productsRes.value?.data?.products : null) || [];
         const defaultStores = (storesRes.status === 'fulfilled' ? storesRes.value?.data?.stores : null) || [];
@@ -96,7 +108,9 @@ export const SearchScreen: React.FC = () => {
           setOffersPage(1);
         });
       } catch {
-        // Silently handle errors — page will show empty state
+        if (!cancelled) {
+          setInitialError('حدث خطأ غير متوقع أثناء تحميل البيانات');
+        }
       } finally {
         if (!cancelled) {
           setInitialLoading(false);
@@ -107,6 +121,41 @@ export const SearchScreen: React.FC = () => {
     fetchDefaultData();
 
     return () => { cancelled = true; };
+  }, []);
+
+  // ── Retry initial data load ──
+  const retryInitialLoad = useCallback(() => {
+    initialDataRef.current = null;
+    setInitialError(null);
+    setProducts([]);
+    setStores([]);
+    setOffers([]);
+    // Re-trigger the effect by calling fetchDefaultData again
+    setInitialLoading(true);
+    async function retry() {
+      try {
+        const [productsRes, storesRes, offersRes] = await Promise.allSettled([
+          fetchApi<{ products: Product[] }>(`/api/products?limit=${DEFAULT_LIMIT}`),
+          fetchApi<{ stores: Store[] }>(`/api/stores?limit=${DEFAULT_LIMIT}`),
+          fetchApi<{ offers: OfferItem[] }>(`/api/offers?limit=${DEFAULT_LIMIT}`),
+        ]);
+
+        const defaultProducts = (productsRes.status === 'fulfilled' ? productsRes.value?.data?.products : null) || [];
+        const defaultStores = (storesRes.status === 'fulfilled' ? storesRes.value?.data?.stores : null) || [];
+        const defaultOffers = (offersRes.status === 'fulfilled' ? offersRes.value?.data?.offers : null) || [];
+
+        initialDataRef.current = { products: defaultProducts, stores: defaultStores, offers: defaultOffers };
+        setProducts(defaultProducts);
+        setStores(defaultStores);
+        setOffers(defaultOffers);
+        setInitialError(null);
+      } catch {
+        setInitialError('تعذر تحميل البيانات. تحقق من اتصالك بالإنترنت');
+      } finally {
+        setInitialLoading(false);
+      }
+    }
+    retry();
   }, []);
 
   // ── AI Smart Search: analyze natural language query ──
@@ -428,10 +477,25 @@ export const SearchScreen: React.FC = () => {
         )}
 
         {/* Initial Loading */}
-        {initialLoading && (
+        {initialLoading && !initialError && (
           <div className="flex flex-col items-center justify-center py-12 gap-2">
             <Loader2 className="w-6 h-6 text-emerald-500 animate-spin" />
             <p className="text-[13px] font-medium text-[var(--color-text-secondary)]">جاري تحميل البيانات...</p>
+          </div>
+        )}
+
+        {/* Initial Error with Retry */}
+        {initialError && !initialLoading && (
+          <div className="bg-[var(--color-surface)] rounded-2xl p-8 text-center border border-[var(--color-border)] shadow-sm">
+            <div className="w-14 h-14 bg-red-50/60 dark:bg-red-900/20 rounded-xl flex items-center justify-center mx-auto mb-3">
+              <X className="w-7 h-7 text-red-400" />
+            </div>
+            <p className="text-red-600 dark:text-red-400 font-bold text-[14px] mb-1">خطأ في التحميل</p>
+            <p className="text-[var(--color-text-tertiary)] text-[12px] mb-4">{initialError}</p>
+            <button onClick={retryInitialLoad}
+              className="px-6 py-2.5 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 text-[13px] font-bold rounded-xl hover:bg-emerald-100 dark:hover:bg-emerald-900/30 transition-colors border border-emerald-100/60">
+              إعادة المحاولة
+            </button>
           </div>
         )}
 
@@ -454,8 +518,8 @@ export const SearchScreen: React.FC = () => {
           </div>
         )}
 
-        {/* AI Smart Suggestions - show when AI is enabled and no query */}
-        {aiSearchEnabled && !query && !loading && !initialLoading && (
+        {/* AI Smart Suggestions - show when AI is enabled, no query, and no error */}
+        {aiSearchEnabled && !query && !loading && !initialLoading && !initialError && (
           <div className="space-y-3">
             <div className="flex items-center gap-2 mb-1">
               <Bot className="w-4 h-4 text-violet-500" />
@@ -472,8 +536,8 @@ export const SearchScreen: React.FC = () => {
           </div>
         )}
 
-        {/* Regular Suggestions - show only when not loading, no query, and AI is off */}
-        {!aiSearchEnabled && !query && !loading && !initialLoading && (
+        {/* Regular Suggestions - show only when not loading, no query, no error, and AI is off */}
+        {!aiSearchEnabled && !query && !loading && !initialLoading && !initialError && (
           <div className="space-y-3">
             <div className="flex items-center gap-2 mb-1">
               <Sparkles className="w-4 h-4 text-emerald-500" />
@@ -490,8 +554,8 @@ export const SearchScreen: React.FC = () => {
           </div>
         )}
 
-        {/* Product Results - show when not loading (either initial or search) */}
-        {!loading && !aiLoading && !initialLoading && tab === 'products' && (
+        {/* Product Results - show when not loading and no initial error */}
+        {!loading && !aiLoading && !initialLoading && !initialError && tab === 'products' && (
           <div className="space-y-3">
             {displayedProducts.length === 0 ? (
               <div className="bg-[var(--color-surface)] rounded-2xl p-8 text-center border border-[var(--color-border)] shadow-sm">
@@ -533,8 +597,8 @@ export const SearchScreen: React.FC = () => {
           </div>
         )}
 
-        {/* Store Results - show when not loading */}
-        {!loading && !aiLoading && !initialLoading && tab === 'stores' && (
+        {/* Store Results - show when not loading and no initial error */}
+        {!loading && !aiLoading && !initialLoading && !initialError && tab === 'stores' && (
           <div className="space-y-2.5">
             {stores.length === 0 ? (
               <div className="bg-[var(--color-surface)] rounded-2xl p-8 text-center border border-[var(--color-border)] shadow-sm">
@@ -581,8 +645,8 @@ export const SearchScreen: React.FC = () => {
           </div>
         )}
 
-        {/* Offers Results - show when not loading */}
-        {!loading && !aiLoading && !initialLoading && tab === 'offers' && (
+        {/* Offers Results - show when not loading and no initial error */}
+        {!loading && !aiLoading && !initialLoading && !initialError && tab === 'offers' && (
           <div className="space-y-2.5">
             {offers.length === 0 ? (
               <div className="bg-[var(--color-surface)] rounded-2xl p-8 text-center border border-[var(--color-border)] shadow-sm">

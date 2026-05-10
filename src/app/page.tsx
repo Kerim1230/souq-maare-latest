@@ -429,22 +429,64 @@ export default function App() {
   // the browser may fail to load them. Detect this and force a hard reload
   // with cache busting to get fresh assets.
   useEffect(() => {
-    const handleChunkError = (event: ErrorEvent) => {
+    const CHUNK_ERROR_PATTERN = /Loading chunk|Loading CSS chunk|Failed to fetch dynamically imported module|chunk\s+\w+\s+failed|Importing a module script failed/i;
+    const MAX_RELOAD_ATTEMPTS = 3;
+    const RELOAD_KEY = 'suq_chunk_reload_count';
+    const RELOAD_TIMESTAMP_KEY = 'suq_chunk_reload_ts';
+
+    function handleChunkRecovery(source: string) {
+      // Prevent infinite reload loop — max 3 reloads within 60 seconds
+      const now = Date.now();
+      const lastReloadTs = parseInt(sessionStorage.getItem(RELOAD_TIMESTAMP_KEY) || '0', 10);
+      const reloadCount = parseInt(sessionStorage.getItem(RELOAD_KEY) || '0', 10);
+
+      if (now - lastReloadTs > 60_000) {
+        // Reset counter if more than 60s since last reload
+        sessionStorage.setItem(RELOAD_KEY, '1');
+        sessionStorage.setItem(RELOAD_TIMESTAMP_KEY, String(now));
+      } else if (reloadCount >= MAX_RELOAD_ATTEMPTS) {
+        console.warn('[ChunkError] Max reload attempts reached, stopping recovery loop');
+        sessionStorage.removeItem(RELOAD_KEY);
+        sessionStorage.removeItem(RELOAD_TIMESTAMP_KEY);
+        return; // Don't reload — show the error to the user instead
+      } else {
+        sessionStorage.setItem(RELOAD_KEY, String(reloadCount + 1));
+        sessionStorage.setItem(RELOAD_TIMESTAMP_KEY, String(now));
+      }
+
+      console.warn(`[ChunkError] Detected stale chunk (${source}), clearing caches and reloading...`);
+      // Clear all caches
+      if ('caches' in window) {
+        caches.keys().then((keys) => Promise.all(keys.map((k) => caches.delete(k))));
+      }
+      // Force hard reload with cache bust
+      window.location.reload();
+    }
+
+    // Handle synchronous error events
+    const handleError = (event: ErrorEvent) => {
       const msg = event.message || '';
-      if (
-        /Loading chunk|Loading CSS chunk|Failed to fetch dynamically imported module|chunk\s+\w+\s+failed/i.test(msg)
-      ) {
-        console.warn('[ChunkError] Detected stale chunk, clearing caches and reloading...');
-        // Clear all caches
-        if ('caches' in window) {
-          caches.keys().then((keys) => Promise.all(keys.map((k) => caches.delete(k))));
-        }
-        // Force hard reload with cache bust
-        window.location.reload();
+      if (CHUNK_ERROR_PATTERN.test(msg)) {
+        event.preventDefault();
+        handleChunkRecovery('error-event');
       }
     };
-    window.addEventListener('error', handleChunkError);
-    return () => window.removeEventListener('error', handleChunkError);
+
+    // Handle unhandled promise rejections (dynamic imports fail here)
+    const handleUnhandledRejection = (event: PromiseRejectionEvent) => {
+      const msg = event.reason?.message || event.reason?.toString() || '';
+      if (CHUNK_ERROR_PATTERN.test(msg)) {
+        event.preventDefault();
+        handleChunkRecovery('unhandled-rejection');
+      }
+    };
+
+    window.addEventListener('error', handleError);
+    window.addEventListener('unhandledrejection', handleUnhandledRejection);
+    return () => {
+      window.removeEventListener('error', handleError);
+      window.removeEventListener('unhandledrejection', handleUnhandledRejection);
+    };
   }, []);
 
   // ── Global data initialization on login ──

@@ -1,4 +1,4 @@
-const CACHE_NAME = 'suq-shamel-v5';
+const CACHE_NAME = 'suq-shamel-v6';
 const STATIC_ASSETS = [
   '/',
   '/manifest.json',
