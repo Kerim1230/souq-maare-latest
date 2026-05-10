@@ -82,7 +82,7 @@ export default function RootLayout({
           clears all caches, and reloads the page so fresh JS bundles are loaded.
           Uses localStorage flag to ensure this only runs once.
         */}
-        <script dangerouslySetInnerHTML={{ __html: `(function(){try{var k='suq-shamel-sw-migration-v3';if(localStorage.getItem(k))return;if(!('serviceWorker' in navigator))return;localStorage.setItem(k,'1');navigator.serviceWorker.getRegistrations().then(function(rs){return Promise.all(rs.map(function(r){return r.unregister()}))}).then(function(){return caches.keys()}).then(function(ks){return Promise.all(ks.map(function(k){return caches.delete(k)}))}).then(function(){window.location.reload()})}catch(e){}})()` }} />
+        <script dangerouslySetInnerHTML={{ __html: `(function(){try{var k='suq-shamel-sw-migration-v4';if(localStorage.getItem(k))return;if(!('serviceWorker' in navigator))return;localStorage.setItem(k,'1');navigator.serviceWorker.getRegistrations().then(function(rs){return Promise.all(rs.map(function(r){return r.unregister()}))}).then(function(){return caches.keys()}).then(function(ks){return Promise.all(ks.map(function(k){return caches.delete(k)}))}).then(function(){window.location.reload()})}catch(e){}})()` }} />
       </head>
       <body className={`${cairo.variable} antialiased`}>
         <ThemeProvider
