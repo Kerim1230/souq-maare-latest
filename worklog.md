@@ -86,3 +86,31 @@ Stage Summary:
 - **souq-maare-latest.vercel.app**: Redirects (301) to suq-shamel.vercel.app ✅
 - Users visiting old domain are automatically redirected to new domain
 - No users are lost during the transition
+
+---
+Task ID: 5
+Agent: Main Agent
+Task: Apply user-provided app icon across all platforms
+
+Work Log:
+- Copied uploaded icon from upload/ to public/app-icon.png
+- Generated icon-512.png (512x512) for PWA manifest
+- Generated icon-192.png (192x192) for PWA manifest and browser favicon
+- Generated apple-touch-icon.png (180x180) for iOS home screen
+- Generated favicon.png (32x32) for browser tabs
+- Updated layout.tsx icons from emoji (🛒) to real icon files (/icon-192.png, /apple-touch-icon.png)
+- Updated manifest.json with multiple icon sizes (192, 512, SVG fallback)
+- Added upload/ folder to .gitignore
+- Committed and pushed to GitHub (commit 7f7d1a2)
+- Verified Vercel deployment reached READY state
+- Verified all icon files are accessible on suq-shamel.vercel.app (HTTP 200)
+
+Stage Summary:
+- **app-icon.png**: Replaced with user-provided design (1.2MB)
+- **icon-512.png**: New 512x512 PWA icon
+- **icon-192.png**: New 192x192 PWA icon
+- **apple-touch-icon.png**: New 180x180 iOS icon
+- **favicon.png**: New 32x32 browser tab icon
+- **layout.tsx**: Icons updated from emoji to real PNG files
+- **manifest.json**: Updated with all icon sizes
+- All deployed and verified on Vercel ✅
