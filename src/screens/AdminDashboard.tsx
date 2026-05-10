@@ -9,7 +9,7 @@ import {
   Trophy, Save, CreditCard,
   FileWarning, Info, Calendar, Megaphone,
   Award, Gift, Building2, ShoppingBag, Hash,
-  Pencil, Key, Wrench, UserCog, Bot, MessageSquare, Loader2
+  Pencil, Key, Wrench, UserCog, Bot, MessageSquare, Loader2, BarChart3
 } from 'lucide-react';
 import { useAuthStore } from '@/store/authStore';
 import { useAppStore } from '@/store/appStore';
@@ -27,9 +27,10 @@ import { SystemKeys } from '@/screens/admin/SystemKeys';
 import { UserManager } from '@/screens/admin/UserManager';
 import { MaintenancePanel } from '@/screens/admin/MaintenancePanel';
 import { AiHelpSettings } from '@/screens/admin/AiHelpSettings';
+import { SystemUsagePanel } from '@/screens/admin/SystemUsagePanel';
 
 // ===== Constants =====
-type TabKey = 'home' | 'reports' | 'users' | 'stores' | 'products' | 'offers' | 'points' | 'verification' | 'notifications' | 'activity' | 'systemMonitor' | 'systemKeys' | 'userManager' | 'maintenance' | 'monitoring' | 'aiHelp' | 'pushDebug' | 'support' | 'settings';
+type TabKey = 'home' | 'reports' | 'users' | 'stores' | 'products' | 'offers' | 'points' | 'verification' | 'notifications' | 'activity' | 'systemMonitor' | 'systemKeys' | 'userManager' | 'maintenance' | 'monitoring' | 'aiHelp' | 'systemUsage' | 'pushDebug' | 'support' | 'settings';
 
 const TAB_CONFIG: { key: TabKey; label: string; icon: React.ReactNode; badge?: () => number }[] = [
   { key: 'home', label: 'الرئيسية', icon: <Home className="w-[18px] h-[18px]" /> },
@@ -48,6 +49,7 @@ const TAB_CONFIG: { key: TabKey; label: string; icon: React.ReactNode; badge?: (
   { key: 'maintenance', label: 'الصيانة', icon: <Wrench className="w-[18px] h-[18px]" /> },
   { key: 'monitoring', label: 'المراقبة', icon: <Eye className="w-[18px] h-[18px]" /> },
   { key: 'aiHelp', label: 'المساعد الذكي 🤖', icon: <Bot className="w-[18px] h-[18px]" /> },
+  { key: 'systemUsage', label: 'استخدام الموارد 📊', icon: <BarChart3 className="w-[18px] h-[18px]" /> },
   { key: 'pushDebug', label: 'تشخيص الإشعارات 🔔', icon: <BellRing className="w-[18px] h-[18px]" /> },
   { key: 'support', label: 'الدعم 📩', icon: <Mail className="w-[18px] h-[18px]" /> },
   { key: 'settings', label: 'الإعدادات', icon: <Settings className="w-[18px] h-[18px]" /> },
@@ -212,7 +214,7 @@ export const AdminDashboard: React.FC = () => {
       </div>
 
       {/* Search */}
-      {activeTab !== 'home' && activeTab !== 'settings' && activeTab !== 'systemMonitor' && activeTab !== 'systemKeys' && activeTab !== 'maintenance' && activeTab !== 'monitoring' && activeTab !== 'aiHelp' && activeTab !== 'pushDebug' && activeTab !== 'support' && (
+      {activeTab !== 'home' && activeTab !== 'settings' && activeTab !== 'systemMonitor' && activeTab !== 'systemKeys' && activeTab !== 'maintenance' && activeTab !== 'monitoring' && activeTab !== 'aiHelp' && activeTab !== 'systemUsage' && activeTab !== 'pushDebug' && activeTab !== 'support' && (
         <div className="px-4 mb-4">
           <SearchBar value={searchQuery} onChange={setSearchQuery} placeholder={`بحث في ${TAB_CONFIG.find(t => t.key === activeTab)?.label}...`} />
         </div>
@@ -236,6 +238,7 @@ export const AdminDashboard: React.FC = () => {
         {activeTab === 'maintenance' && <MaintenancePanel />}
         {activeTab === 'monitoring' && <MonitoringTab />}
         {activeTab === 'aiHelp' && <AiHelpSettings />}
+        {activeTab === 'systemUsage' && <SystemUsagePanel />}
         {activeTab === 'pushDebug' && <PushDebugTab />}
         {activeTab === 'support' && <SupportTab />}
         {activeTab === 'settings' && <SettingsTab store={store} />}
