@@ -183,6 +183,11 @@ export function proxy(request: NextRequest) {
     }
   }
 
+  // ── Cache headers for share pages (social media crawlers need cacheable responses) ──
+  if (request.method === 'GET' && pathname.startsWith('/share/')) {
+    response.headers.set('Cache-Control', 'public, max-age=300, s-maxage=300, stale-while-revalidate=600');
+  }
+
   // ── Cache headers for public API GET endpoints ──
   if (request.method === 'GET') {
     const isCacheableApi = pathname.startsWith('/api/products') ||
