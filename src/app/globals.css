@@ -73,6 +73,12 @@
     padding-bottom: env(safe-area-inset-bottom, 0px);
   }
 
+  /* Safe bottom padding for content that must clear the fixed bottom nav bar.
+     Accounts for: nav bar height (~64px) + safe-area inset + extra margin. */
+  .safe-bottom {
+    padding-bottom: calc(80px + env(safe-area-inset-bottom, 0px));
+  }
+
   /* RTL safety utility */
   [dir="rtl"] .rtl-safe {
     direction: rtl;
