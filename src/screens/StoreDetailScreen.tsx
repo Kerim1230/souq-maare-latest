@@ -479,11 +479,11 @@ export const StoreDetailScreen: React.FC = () => {
             <p className="text-[var(--color-text-secondary)] text-[13px] leading-relaxed line-clamp-2">{store.description || 'لا يوجد وصف بعد'}</p>
 
             {/* Location */}
-            {store.governorate && (
+            {(store.governorate || store.location) && (
               <div className="flex items-center gap-1.5 mt-2">
                 <MapPin className="w-3.5 h-3.5 text-emerald-500" style={theme.color ? { color: theme.color.solid } : undefined} />
                 <span className="text-[12px] text-[var(--color-text-secondary)]">
-                  {store.governorate}{store.city ? ` - ${store.city}` : ''}
+                  {store.location || `${store.governorate || ''}${store.city ? ` - ${store.city}` : ''}`}
                 </span>
               </div>
             )}
@@ -716,6 +716,12 @@ export const StoreDetailScreen: React.FC = () => {
                     <div className="w-9 h-9 rounded-xl bg-emerald-50 dark:bg-emerald-900/20 flex items-center justify-center text-emerald-500" style={theme.color ? { background: theme.color.solidLight + '18', color: theme.color.solid } : undefined}><Calendar className="w-4 h-4" /></div>
                     <div><p className="text-[12px] font-bold text-[var(--color-text)]">{new Date(store.created_at).toLocaleDateString('ar-SY')}</p><p className="text-[10px] text-[var(--color-text-tertiary)]">تاريخ إنشاء المتجر</p></div>
                   </div>
+                  {(store.location || store.governorate) && (
+                    <div className="flex items-center gap-3 p-3 bg-[var(--color-bg)] rounded-xl">
+                      <div className="w-9 h-9 rounded-xl bg-emerald-50 dark:bg-emerald-900/20 flex items-center justify-center text-emerald-500" style={theme.color ? { background: theme.color.solidLight + '18', color: theme.color.solid } : undefined}><MapPin className="w-4 h-4" /></div>
+                      <div><p className="text-[12px] font-bold text-[var(--color-text)]">{store.location || `${store.governorate || ''}${store.city ? ` - ${store.city}` : ''}`}</p><p className="text-[10px] text-[var(--color-text-tertiary)]">الموقع</p></div>
+                    </div>
+                  )}
                 </div>
               </div>
               {store.description && (

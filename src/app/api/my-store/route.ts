@@ -113,7 +113,7 @@ export const POST = withRoute(async (request: NextRequest) => {
     const userId = auth.userId;
 
     const body = await request.json();
-    const { name, description, logoUrl, coverUrl, category, governorate, city } = body;
+    const { name, description, logoUrl, coverUrl, category, governorate, city, location } = body;
 
     if (!name) {
       return badRequest('اسم المتجر مطلوب');
@@ -144,6 +144,7 @@ export const POST = withRoute(async (request: NextRequest) => {
       chat_enabled: false,
       governorate: governorate || undefined,
       city: city || undefined,
+      location: location || undefined,
     });
 
     // Invalidate store and home caches
@@ -241,7 +242,7 @@ export const PUT = withRoute(async (request: NextRequest) => {
     const sessionUserId = auth.userId;
 
     const body = await request.json();
-    const { storeId, name, description, logoUrl, coverUrl, category, chatEnabled, governorate, city } = body;
+    const { storeId, name, description, logoUrl, coverUrl, category, chatEnabled, governorate, city, location } = body;
 
     const storeIdCheck = validateId(storeId, 'معرف المتجر');
     if (!storeIdCheck.valid) return badRequest(storeIdCheck.error!);
@@ -276,6 +277,7 @@ export const PUT = withRoute(async (request: NextRequest) => {
     if (chatEnabled !== undefined) updateData.chat_enabled = chatEnabled;
     if (governorate !== undefined) updateData.governorate = governorate || null;
     if (city !== undefined) updateData.city = city || null;
+    if (location !== undefined) updateData.location = location || null;
 
     const store = await updateStore(storeId, updateData);
 

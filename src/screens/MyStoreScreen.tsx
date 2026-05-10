@@ -92,6 +92,7 @@ export const MyStoreScreen: React.FC = () => {
   const [storeCover, setStoreCover] = useState<string | null>(null);
   const [storeGovernorate, setStoreGovernorate] = useState('');
   const [storeCity, setStoreCity] = useState('');
+  const [storeLocation, setStoreLocation] = useState('');
   const [creatingStore, setCreatingStore] = useState(false);
 
   // Add Product
@@ -158,6 +159,7 @@ export const MyStoreScreen: React.FC = () => {
   const [editCategory, setEditCategory] = useState(DEFAULT_CATEGORY);
   const [editGovernorate, setEditGovernorate] = useState('');
   const [editCity, setEditCity] = useState('');
+  const [editLocation, setEditLocation] = useState('');
   const [savingStore, setSavingStore] = useState(false);
 
   // Delete Store
@@ -201,6 +203,7 @@ export const MyStoreScreen: React.FC = () => {
         setEditCategory(store.category || firstCategory);
         setEditGovernorate(store.governorate || '');
         setEditCity(store.city || '');
+        setEditLocation(store.location || '');
       }
     } catch (err) {
       // API failure (e.g. stores table missing) — treat as "no store yet"
@@ -290,7 +293,7 @@ export const MyStoreScreen: React.FC = () => {
         setCreatingStore(false);
         return;
       }
-      const { data, error } = await apiPost('/api/my-store', { userId: user.id, name: storeName, description: storeDesc, category: storeCategory, governorate: storeGovernorate, city: storeCity, logoUrl, coverUrl });
+      const { data, error } = await apiPost('/api/my-store', { userId: user.id, name: storeName, description: storeDesc, category: storeCategory, governorate: storeGovernorate, city: storeCity, location: storeLocation, logoUrl, coverUrl });
       if (error) {
         console.error('Store API error:', error);
         toast.error(error);
@@ -298,7 +301,7 @@ export const MyStoreScreen: React.FC = () => {
       }
       if (data?.store) { setMyStore(data.store); }
       setShowCreateStore(false);
-      setStoreName(''); setStoreDesc(''); setStoreLogo(null); setStoreCover(null); setStoreGovernorate(''); setStoreCity('');
+      setStoreName(''); setStoreDesc(''); setStoreLogo(null); setStoreCover(null); setStoreGovernorate(''); setStoreCity(''); setStoreLocation('');
       toast.success('تم إنشاء متجرك بنجاح!');
     } catch (err) {
       console.error('Store creation error:', err);
@@ -324,7 +327,7 @@ export const MyStoreScreen: React.FC = () => {
         uploadImage(editLogo),
         uploadImage(editCover),
       ]);
-      const { data, error } = await apiPut('/api/my-store', { storeId: myStore.id, name: editName, description: editDesc, logoUrl, coverUrl, category: editCategory, governorate: editGovernorate, city: editCity });
+      const { data, error } = await apiPut('/api/my-store', { storeId: myStore.id, name: editName, description: editDesc, logoUrl, coverUrl, category: editCategory, governorate: editGovernorate, city: editCity, location: editLocation });
       if (error) {
         toast.error(error);
         return;
@@ -1074,6 +1077,10 @@ export const MyStoreScreen: React.FC = () => {
               {storeGovernorate && getCitiesForGovernorate(storeGovernorate).map(city => (<option key={city} value={city}>{city}</option>))}
             </select>
           </div>
+          <div>
+            <label className="text-[13px] font-bold text-emerald-900 dark:text-emerald-300 block mb-1.5">📍 الموقع الدقيق</label>
+            <Input placeholder="أدخل تفاصيل موقع متجرك بالضبط (اختياري)" value={storeLocation} onChange={(e) => setStoreLocation(e.target.value)} />
+          </div>
           <Button fullWidth onClick={handleCreateStore} loading={creatingStore} disabled={!storeName.trim()} icon={<Store className="w-5 h-5" />}>إنشاء المتجر</Button>
         </div>
       </Modal>
@@ -1104,6 +1111,10 @@ export const MyStoreScreen: React.FC = () => {
               <option value="">اختر المدينة</option>
               {editGovernorate && getCitiesForGovernorate(editGovernorate).map(city => (<option key={city} value={city}>{city}</option>))}
             </select>
+          </div>
+          <div>
+            <label className="text-[13px] font-bold text-emerald-900 dark:text-emerald-300 block mb-1.5">📍 الموقع الدقيق</label>
+            <Input placeholder="أدخل تفاصيل موقع متجرك بالضبط (اختياري)" value={editLocation} onChange={(e) => setEditLocation(e.target.value)} />
           </div>
           <Button fullWidth onClick={handleSaveStore} loading={savingStore} icon={<Edit3 className="w-5 h-5" />}>حفظ التغييرات</Button>
         </div>

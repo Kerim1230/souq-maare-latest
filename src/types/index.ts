@@ -50,6 +50,7 @@ export interface Store {
   is_following?: boolean;
   governorate?: string | null;
   city?: string | null;
+  location?: string | null;
   created_at: string;
 }
 

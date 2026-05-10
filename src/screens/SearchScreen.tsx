@@ -1,6 +1,6 @@
 'use client';
 import React, { useState, useCallback, useRef, useEffect, useMemo, useTransition } from 'react';
-import { Search, X, Package, Store as StoreIcon, Loader2, Verified, Sparkles, ImageIcon, Tag, Bot } from 'lucide-react';
+import { Search, X, Package, Store as StoreIcon, Loader2, Verified, Sparkles, ImageIcon, Tag, Bot, MapPin } from 'lucide-react';
 import { SafeImage, StoreLogo } from '@/components/market/SafeImage';
 import { useAppStore } from '@/store/appStore';
 import type { Product, Store } from '@/store/appStore';
@@ -561,6 +561,12 @@ export const SearchScreen: React.FC = () => {
                       <div className="flex items-center gap-2 mt-1">
                         <span className="inline-block bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 text-[10px] font-bold px-2 py-0.5 rounded-md">{store.category || 'عام'}</span>
                         {store.is_following && <span className="inline-block bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 text-[10px] font-bold px-2 py-0.5 rounded-md">متابَع</span>}
+                        {(store.location || store.governorate) && (
+                          <span className="flex items-center gap-0.5 text-[10px] text-[var(--color-text-tertiary)]">
+                            <MapPin className="w-3 h-3" />
+                            <span className="line-clamp-1">{store.location || `${store.governorate || ''}${store.city ? ` - ${store.city}` : ''}`}</span>
+                          </span>
+                        )}
                       </div>
                     </div>
                   </div>

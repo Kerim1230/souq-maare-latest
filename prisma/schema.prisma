@@ -21,6 +21,26 @@ model User {
   updatedAt DateTime @updatedAt
 }
 
+model Store {
+  id        String   @id @default(cuid())
+  user_id   String
+  name      String
+  description String?
+  logo_url  String?
+  cover_url String?
+  category  String?
+  theme_color String?
+  is_verified Boolean @default(false)
+  is_featured Boolean @default(false)
+  is_active Boolean @default(true)
+  chat_enabled Boolean @default(false)
+  governorate String?
+  city      String?
+  location  String?
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+}
+
 model Post {
   id        String   @id @default(cuid())
   title     String

@@ -179,6 +179,7 @@ export interface StoreRow {
   is_active?: boolean;
   governorate?: string | null;
   city?: string | null;
+  location?: string | null;
   created_at?: string;
   updated_at?: string;
 }
@@ -208,6 +209,7 @@ export async function createStore(data: {
   chat_enabled?: boolean;
   governorate?: string;
   city?: string;
+  location?: string;
 }) {
   const sb = getSupabaseAdmin();
   return handleResponse(
