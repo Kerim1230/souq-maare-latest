@@ -58,3 +58,37 @@ Work Log:
 Stage Summary:
 - StoreDetailScreen.tsx visually improved with better tabs, info section, and offer cards
 - All changes are CSS/Tailwind class and JSX structure only — no business logic modified
+
+---
+Task ID: 1
+Agent: Main Agent
+Task: Move navigation bar from bottom to top (Facebook-style) and remove search bar from home page
+
+Work Log:
+- Read page.tsx, HomeScreen.tsx, globals.css to understand current structure
+- Moved <nav> from fixed bottom-0 to fixed top-0 in page.tsx
+- Changed border-t to border-b, pb-safe to pt-safe (notch support)
+- Changed hide animation from translate-y-full to -translate-y-full
+- Moved toggle chevron from -top-8 to -bottom-8 of nav
+- Moved help button from -top-12 to -bottom-12 of nav
+- Moved floating restore button from bottom-5 to top-5
+- Updated ChevronDown/Up icons for correct direction
+- Changed tab-scroll-area to top-nav-scroll-area in page.tsx
+- Updated SubScreen overlay padding for top nav
+- Removed search bar from HomeScreen.tsx (lines 466-478)
+- Removed skeleton search bar from SkeletonHome
+- Removed unused Search import from HomeScreen.tsx
+- Changed bottom-nav-safe to top-nav-safe in HomeScreen, SkeletonHome, AuthGate
+- Updated globals.css: replaced .bottom-nav with .top-nav styles
+- Added .pt-safe, .top-nav-safe, .top-nav-scroll-area classes
+- Updated .bottom-nav-safe to minimal bottom safe area only
+- Updated shadow direction (0 -1px → 0 1px) for top nav
+- Updated ProfileScreen, MyStoreScreen, SearchScreen, FavoritesScreen: bottom-nav-safe → top-nav-safe
+- Committed and pushed to GitHub, deployed to Vercel
+
+Stage Summary:
+- Navigation bar moved from bottom to top (Facebook-style) with backdrop blur
+- Search bar removed from home page only (SearchScreen still has its own)
+- All screens updated with top-nav-safe for proper spacing
+- Hide/show toggle functionality preserved with updated directions
+- Deployed: https://suq-shamel.vercel.app
