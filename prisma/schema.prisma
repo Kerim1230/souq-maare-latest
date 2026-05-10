@@ -36,6 +36,7 @@ model Store {
   chat_enabled Boolean @default(false)
   governorate String?
   city      String?
+  district  String?
   location  String?
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt

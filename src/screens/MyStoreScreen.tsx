@@ -92,6 +92,7 @@ export const MyStoreScreen: React.FC = () => {
   const [storeCover, setStoreCover] = useState<string | null>(null);
   const [storeGovernorate, setStoreGovernorate] = useState('');
   const [storeCity, setStoreCity] = useState('');
+  const [storeDistrict, setStoreDistrict] = useState('');
   const [storeLocation, setStoreLocation] = useState('');
   const [creatingStore, setCreatingStore] = useState(false);
 
@@ -159,6 +160,7 @@ export const MyStoreScreen: React.FC = () => {
   const [editCategory, setEditCategory] = useState(DEFAULT_CATEGORY);
   const [editGovernorate, setEditGovernorate] = useState('');
   const [editCity, setEditCity] = useState('');
+  const [editDistrict, setEditDistrict] = useState('');
   const [editLocation, setEditLocation] = useState('');
   const [savingStore, setSavingStore] = useState(false);
 
@@ -203,6 +205,7 @@ export const MyStoreScreen: React.FC = () => {
         setEditCategory(store.category || firstCategory);
         setEditGovernorate(store.governorate || '');
         setEditCity(store.city || '');
+        setEditDistrict(store.district || '');
         setEditLocation(store.location || '');
       }
     } catch (err) {
@@ -293,7 +296,7 @@ export const MyStoreScreen: React.FC = () => {
         setCreatingStore(false);
         return;
       }
-      const { data, error } = await apiPost('/api/my-store', { userId: user.id, name: storeName, description: storeDesc, category: storeCategory, governorate: storeGovernorate, city: storeCity, location: storeLocation, logoUrl, coverUrl });
+      const { data, error } = await apiPost('/api/my-store', { userId: user.id, name: storeName, description: storeDesc, category: storeCategory, governorate: storeGovernorate, city: storeCity, district: storeDistrict, location: storeLocation, logoUrl, coverUrl });
       if (error) {
         console.error('Store API error:', error);
         toast.error(error);
@@ -301,7 +304,7 @@ export const MyStoreScreen: React.FC = () => {
       }
       if (data?.store) { setMyStore(data.store); }
       setShowCreateStore(false);
-      setStoreName(''); setStoreDesc(''); setStoreLogo(null); setStoreCover(null); setStoreGovernorate(''); setStoreCity(''); setStoreLocation('');
+      setStoreName(''); setStoreDesc(''); setStoreLogo(null); setStoreCover(null); setStoreGovernorate(''); setStoreCity(''); setStoreDistrict(''); setStoreLocation('');
       toast.success('تم إنشاء متجرك بنجاح!');
     } catch (err) {
       console.error('Store creation error:', err);
@@ -327,7 +330,7 @@ export const MyStoreScreen: React.FC = () => {
         uploadImage(editLogo),
         uploadImage(editCover),
       ]);
-      const { data, error } = await apiPut('/api/my-store', { storeId: myStore.id, name: editName, description: editDesc, logoUrl, coverUrl, category: editCategory, governorate: editGovernorate, city: editCity, location: editLocation });
+      const { data, error } = await apiPut('/api/my-store', { storeId: myStore.id, name: editName, description: editDesc, logoUrl, coverUrl, category: editCategory, governorate: editGovernorate, city: editCity, district: editDistrict, location: editLocation });
       if (error) {
         toast.error(error);
         return;
@@ -601,7 +604,7 @@ export const MyStoreScreen: React.FC = () => {
   ];
 
   return (
-    <div className="bg-[var(--color-bg)] min-h-screen pb-24">
+    <div className="bg-[var(--color-bg)] min-h-screen pb-28">
       {/* Header */}
       <div className="gradient-dark px-5 pt-8 pb-6 relative overflow-hidden">
         <div className="absolute top-[-30px] right-[-20px] w-[140px] h-[140px] rounded-full bg-teal-600/15 blur-[50px]" />
@@ -1078,6 +1081,10 @@ export const MyStoreScreen: React.FC = () => {
             </select>
           </div>
           <div>
+            <label className="text-[13px] font-bold text-emerald-900 dark:text-emerald-300 block mb-1.5">🏘️ المنطقة</label>
+            <Input placeholder="أدخل اسم المنطقة (اختياري)" value={storeDistrict} onChange={(e) => setStoreDistrict(e.target.value)} />
+          </div>
+          <div>
             <label className="text-[13px] font-bold text-emerald-900 dark:text-emerald-300 block mb-1.5">📍 الموقع الدقيق</label>
             <Input placeholder="أدخل تفاصيل موقع متجرك بالضبط (اختياري)" value={storeLocation} onChange={(e) => setStoreLocation(e.target.value)} />
           </div>
@@ -1111,6 +1118,10 @@ export const MyStoreScreen: React.FC = () => {
               <option value="">اختر المدينة</option>
               {editGovernorate && getCitiesForGovernorate(editGovernorate).map(city => (<option key={city} value={city}>{city}</option>))}
             </select>
+          </div>
+          <div>
+            <label className="text-[13px] font-bold text-emerald-900 dark:text-emerald-300 block mb-1.5">🏘️ المنطقة</label>
+            <Input placeholder="أدخل اسم المنطقة (اختياري)" value={editDistrict} onChange={(e) => setEditDistrict(e.target.value)} />
           </div>
           <div>
             <label className="text-[13px] font-bold text-emerald-900 dark:text-emerald-300 block mb-1.5">📍 الموقع الدقيق</label>

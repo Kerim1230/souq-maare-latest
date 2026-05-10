@@ -113,7 +113,7 @@ export const POST = withRoute(async (request: NextRequest) => {
     const userId = auth.userId;
 
     const body = await request.json();
-    const { name, description, logoUrl, coverUrl, category, governorate, city, location } = body;
+    const { name, description, logoUrl, coverUrl, category, governorate, city, district, location } = body;
 
     if (!name) {
       return badRequest('اسم المتجر مطلوب');
@@ -148,12 +148,13 @@ export const POST = withRoute(async (request: NextRequest) => {
         chat_enabled: false,
         governorate: governorate || undefined,
         city: city || undefined,
+        district: district || undefined,
         location: location || undefined,
       });
     } catch (err: any) {
-      if (err?.message?.includes('location') && location) {
-        // Column doesn't exist yet — retry without location
-        store = await createStore({
+      if ((err?.message?.includes('location') || err?.message?.includes('district')) && (location || district)) {
+        // Column doesn't exist yet — retry without the missing column(s)
+        const retryData: Record<string, unknown> = {
           user_id: userId,
           name,
           description: description || undefined,
@@ -163,7 +164,12 @@ export const POST = withRoute(async (request: NextRequest) => {
           chat_enabled: false,
           governorate: governorate || undefined,
           city: city || undefined,
-        });
+        };
+        // Only include district if the error wasn't about it
+        if (!err?.message?.includes('district') && district) retryData.district = district;
+        // Only include location if the error wasn't about it
+        if (!err?.message?.includes('location') && location) retryData.location = location;
+        store = await createStore(retryData as any);
       } else {
         throw err;
       }
@@ -266,7 +272,7 @@ export const PUT = withRoute(async (request: NextRequest) => {
     const sessionUserId = auth.userId;
 
     const body = await request.json();
-    const { storeId, name, description, logoUrl, coverUrl, category, chatEnabled, governorate, city, location } = body;
+    const { storeId, name, description, logoUrl, coverUrl, category, chatEnabled, governorate, city, district, location } = body;
 
     const storeIdCheck = validateId(storeId, 'معرف المتجر');
     if (!storeIdCheck.valid) return badRequest(storeIdCheck.error!);
@@ -301,15 +307,19 @@ export const PUT = withRoute(async (request: NextRequest) => {
     if (chatEnabled !== undefined) updateData.chat_enabled = chatEnabled;
     if (governorate !== undefined) updateData.governorate = governorate || null;
     if (city !== undefined) updateData.city = city || null;
+    if (district !== undefined) updateData.district = district || null;
     if (location !== undefined) updateData.location = location || null;
 
     let store;
     try {
       store = await updateStore(storeId, updateData);
     } catch (err: any) {
-      // If 'location' column doesn't exist yet, retry without it
-      if (err?.message?.includes('location') && updateData.location !== undefined) {
-        delete updateData.location;
+      // If 'location' or 'district' column doesn't exist yet, retry without it
+      const missingColumns: string[] = [];
+      if (err?.message?.includes('location') && updateData.location !== undefined) missingColumns.push('location');
+      if (err?.message?.includes('district') && updateData.district !== undefined) missingColumns.push('district');
+      if (missingColumns.length > 0) {
+        for (const col of missingColumns) delete updateData[col];
         store = await updateStore(storeId, updateData);
       } else {
         throw err;

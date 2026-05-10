@@ -209,6 +209,7 @@ export async function createStore(data: {
   chat_enabled?: boolean;
   governorate?: string;
   city?: string;
+  district?: string;
   location?: string;
 }) {
   const sb = getSupabaseAdmin();
