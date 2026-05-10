@@ -279,3 +279,13 @@
 .tab-scroll-area {
   padding-bottom: calc(100px + env(safe-area-inset-bottom, 0px)) !important;
 }
+
+/* When the bottom nav is hidden, reduce the padding since there's no nav to clear. */
+.tab-scroll-area-nav-hidden {
+  padding-bottom: calc(24px + env(safe-area-inset-bottom, 0px)) !important;
+}
+
+/* Bottom nav transition for hide/show animation */
+.bottom-nav {
+  transition: transform 300ms ease-in-out;
+}

@@ -3,7 +3,7 @@
 import React, { useEffect, useRef, useState, lazy, Suspense, useCallback, useMemo } from 'react';
 import { Toaster } from 'react-hot-toast';
 import { AnimatePresence, motion } from 'framer-motion';
-import { Home, Store, Search, Heart, User, MessageCircle, LogIn } from 'lucide-react';
+import { Home, Store, Search, Heart, User, MessageCircle, LogIn, ChevronDown, ChevronUp } from 'lucide-react';
 import { useAuthStore } from '@/store/authStore';
 import { useAppStore } from '@/store/appStore';
 import { useAutoDeleteStore } from '@/store/autoDeleteStore';
@@ -319,6 +319,22 @@ const MainLayout: React.FC = () => {
     };
   }, [user?.id, initAutoDelete, startAutoDeleteTimer, archiveAndCleanup, stopAutoDeleteTimer]);
 
+  // ── Bottom Nav Hide/Show State ──
+  const [navHidden, setNavHidden] = useState(() => {
+    if (typeof window === 'undefined') return false;
+    try {
+      return localStorage.getItem('souq_nav_hidden') === 'true';
+    } catch { return false; }
+  });
+
+  const toggleNav = useCallback(() => {
+    setNavHidden(prev => {
+      const next = !prev;
+      try { localStorage.setItem('souq_nav_hidden', String(next)); } catch {}
+      return next;
+    });
+  }, []);
+
   const handleTabChange = useCallback((tabId: number) => {
     // If user is not logged in and tries to access a protected tab, show auth gate
     const tab = tabs.find(t => t.id === tabId);
@@ -347,7 +363,7 @@ const MainLayout: React.FC = () => {
               animate="center"
               exit="exit"
               transition={{ duration: 0.2, ease: [0.25, 0.1, 0.25, 1] }}
-              className="absolute inset-0 overflow-y-auto tab-scroll-area"
+              className={`absolute inset-0 overflow-y-auto tab-scroll-area ${navHidden ? 'tab-scroll-area-nav-hidden' : ''}`}
               style={{ WebkitOverflowScrolling: 'touch' }}
             >
               <ErrorBoundary>
@@ -374,7 +390,7 @@ const MainLayout: React.FC = () => {
               initial="initial"
               animate="animate"
               exit="exit"
-              className="absolute inset-0 overflow-y-auto z-20 bg-[var(--color-bg)] pb-8"
+              className="absolute inset-0 overflow-y-auto z-20 bg-[var(--color-bg)] pb-8 tab-scroll-area"
               style={{ WebkitOverflowScrolling: 'touch' }}
             >
               <ErrorBoundary>
@@ -385,9 +401,28 @@ const MainLayout: React.FC = () => {
         </AnimatePresence>
       </div>
 
-      {/* Bottom Navigation — FIXED to viewport bottom */}
+      {/* Floating toggle button — visible when nav is hidden */}
+      {subScreen === 'none' && navHidden && (
+        <button
+          onClick={toggleNav}
+          className="fixed bottom-5 left-1/2 -translate-x-1/2 z-[101] w-12 h-12 rounded-full bg-gradient-to-br from-emerald-500 to-teal-600 shadow-lg shadow-emerald-500/30 flex items-center justify-center hover:scale-110 active:scale-95 transition-all duration-200 opacity-80 hover:opacity-100"
+          aria-label="إظهار شريط التنقل"
+        >
+          <ChevronUp className="w-6 h-6 text-white" />
+        </button>
+      )}
+
+      {/* Bottom Navigation — FIXED to viewport bottom, hideable */}
       {subScreen === 'none' && (
-        <nav className="bottom-nav fixed bottom-0 left-0 right-0 z-[100] pb-safe">
+        <nav className={`bottom-nav fixed bottom-0 left-0 right-0 z-[100] pb-safe transition-transform duration-300 ease-in-out ${navHidden ? 'translate-y-full' : 'translate-y-0'}`}>
+          {/* Toggle chevron — at the top center of the nav */}
+          <button
+            onClick={toggleNav}
+            className="absolute -top-8 left-1/2 -translate-x-1/2 w-8 h-8 rounded-t-xl bg-white/90 dark:bg-[#0f2318]/90 backdrop-blur-sm border border-b-0 border-[var(--color-border)] flex items-center justify-center hover:bg-emerald-50 dark:hover:bg-emerald-900/30 active:scale-90 transition-all duration-200 shadow-sm"
+            aria-label="إخفاء شريط التنقل"
+          >
+            <ChevronDown className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+          </button>
           <div className="flex items-center justify-around max-w-lg mx-auto px-2 py-2">
             {tabs.map((tab) => (
               <NavTab
@@ -402,7 +437,7 @@ const MainLayout: React.FC = () => {
           {/* Help Button — attached to nav bar, above حسابي tab */}
           <button
             onClick={() => useAppStore.getState().setSubScreen('help')}
-            className="absolute -top-12 left-4 w-11 h-11 rounded-full bg-gradient-to-br from-emerald-500 to-teal-600 shadow-lg shadow-emerald-500/30 flex items-center justify-center hover:scale-110 active:scale-95 transition-transform duration-200 animate-pulse z-50"
+            className="absolute -top-12 right-4 w-11 h-11 rounded-full bg-gradient-to-br from-emerald-500 to-teal-600 shadow-lg shadow-emerald-500/30 flex items-center justify-center hover:scale-110 active:scale-95 transition-transform duration-200 animate-pulse z-50"
             aria-label="المساعد الذكي"
           >
             <MessageCircle className="w-5 h-5 text-white" />
