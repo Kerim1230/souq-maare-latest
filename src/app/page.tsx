@@ -404,10 +404,10 @@ const MainLayout: React.FC = () => {
       {/* Top Navigation — FIXED to viewport top, hideable (Facebook-style) */}
       {subScreen === 'none' && (
         <nav className={`top-nav fixed top-0 left-0 right-0 z-[100] pt-safe transition-transform duration-300 ease-in-out bg-white/90 dark:bg-gray-900/90 backdrop-blur-lg border-b border-gray-200 dark:border-gray-700 ${navHidden ? '-translate-y-full' : 'translate-y-0'}`}>
-          {/* Toggle chevron — at the bottom center of the nav */}
+          {/* Toggle chevron — at the bottom-left corner of the nav */}
           <button
             onClick={toggleNav}
-            className="absolute -bottom-8 left-1/2 -translate-x-1/2 w-8 h-8 rounded-b-xl bg-white/90 dark:bg-[#0f2318]/90 backdrop-blur-sm border border-t-0 border-[var(--color-border)] flex items-center justify-center hover:bg-emerald-50 dark:hover:bg-emerald-900/30 active:scale-90 transition-all duration-200 shadow-sm"
+            className="absolute -bottom-8 left-2 w-8 h-8 rounded-b-xl bg-white/90 dark:bg-[#0f2318]/90 backdrop-blur-sm border border-t-0 border-[var(--color-border)] flex items-center justify-center hover:bg-emerald-50 dark:hover:bg-emerald-900/30 active:scale-90 transition-all duration-200 shadow-sm"
             aria-label="إخفاء شريط التنقل"
           >
             <ChevronUp className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
@@ -438,7 +438,7 @@ const MainLayout: React.FC = () => {
       {subScreen === 'none' && navHidden && (
         <button
           onClick={toggleNav}
-          className="fixed top-5 left-1/2 -translate-x-1/2 z-[101] w-12 h-12 rounded-full bg-gradient-to-br from-emerald-500 to-teal-600 shadow-lg shadow-emerald-500/30 flex items-center justify-center hover:scale-110 active:scale-95 transition-all duration-200 opacity-80 hover:opacity-100"
+          className="fixed top-5 left-3 z-[101] w-12 h-12 rounded-full bg-gradient-to-br from-emerald-500 to-teal-600 shadow-lg shadow-emerald-500/30 flex items-center justify-center hover:scale-110 active:scale-95 transition-all duration-200 opacity-80 hover:opacity-100"
           aria-label="إظهار شريط التنقل"
         >
           <ChevronDown className="w-6 h-6 text-white" />

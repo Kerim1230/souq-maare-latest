@@ -226,8 +226,8 @@ export const HomeScreen: React.FC = () => {
   const allOffers = useMemo<OfferItem[]>(() => (homeData?.offers || []) as OfferItem[], [homeData]);
 
   const displayedOffers = useMemo(() => allOffers.slice(0, 5), [allOffers]);
-  const displayedFeaturedProducts = useMemo(() => featuredProducts.slice(0, 3), [featuredProducts]);
-  const displayedNewProducts = useMemo(() => newProducts.slice(0, 3), [newProducts]);
+  const displayedFeaturedProducts = useMemo(() => featuredProducts.slice(0, 5), [featuredProducts]);
+  const displayedNewProducts = useMemo(() => newProducts.slice(0, 12), [newProducts]);
 
   // ── Whether data is loaded and ready to display ──
   const dataLoaded = homeData !== null;
@@ -592,7 +592,7 @@ export const HomeScreen: React.FC = () => {
           ) : (
             <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide snap-x snap-mandatory">
               {displayedFeaturedProducts.map((product) => (
-                <div key={product.id} className="flex-shrink-0 w-[160px] snap-start">
+                <div key={product.id} className="flex-shrink-0 w-[140px] snap-start">
                   <ProductCard
                     product={product}
                     isFavorite={favSet.has(product.id)}
@@ -632,7 +632,7 @@ export const HomeScreen: React.FC = () => {
           </div>
         </motion.section>
 
-        {/* ═══ 6. NEW PRODUCTS 🆕 — 2-column grid ═══ */}
+        {/* ═══ 6. NEW PRODUCTS 🆕 — 4-column compact grid ═══ */}
         <motion.section
           initial={{ opacity: 0, y: 15 }}
           animate={{ opacity: 1, y: 0 }}
@@ -649,17 +649,18 @@ export const HomeScreen: React.FC = () => {
               </div>
             }
           />
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-4 gap-1.5">
             {!dataLoaded
               ? <><SkeletonCard /><SkeletonCard /><SkeletonCard /><SkeletonCard /></>
               : displayedNewProducts.length === 0 ? (
-                <div className="col-span-2 py-6 text-center">
+                <div className="col-span-4 py-6 text-center">
                   <p className="text-[var(--color-text-tertiary)] text-sm">لا توجد منتجات جديدة حالياً</p>
                 </div>
               ) : displayedNewProducts.map((product) => (
                 <ProductCard
                   key={product.id}
                   product={product}
+                  compact
                   isFavorite={favSet.has(product.id)}
                   onReport={handleReportProduct}
                   onShare={handleShareProduct}
