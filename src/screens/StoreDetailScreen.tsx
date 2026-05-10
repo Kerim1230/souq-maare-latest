@@ -402,7 +402,7 @@ export const StoreDetailScreen: React.FC = () => {
   };
 
   return (
-    <div className="bg-[var(--color-bg)] min-h-screen pb-24">
+    <div className="bg-[var(--color-bg)] min-h-screen pb-24 top-nav-safe">
       {/* Cover */}
       <div className="relative h-56 overflow-hidden" style={theme.themeBg ? { background: theme.themeBg } : undefined}>
         {!theme.color && <div className="absolute inset-0 gradient-primary" />}
@@ -410,12 +410,12 @@ export const StoreDetailScreen: React.FC = () => {
         <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-black/20 to-transparent" />
         
         {/* Top actions */}
-        <div className="absolute top-10 right-4 z-20">
+        <div className="absolute top-4 right-4 z-20">
           <button onClick={() => setSubScreen('none')} className="w-10 h-10 bg-black/20 backdrop-blur-md rounded-full flex items-center justify-center text-white hover:bg-black/30 transition-colors shadow-sm hover:shadow-md">
             <ArrowRight className="w-5 h-5" />
           </button>
         </div>
-        <div className="absolute top-10 left-4 z-20 flex gap-2">
+        <div className="absolute top-4 left-4 z-20 flex gap-2">
           <button onClick={() => setReportModal({ isOpen: true, targetType: 'store', targetId: store.id, targetName: store.name })} className="w-10 h-10 bg-black/20 backdrop-blur-md rounded-full flex items-center justify-center text-white hover:bg-black/30 transition-colors shadow-sm hover:shadow-md" aria-label="إبلاغ"><Flag className="w-5 h-5" /></button>
           <button onClick={() => { if (store) { setShareTarget({ type: 'store', id: store.id, name: store.name, description: store.description, storeName: store.name, imageUrl: store.logo_url || store.cover_url }); setShowShareSheet(true); } }} className="w-10 h-10 bg-black/20 backdrop-blur-md rounded-full flex items-center justify-center text-white hover:bg-black/30 transition-colors shadow-sm hover:shadow-md"><Share2 className="w-5 h-5" /></button>
         </div>

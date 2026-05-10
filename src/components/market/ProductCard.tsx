@@ -110,17 +110,31 @@ export const ProductCard: React.FC<ProductCardProps> = memo(({
     );
   }, [product.store_name, product.store_logo, product.store_verified, product.store_governorate]);
 
-  // Memoize badges
-  const badges = useMemo(() => (
-    <>
-      {product.is_new && (
-        <span className="absolute top-2 right-2 bg-emerald-500 text-white text-[10px] font-bold px-2.5 py-0.5 rounded-full">جديد</span>
-      )}
-      {product.is_featured && (
-        <span className="absolute top-2 left-10 bg-amber-400 text-white text-[10px] font-bold px-2.5 py-0.5 rounded-full inline-flex items-center gap-0.5">⭐ مميز</span>
-      )}
-    </>
-  ), [product.is_new, product.is_featured]);
+  // Memoize badges — positioned to avoid covering product image center
+  const badges = useMemo(() => {
+    if (compact) {
+      return (
+        <>
+          {product.is_new && (
+            <span className="absolute bottom-1.5 right-1.5 z-10 bg-emerald-500/90 text-white text-[8px] font-bold px-1.5 py-0.5 rounded-full">جديد</span>
+          )}
+          {product.is_featured && (
+            <span className="absolute bottom-1.5 left-1.5 z-10 bg-amber-400/90 text-white text-[8px] font-bold px-1.5 py-0.5 rounded-full">⭐</span>
+          )}
+        </>
+      );
+    }
+    return (
+      <>
+        {product.is_new && (
+          <span className="absolute bottom-2 right-2 z-10 bg-emerald-500/90 text-white text-[10px] font-bold px-2.5 py-0.5 rounded-full">جديد</span>
+        )}
+        {product.is_featured && (
+          <span className="absolute bottom-2 left-2 z-10 bg-amber-400/90 text-white text-[10px] font-bold px-2.5 py-0.5 rounded-full inline-flex items-center gap-0.5">⭐ مميز</span>
+        )}
+      </>
+    );
+  }, [product.is_new, product.is_featured, compact]);
 
   return (
     <div

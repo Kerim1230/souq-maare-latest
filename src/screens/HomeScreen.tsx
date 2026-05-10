@@ -74,10 +74,10 @@ const StoreCard: React.FC<{ store: Store; getStoreColorById: (_colorId: string) 
       style={{ width: '120px' }}
     >
       <div
-        className="w-20 h-20 rounded-2xl overflow-hidden shadow-sm group-hover:shadow-md transition-shadow duration-200"
-        style={{ border: '2.5px solid', borderColor, boxShadow: resolvedColor ? `0 2px 8px ${shadowColor}` : undefined }}
+        className="w-16 h-16 rounded-full overflow-hidden shadow-sm group-hover:shadow-md transition-shadow duration-200 ring-2 ring-offset-2 ring-gray-200 dark:ring-gray-700 ring-offset-white dark:ring-offset-[var(--color-bg)]"
+        style={{ borderColor, boxShadow: resolvedColor ? `0 2px 8px ${shadowColor}` : undefined }}
       >
-        <StoreLogo src={store.logo_url} name={store.name} size="md" className="w-full h-full" />
+        <StoreLogo src={store.logo_url} name={store.name} size="sm" className="w-full h-full" />
       </div>
       <div className="p-4 text-center">
         <p className="text-sm font-semibold text-gray-800 dark:text-gray-100 line-clamp-1">{store.name}</p>
@@ -159,7 +159,7 @@ const SkeletonHome: React.FC = () => (
         <div className="flex gap-4 overflow-hidden">
           {[...Array(5)].map((_, i) => (
             <div key={i} className="flex-shrink-0 flex flex-col items-center gap-2" style={{ width: '88px' }}>
-              <div className="w-[72px] h-[72px] rounded-2xl bg-[var(--color-surface)] animate-pulse border-2 border-[var(--color-border)]" />
+              <div className="w-16 h-16 rounded-full bg-[var(--color-surface)] animate-pulse ring-2 ring-offset-2 ring-gray-200 dark:ring-gray-700 ring-offset-white dark:ring-offset-[var(--color-bg)]" />
               <div className="w-14 h-3 bg-[var(--color-surface)] animate-pulse rounded" />
             </div>
           ))}
@@ -169,7 +169,7 @@ const SkeletonHome: React.FC = () => (
       {/* Skeleton new products */}
       <div>
         <div className="w-28 h-4 bg-[var(--color-surface)] animate-pulse rounded mb-3" />
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-4 gap-1.5">
           <SkeletonCard /><SkeletonCard /><SkeletonCard /><SkeletonCard />
         </div>
       </div>
@@ -396,7 +396,7 @@ export const HomeScreen: React.FC = () => {
   // ── Memoized skeletons (created once) ──
   const storeSkeletons = useMemo(() => [...Array(5)].map((_, i) => (
     <div key={`fs-sk-${i}`} className="flex-shrink-0 flex flex-col items-center gap-2" style={{ width: '88px' }}>
-      <div className="w-[72px] h-[72px] rounded-2xl bg-[var(--color-surface)] animate-pulse border-2 border-[var(--color-border)]" />
+      <div className="w-16 h-16 rounded-full bg-[var(--color-surface)] animate-pulse ring-2 ring-offset-2 ring-gray-200 dark:ring-gray-700 ring-offset-white dark:ring-offset-[var(--color-bg)]" />
       <div className="w-14 h-3 bg-[var(--color-surface)] animate-pulse rounded" />
     </div>
   )), []);
