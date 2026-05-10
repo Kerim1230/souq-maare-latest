@@ -1,6 +1,6 @@
 'use client';
 import React, { memo, useEffect, useState, useCallback, useMemo, useRef } from 'react';
-import { fetchApi, apiPost, apiDelete } from '@/lib/fetchApi';
+import { apiPost, apiDelete } from '@/lib/fetchApi';
 import { Search, Star, ChevronLeft, Verified, Flag, Clock, Share2, Bell, Wallet, Gift, Trophy, Store as StoreIcon, Percent } from 'lucide-react';
 import { SkeletonCard } from '@/components/market/Card';
 import { SafeImage, StoreLogo } from '@/components/market/SafeImage';
@@ -8,7 +8,6 @@ import { ShareSheet } from '@/components/market/ShareSheet';
 import { ProductCard } from '@/components/market/ProductCard';
 import type { ProductCardData } from '@/components/market/ProductCard';
 import { CategoryGrid } from '@/components/market/CategoryGrid';
-import { LazySection } from '@/components/market/LazySection';
 import { ReportModal } from '@/components/admin/ReportModal';
 import { useAppStore } from '@/store/appStore';
 import { useAuthStore } from '@/store/authStore';
@@ -68,7 +67,7 @@ const StoreCard: React.FC<{ store: Store }> = memo(({ store }) => {
     <div
       onClick={handleOpen}
       className="flex-shrink-0 flex flex-col items-center gap-2 cursor-pointer active:opacity-80"
-      style={{ contain: 'layout style paint', width: '88px' }}
+      style={{ contain: 'layout style', width: '88px' }}
     >
       <div
         className="w-[72px] h-[72px] rounded-2xl overflow-hidden shadow-sm"
@@ -94,6 +93,86 @@ function buildFavSet(favorites: Array<{ product_id?: string }>): Set<string> {
   return set;
 }
 
+// ── Skeleton Home — full page skeleton for initial load ──
+const SkeletonHome: React.FC = () => (
+  <div className="min-h-screen bg-[var(--color-bg)] pb-28">
+    {/* Skeleton header */}
+    <div className="gradient-dark px-5 pt-8 pb-10">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-white/10 animate-pulse" />
+          <div className="w-24 h-5 rounded bg-white/10 animate-pulse" />
+        </div>
+        <div className="flex gap-2">
+          <div className="w-10 h-10 rounded-xl bg-white/10 animate-pulse" />
+          <div className="w-10 h-10 rounded-xl bg-white/10 animate-pulse" />
+        </div>
+      </div>
+    </div>
+
+    {/* Skeleton search bar */}
+    <div className="px-5 -mt-6 relative z-20 mb-2">
+      <div className="bg-[var(--color-surface)] rounded-xl h-12 animate-pulse border border-[var(--color-border)]" />
+    </div>
+
+    <div className="px-5 space-y-6 mt-4">
+      {/* Skeleton offers */}
+      <div>
+        <div className="w-32 h-4 bg-[var(--color-surface)] animate-pulse rounded mb-3" />
+        <div className="flex gap-3 overflow-hidden">
+          <div className="flex-shrink-0 min-w-[170px] h-52 rounded-2xl bg-[var(--color-surface)] animate-pulse border border-[var(--color-border)]" />
+          <div className="flex-shrink-0 min-w-[170px] h-52 rounded-2xl bg-[var(--color-surface)] animate-pulse border border-[var(--color-border)]" />
+          <div className="flex-shrink-0 min-w-[170px] h-52 rounded-2xl bg-[var(--color-surface)] animate-pulse border border-[var(--color-border)]" />
+        </div>
+      </div>
+
+      {/* Skeleton categories */}
+      <div>
+        <div className="w-20 h-4 bg-[var(--color-surface)] animate-pulse rounded mb-3" />
+        <div className="grid grid-cols-4 gap-4">
+          {[...Array(8)].map((_, i) => (
+            <div key={i} className="flex flex-col items-center gap-2">
+              <div className="w-12 h-12 rounded-2xl bg-[var(--color-surface)] animate-pulse" />
+              <div className="w-10 h-2 bg-[var(--color-surface)] animate-pulse rounded" />
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Skeleton featured products */}
+      <div>
+        <div className="w-28 h-4 bg-[var(--color-surface)] animate-pulse rounded mb-3" />
+        <div className="flex gap-3 overflow-hidden">
+          <div className="flex-shrink-0 w-40 h-52 bg-[var(--color-surface)] rounded-2xl animate-pulse border border-[var(--color-border)]" />
+          <div className="flex-shrink-0 w-40 h-52 bg-[var(--color-surface)] rounded-2xl animate-pulse border border-[var(--color-border)]" />
+          <div className="flex-shrink-0 w-40 h-52 bg-[var(--color-surface)] rounded-2xl animate-pulse border border-[var(--color-border)]" />
+        </div>
+      </div>
+
+      {/* Skeleton stores */}
+      <div>
+        <div className="w-28 h-4 bg-[var(--color-surface)] animate-pulse rounded mb-3" />
+        <div className="flex gap-4 overflow-hidden">
+          {[...Array(5)].map((_, i) => (
+            <div key={i} className="flex-shrink-0 flex flex-col items-center gap-2" style={{ width: '88px' }}>
+              <div className="w-[72px] h-[72px] rounded-2xl bg-[var(--color-surface)] animate-pulse border-2 border-[var(--color-border)]" />
+              <div className="w-14 h-3 bg-[var(--color-surface)] animate-pulse rounded" />
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Skeleton new products */}
+      <div>
+        <div className="w-28 h-4 bg-[var(--color-surface)] animate-pulse rounded mb-3" />
+        <div className="grid grid-cols-2 gap-3">
+          <SkeletonCard /><SkeletonCard /><SkeletonCard /><SkeletonCard />
+        </div>
+      </div>
+    </div>
+  </div>
+);
+
 export const HomeScreen: React.FC = () => {
   // ── Minimal Zustand selectors (no whole-store subscriptions) ──
   const user = useAuthStore(s => s.user);
@@ -105,6 +184,10 @@ export const HomeScreen: React.FC = () => {
   const favorites = useAppStore(s => s.favorites);
   const addFavorite = useAppStore(s => s.addFavorite);
   const removeFavorite = useAppStore(s => s.removeFavorite);
+  const homeData = useAppStore(s => s.homeData);
+  const homeDataLoading = useAppStore(s => s.homeDataLoading);
+  const fetchHomePage = useAppStore(s => s.fetchHomePage);
+  const loadHomeFromCache = useAppStore(s => s.loadHomeFromCache);
 
   // Store color resolver — used to get theme color for offer cards
   const getStoreColorById = useStoreColorStore(s => s.getStoreColorById);
@@ -121,14 +204,8 @@ export const HomeScreen: React.FC = () => {
   // O(1) favorite lookup — computed once per favorites change
   const favSet = useMemo(() => buildFavSet(favorites), [favorites]);
 
-  // ── Local state — split into independent loading states ──
-  const [storesLoaded, setStoresLoaded] = useState(false);
-  const [productsLoaded, setProductsLoaded] = useState(false);
-  const [offersLoaded, setOffersLoaded] = useState(false);
-  const [featuredProducts, setFP] = useState<ProductCardData[]>([]);
-  const [newProducts, setNP] = useState<ProductCardData[]>([]);
-  const [featuredStores, setFS] = useState<Store[]>([]);
-  const [allOffers, setAllOffers] = useState<OfferItem[]>([]);
+  // ── Local state ──
+  const [isInitialLoading, setIsInitialLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
   const [reportModal, setReportModal] = useState<{ isOpen: boolean; targetType: 'product' | 'store' | 'offer'; targetId: string; targetName: string }>({ isOpen: false, targetType: 'product', targetId: '', targetName: '' });
@@ -138,10 +215,18 @@ export const HomeScreen: React.FC = () => {
     description?: string; price?: string; storeName?: string; imageUrl?: string; discount?: string;
   } | null>(null);
 
-  // ── Sliced display arrays ──
+  // ── Derive display arrays from centralized homeData ──
+  const featuredProducts = useMemo<ProductCardData[]>(() => (homeData?.featured_products || []) as ProductCardData[], [homeData]);
+  const newProducts = useMemo<ProductCardData[]>(() => (homeData?.new_products || []) as ProductCardData[], [homeData]);
+  const featuredStores = useMemo<Store[]>(() => (homeData?.featured_stores || []) as Store[], [homeData]);
+  const allOffers = useMemo<OfferItem[]>(() => (homeData?.offers || []) as OfferItem[], [homeData]);
+
   const displayedOffers = useMemo(() => allOffers.slice(0, 5), [allOffers]);
   const displayedFeaturedProducts = useMemo(() => featuredProducts.slice(0, 3), [featuredProducts]);
   const displayedNewProducts = useMemo(() => newProducts.slice(0, 3), [newProducts]);
+
+  // ── Whether data is loaded and ready to display ──
+  const dataLoaded = homeData !== null;
 
   // ── Stable callbacks ──
   const handleCategoryClick = useCallback((catName: string) => {
@@ -232,112 +317,59 @@ export const HomeScreen: React.FC = () => {
     setShareTarget(null);
   }, []);
 
-  // ── Stale-While-Revalidate: localStorage cache for instant load ──
-  const HOME_CACHE_KEY = 'suq-shamel-home-cache';
-  const HOME_CACHE_TTL = 5 * 60 * 1000; // 5 minutes
-
-  const loadCachedData = useCallback(() => {
-    try {
-      const raw = localStorage.getItem(HOME_CACHE_KEY);
-      if (!raw) return null;
-      const cached = JSON.parse(raw);
-      if (Date.now() - cached.ts > HOME_CACHE_TTL) return null;
-      return cached.data;
-    } catch { return null; }
-  }, []);
-
-  const saveCachedData = useCallback((data: any) => {
-    try {
-      localStorage.setItem(HOME_CACHE_KEY, JSON.stringify({ data, ts: Date.now() }));
-    } catch { /* quota exceeded */ }
-  }, []);
-
-  // ── Data fetch ──
-  // Does NOT depend on user?.id — base data is public and cached server-side.
-  // User-specific data (follow status) is a lightweight add-on.
-  const fetchHomeData = useCallback(async (signal?: AbortSignal) => {
-    const url = `/api/home?userId=${user?.id || ''}&fpPage=1&npPage=1`;
-    const { data, error } = await fetchApi(url, { signal });
-    if (error) throw new Error(error);
-    return data;
-  }, [user?.id]);
-
-  // ── Apply data to state — HIGH PRIORITY, no startTransition delay ──
-  const applyHomeData = useCallback((data: any) => {
-    setFS(data?.featured_stores || []);
-    setStoresLoaded(true);
-    setFP((data?.featured_products || []) as ProductCardData[]);
-    setNP((data?.new_products || []) as ProductCardData[]);
-    setProductsLoaded(true);
-    setAllOffers(data?.offers || []);
-    setOffersLoaded(true);
-  }, []);
-
-  // ── Initial load — IMMEDIATE, no cooldown guard, no waiting for auth ──
-  // We load cached data instantly for instant paint, then always fetch fresh.
-  const hasFetchedRef = useRef(false);
-
-  useEffect(() => {
-    // STEP 1: Show cached data on next frame if available (instant paint, avoids cascading render)
-    const cached = loadCachedData();
-    let cacheRaf: number | undefined;
+  // ── MAIN DATA LOADING: loadAllData() ──
+  // 1. Load from localStorage cache → display instantly
+  // 2. Fetch fresh data from API → update display
+  // 3. Works for ALL users (authenticated and visitors)
+  const loadAllData = useCallback(async (userId?: string) => {
+    // STEP 1: Try to load from cache for instant paint
+    const cached = loadHomeFromCache();
     if (cached) {
-      cacheRaf = requestAnimationFrame(() => applyHomeData(cached));
+      console.log('[HomeScreen] ✅ Cache hit — displaying instantly');
+      setIsInitialLoading(false);
     }
 
-    // STEP 2: Always fetch fresh data from server on mount
-    console.log('[HomeScreen] Fetching home data...', { userId: user?.id });
-    const controller = new AbortController();
-    const { signal } = controller;
-    let cancelled = false;
-
-    fetchHomeData(signal)
-      .then((data) => {
-        if (cancelled) return;
-
-        console.log('[HomeScreen] Data loaded successfully', {
-          stores: data?.featured_stores?.length || 0,
-          products: data?.featured_products?.length || 0,
-          offers: data?.offers?.length || 0,
+    // STEP 2: Always fetch fresh data from server
+    console.log('[HomeScreen] 🔄 Fetching fresh data...', { userId: userId || 'visitor' });
+    try {
+      const freshData = await fetchHomePage(userId);
+      if (freshData) {
+        console.log('[HomeScreen] ✅ Fresh data loaded', {
+          stores: freshData.featured_stores?.length || 0,
+          products: freshData.featured_products?.length || 0,
+          offers: freshData.offers?.length || 0,
         });
+      }
+      setIsInitialLoading(false);
+    } catch (err) {
+      console.error('[HomeScreen] ❌ Fetch error:', err);
+      // Even if fetch fails, stop loading — we either have cached data or show empty
+      setIsInitialLoading(false);
+    }
+  }, [loadHomeFromCache, fetchHomePage]);
 
-        // Apply fresh data and save to cache
-        applyHomeData(data);
-        saveCachedData(data);
-      })
-      .catch(err => {
-        if (!cancelled) {
-          console.error('[HomeScreen] Fetch error:', err);
-          // Only show empty state if we don't have cached data
-          if (!cached) {
-            setStoresLoaded(true);
-            setProductsLoaded(true);
-            setOffersLoaded(true);
-          }
-        }
-      });
-
-    return () => {
-      cancelled = true;
-      controller.abort();
-      if (cacheRaf !== undefined) cancelAnimationFrame(cacheRaf);
-    };
-  }, []); // Run ONCE on mount — fetchHomeData handles userId internally
+  // ── Initial mount: load all data immediately ──
+  const hasLoadedRef = useRef(false);
+  useEffect(() => {
+    if (hasLoadedRef.current) return;
+    hasLoadedRef.current = true;
+    // Get current userId at the time of mount (not from closure)
+    const currentUserId = useAuthStore.getState().user?.id;
+    // Use requestAnimationFrame to avoid synchronous setState in effect
+    requestAnimationFrame(() => loadAllData(currentUserId));
+  }, [loadAllData]);
 
   // ── Re-fetch when user changes (login/logout) ──
+  const prevUserIdRef = useRef<string | undefined>(user?.id);
   useEffect(() => {
-    if (hasFetchedRef.current) {
-      // User changed after initial mount — re-fetch for user-specific data
-      console.log('[HomeScreen] User changed, re-fetching...', { userId: user?.id });
-      fetchHomeData().then((data) => {
-        if (data) {
-          applyHomeData(data);
-          saveCachedData(data);
-        }
-      }).catch(() => {});
+    const prevId = prevUserIdRef.current;
+    prevUserIdRef.current = user?.id;
+    // Only re-fetch if user changed AFTER initial load
+    if (hasLoadedRef.current && prevId !== user?.id) {
+      console.log('[HomeScreen] 🔄 User changed, re-fetching...', { userId: user?.id });
+      fetchHomePage(user?.id).catch(() => {});
     }
-    hasFetchedRef.current = true;
-  }, [user?.id, fetchHomeData, applyHomeData, saveCachedData]);
+  }, [user?.id, fetchHomePage]);
 
   // ── Auto-refresh every 60 seconds (silent, with thin progress bar) ──
   useEffect(() => {
@@ -349,17 +381,13 @@ export const HomeScreen: React.FC = () => {
       if (isTyping || hasOpenModal) return;
 
       setIsRefreshing(true);
-      fetchHomeData()
-        .then((data) => {
-          if (!data) return;
-          applyHomeData(data);
-          saveCachedData(data);
-        })
+      fetchHomePage(user?.id)
+        .then(() => {})
         .catch(() => { /* silent refresh failure */ })
         .finally(() => setIsRefreshing(false));
     }, 60_000); // 60 seconds
     return () => clearInterval(interval);
-  }, [fetchHomeData, applyHomeData, saveCachedData]);
+  }, [user?.id, fetchHomePage]);
 
   // ── Memoized skeletons (created once) ──
   const storeSkeletons = useMemo(() => [...Array(5)].map((_, i) => (
@@ -369,12 +397,17 @@ export const HomeScreen: React.FC = () => {
     </div>
   )), []);
 
+  // ── Show full-page skeleton on very first load with no cache ──
+  if (isInitialLoading && !dataLoaded) {
+    return <SkeletonHome />;
+  }
+
   return (
     <div className="min-h-screen bg-[var(--color-bg)] pb-28">
       {/* Thin progress bar for silent auto-refresh */}
-      {isRefreshing && (
-        <div className="fixed top-0 left-0 right-0 z-[200] h-1 bg-emerald-100 dark:bg-emerald-900/30">
-          <div className="h-full bg-gradient-to-l from-emerald-400 to-teal-500 animate-pulse rounded-full" style={{ width: '60%' }} />
+      {(isRefreshing || homeDataLoading) && (
+        <div className="fixed top-0 left-0 right-0 z-[200] h-[2px] transition-all duration-300">
+          <div className="h-full bg-gradient-to-l from-emerald-400 to-teal-500 animate-pulse w-full" />
         </div>
       )}
 
@@ -432,105 +465,103 @@ export const HomeScreen: React.FC = () => {
 
       <main className="px-5 space-y-6 mt-4">
 
-        {/* ═══ 2. OFFERS & CONTESTS 🎁 — Manual-scroll horizontal ═══ */}
-        <LazySection placeholderHeight={220} fallback={<div className="h-52 rounded-2xl bg-[var(--color-surface)] animate-pulse border border-[var(--color-border)]" />}>
-          <section>
-            <SectionHeader title="العروض والمسابقات 🎁" actionLabel="الكل" onAction={handleViewAllOffers} />
-            {!offersLoaded ? (
-              <div className="flex gap-3 overflow-hidden">
-                {[...Array(3)].map((_, i) => (
-                  <div key={`off-sk-${i}`} className="flex-shrink-0 min-w-[170px] h-52 rounded-2xl bg-[var(--color-surface)] animate-pulse border border-[var(--color-border)]" />
-                ))}
-              </div>
-            ) : displayedOffers.length === 0 ? (
-              <div className="py-8 rounded-2xl bg-[var(--color-surface)] border border-[var(--color-border)] shadow-sm flex flex-col items-center justify-center gap-3">
-                <div className="w-14 h-14 bg-emerald-50/60 dark:bg-emerald-900/20 rounded-2xl flex items-center justify-center"><Gift className="w-7 h-7 text-emerald-300" /></div>
-                <p className="text-[var(--color-text-tertiary)] text-sm font-medium">لا توجد عروض حالياً</p>
-              </div>
-            ) : (
-              <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide snap-x snap-mandatory">
-                {displayedOffers.map((offer) => {
-                  const isContest = offer.type === 'contest';
-                  const storeColorObj = offer.store_theme_color ? getStoreColorById(offer.store_theme_color) : undefined;
-                  const themeColor = storeColorObj?.solid || (isContest ? DEFAULT_CONTEST_COLOR : DEFAULT_OFFER_COLOR);
-                  const themeFrom = storeColorObj?.from || themeColor;
-                  const themeTo = storeColorObj?.to || themeColor;
-                  const truncatedDesc = offer.description
-                    ? offer.description.length > 50
-                      ? offer.description.slice(0, 50) + '...'
-                      : offer.description
-                    : null;
+        {/* ═══ 2. OFFERS & CONTESTS 🎁 ═══ */}
+        <section>
+          <SectionHeader title="العروض والمسابقات 🎁" actionLabel="الكل" onAction={handleViewAllOffers} />
+          {!dataLoaded ? (
+            <div className="flex gap-3 overflow-hidden">
+              {[...Array(3)].map((_, i) => (
+                <div key={`off-sk-${i}`} className="flex-shrink-0 min-w-[170px] h-52 rounded-2xl bg-[var(--color-surface)] animate-pulse border border-[var(--color-border)]" />
+              ))}
+            </div>
+          ) : displayedOffers.length === 0 ? (
+            <div className="py-8 rounded-2xl bg-[var(--color-surface)] border border-[var(--color-border)] shadow-sm flex flex-col items-center justify-center gap-3">
+              <div className="w-14 h-14 bg-emerald-50/60 dark:bg-emerald-900/20 rounded-2xl flex items-center justify-center"><Gift className="w-7 h-7 text-emerald-300" /></div>
+              <p className="text-[var(--color-text-tertiary)] text-sm font-medium">لا توجد عروض حالياً</p>
+            </div>
+          ) : (
+            <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide snap-x snap-mandatory">
+              {displayedOffers.map((offer) => {
+                const isContest = offer.type === 'contest';
+                const storeColorObj = offer.store_theme_color ? getStoreColorById(offer.store_theme_color) : undefined;
+                const themeColor = storeColorObj?.solid || (isContest ? DEFAULT_CONTEST_COLOR : DEFAULT_OFFER_COLOR);
+                const themeFrom = storeColorObj?.from || themeColor;
+                const themeTo = storeColorObj?.to || themeColor;
+                const truncatedDesc = offer.description
+                  ? offer.description.length > 50
+                    ? offer.description.slice(0, 50) + '...'
+                    : offer.description
+                  : null;
 
-                  return (
+                return (
+                  <div
+                    key={offer.id}
+                    onClick={() => openOfferDetail(offer.id)}
+                    className="flex-shrink-0 min-w-[170px] max-w-[200px] snap-start cursor-pointer active:opacity-80"
+                    style={{ contain: 'layout style' }}
+                  >
                     <div
-                      key={offer.id}
-                      onClick={() => openOfferDetail(offer.id)}
-                      className="flex-shrink-0 min-w-[170px] max-w-[200px] snap-start cursor-pointer active:opacity-80"
-                      style={{ contain: 'layout style' }}
+                      className="relative h-[210px] rounded-2xl overflow-hidden shadow-sm border border-white/10"
+                      style={{ background: `linear-gradient(135deg, ${themeFrom}dd, ${themeTo}99, ${themeColor}55)` }}
                     >
-                      <div
-                        className="relative h-[210px] rounded-2xl overflow-hidden shadow-sm border border-white/10"
-                        style={{ background: `linear-gradient(135deg, ${themeFrom}dd, ${themeTo}99, ${themeColor}55)` }}
-                      >
-                        {offer.image_url && <SafeImage src={offer.image_url} alt={offer.title} className="absolute inset-0 w-full h-full object-cover opacity-25" fallback={null} />}
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-black/10" />
+                      {offer.image_url && <SafeImage src={offer.image_url} alt={offer.title} className="absolute inset-0 w-full h-full object-cover opacity-25" fallback={null} />}
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-black/10" />
 
-                        {offer.discount && (
-                          <div className="absolute top-3 left-3 z-10 w-[52px] h-[52px] rounded-full bg-white/95 dark:bg-black/70 backdrop-blur-sm flex flex-col items-center justify-center shadow-lg" style={{ border: `2px solid ${themeColor}` }}>
-                            <Percent className="w-3 h-3" style={{ color: themeColor }} />
-                            <span className="text-[11px] font-black leading-none" style={{ color: themeColor }}>{offer.discount}</span>
-                          </div>
+                      {offer.discount && (
+                        <div className="absolute top-3 left-3 z-10 w-[52px] h-[52px] rounded-full bg-white/95 dark:bg-black/70 backdrop-blur-sm flex flex-col items-center justify-center shadow-lg" style={{ border: `2px solid ${themeColor}` }}>
+                          <Percent className="w-3 h-3" style={{ color: themeColor }} />
+                          <span className="text-[11px] font-black leading-none" style={{ color: themeColor }}>{offer.discount}</span>
+                        </div>
+                      )}
+
+                      <div className="absolute top-3 right-3 z-10 w-8 h-8 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center">
+                        {isContest ? <Trophy className="w-4 h-4 text-white" /> : <Gift className="w-4 h-4 text-white" />}
+                      </div>
+
+                      <div className="absolute top-3 left-3 z-10 flex gap-1" style={offer.discount ? { top: '62px' } : undefined}>
+                        <button onClick={(e) => { e.stopPropagation(); handleShareOffer(offer); }} className="w-6 h-6 bg-[var(--color-surface)]/20 backdrop-blur-sm rounded-md flex items-center justify-center text-white/70 hover:text-white shadow-sm" aria-label="مشاركة"><Share2 className="w-3 h-3" /></button>
+                        <button onClick={(e) => { e.stopPropagation(); handleReportOffer(offer); }} className="w-6 h-6 bg-[var(--color-surface)]/20 backdrop-blur-sm rounded-md flex items-center justify-center text-white/70 hover:text-white shadow-sm" aria-label="إبلاغ"><Flag className="w-3 h-3" /></button>
+                      </div>
+
+                      <div className="absolute bottom-0 left-0 right-0 p-3 z-10">
+                        <span
+                          className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full mb-1.5 text-white"
+                          style={{ background: `${themeColor}cc` }}
+                        >
+                          {isContest ? '🏆 مسابقة' : '🎁 عرض'}
+                        </span>
+
+                        <h3 className="text-white font-bold text-sm leading-tight line-clamp-1">{offer.title}</h3>
+
+                        {truncatedDesc && (
+                          <p className="text-white/70 text-[11px] mt-1 line-clamp-2 leading-relaxed">{truncatedDesc}</p>
                         )}
 
-                        <div className="absolute top-3 right-3 z-10 w-8 h-8 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center">
-                          {isContest ? <Trophy className="w-4 h-4 text-white" /> : <Gift className="w-4 h-4 text-white" />}
-                        </div>
-
-                        <div className="absolute top-3 left-3 z-10 flex gap-1" style={offer.discount ? { top: '62px' } : undefined}>
-                          <button onClick={(e) => { e.stopPropagation(); handleShareOffer(offer); }} className="w-6 h-6 bg-[var(--color-surface)]/20 backdrop-blur-sm rounded-md flex items-center justify-center text-white/70 hover:text-white shadow-sm" aria-label="مشاركة"><Share2 className="w-3 h-3" /></button>
-                          <button onClick={(e) => { e.stopPropagation(); handleReportOffer(offer); }} className="w-6 h-6 bg-[var(--color-surface)]/20 backdrop-blur-sm rounded-md flex items-center justify-center text-white/70 hover:text-white shadow-sm" aria-label="إبلاغ"><Flag className="w-3 h-3" /></button>
-                        </div>
-
-                        <div className="absolute bottom-0 left-0 right-0 p-3 z-10">
-                          <span
-                            className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full mb-1.5 text-white"
-                            style={{ background: `${themeColor}cc` }}
-                          >
-                            {isContest ? '🏆 مسابقة' : '🎁 عرض'}
-                          </span>
-
-                          <h3 className="text-white font-bold text-sm leading-tight line-clamp-1">{offer.title}</h3>
-
-                          {truncatedDesc && (
-                            <p className="text-white/70 text-[11px] mt-1 line-clamp-2 leading-relaxed">{truncatedDesc}</p>
+                        <div className="flex items-center justify-between mt-2">
+                          {offer.store_name && (
+                            <div className="flex items-center gap-1">
+                              <StoreIcon className="w-3 h-3 text-white/50" />
+                              <span className="text-white/50 text-[10px] font-medium line-clamp-1">{offer.store_name}</span>
+                            </div>
                           )}
-
-                          <div className="flex items-center justify-between mt-2">
-                            {offer.store_name && (
-                              <div className="flex items-center gap-1">
-                                <StoreIcon className="w-3 h-3 text-white/50" />
-                                <span className="text-white/50 text-[10px] font-medium line-clamp-1">{offer.store_name}</span>
-                              </div>
-                            )}
-                            {offer.expires_at && (() => {
-                              const ti = getTimeRemaining(offer.expires_at);
-                              if (!ti.isExpired && ti.text) return (
-                                <span className="bg-white/15 backdrop-blur-sm text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full inline-flex items-center gap-0.5 whitespace-nowrap">
-                                  <Clock className="w-2.5 h-2.5" />{ti.text}
-                                </span>
-                              );
-                              return null;
-                            })()}
-                          </div>
+                          {offer.expires_at && (() => {
+                            const ti = getTimeRemaining(offer.expires_at);
+                            if (!ti.isExpired && ti.text) return (
+                              <span className="bg-white/15 backdrop-blur-sm text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full inline-flex items-center gap-0.5 whitespace-nowrap">
+                                <Clock className="w-2.5 h-2.5" />{ti.text}
+                              </span>
+                            );
+                            return null;
+                          })()}
                         </div>
                       </div>
                     </div>
-                  );
-                })}
-              </div>
-            )}
-          </section>
-        </LazySection>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </section>
 
         {/* ═══ 3. CATEGORIES 📂 ═══ */}
         <section>
@@ -538,51 +569,43 @@ export const HomeScreen: React.FC = () => {
           <CategoryGrid onCategoryClick={handleCategoryClick} />
         </section>
 
-        {/* ═══ 4. FEATURED PRODUCTS ⭐ — Manual-scroll horizontal ═══ */}
-        <LazySection placeholderHeight={260} fallback={
-          <div className="flex gap-3 overflow-hidden">
-            <div className="flex-shrink-0 w-40 h-52 bg-[var(--color-surface)] rounded-2xl animate-pulse border border-[var(--color-border)]" />
-            <div className="flex-shrink-0 w-40 h-52 bg-[var(--color-surface)] rounded-2xl animate-pulse border border-[var(--color-border)]" />
-            <div className="flex-shrink-0 w-40 h-52 bg-[var(--color-surface)] rounded-2xl animate-pulse border border-[var(--color-border)]" />
-          </div>
-        }>
-          <section>
-            <SectionHeader title="منتجات مميزة ⭐" actionLabel="الكل" onAction={handleViewAllFeatured} />
-            {!productsLoaded ? (
-              <div className="flex gap-3 overflow-hidden">
-                {[...Array(3)].map((_, i) => (
-                  <div key={`fp-sk-${i}`} className="flex-shrink-0 w-40 h-52 bg-[var(--color-surface)] rounded-2xl animate-pulse border border-[var(--color-border)]" />
-                ))}
-              </div>
-            ) : displayedFeaturedProducts.length === 0 ? (
-              <div className="py-6 text-center">
-                <p className="text-[var(--color-text-tertiary)] text-sm">لا توجد منتجات مميزة حالياً</p>
-              </div>
-            ) : (
-              <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide snap-x snap-mandatory">
-                {displayedFeaturedProducts.map((product) => (
-                  <div key={product.id} className="flex-shrink-0 w-40 snap-start">
-                    <ProductCard
-                      product={product}
-                      isFavorite={favSet.has(product.id)}
-                      onReport={handleReportProduct}
-                      onShare={handleShareProduct}
-                      onOpen={handleOpenProductDetail}
-                      onToggleFavorite={handleToggleFavorite}
-                      isLoggedIn={!!user}
-                    />
-                  </div>
-                ))}
-              </div>
-            )}
-          </section>
-        </LazySection>
+        {/* ═══ 4. FEATURED PRODUCTS ⭐ ═══ */}
+        <section>
+          <SectionHeader title="منتجات مميزة ⭐" actionLabel="الكل" onAction={handleViewAllFeatured} />
+          {!dataLoaded ? (
+            <div className="flex gap-3 overflow-hidden">
+              {[...Array(3)].map((_, i) => (
+                <div key={`fp-sk-${i}`} className="flex-shrink-0 w-40 h-52 bg-[var(--color-surface)] rounded-2xl animate-pulse border border-[var(--color-border)]" />
+              ))}
+            </div>
+          ) : displayedFeaturedProducts.length === 0 ? (
+            <div className="py-6 text-center">
+              <p className="text-[var(--color-text-tertiary)] text-sm">لا توجد منتجات مميزة حالياً</p>
+            </div>
+          ) : (
+            <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide snap-x snap-mandatory">
+              {displayedFeaturedProducts.map((product) => (
+                <div key={product.id} className="flex-shrink-0 w-40 snap-start">
+                  <ProductCard
+                    product={product}
+                    isFavorite={favSet.has(product.id)}
+                    onReport={handleReportProduct}
+                    onShare={handleShareProduct}
+                    onOpen={handleOpenProductDetail}
+                    onToggleFavorite={handleToggleFavorite}
+                    isLoggedIn={!!user}
+                  />
+                </div>
+              ))}
+            </div>
+          )}
+        </section>
 
-        {/* ═══ 5. FEATURED STORES 🏪 — Manual-scroll horizontal ═══ */}
+        {/* ═══ 5. FEATURED STORES 🏪 ═══ */}
         <section>
           <SectionHeader title="متاجر مميزة 🏪" actionLabel="الكل" onAction={handleViewAllStores} />
           <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide snap-x snap-mandatory">
-            {!storesLoaded
+            {!dataLoaded
               ? storeSkeletons
               : featuredStores.length === 0 ? (
                 <div className="py-6 text-center w-full">
@@ -599,45 +622,39 @@ export const HomeScreen: React.FC = () => {
         </section>
 
         {/* ═══ 6. NEW PRODUCTS 🆕 — 2-column grid ═══ */}
-        <LazySection placeholderHeight={500} fallback={
+        <section>
+          <SectionHeader
+            title="منتجات جديدة 🆕"
+            actionLabel="الكل"
+            onAction={handleViewAllNewProducts}
+            extra={
+              <div className="flex items-center gap-1">
+                <Star className="w-3.5 h-3.5 text-amber-500 dark:text-amber-400 fill-amber-500" />
+                <span className="text-xs text-[var(--color-text-tertiary)] font-medium">الأحدث</span>
+              </div>
+            }
+          />
           <div className="grid grid-cols-2 gap-3">
-            <SkeletonCard /><SkeletonCard /><SkeletonCard /><SkeletonCard />
-          </div>
-        }>
-          <section>
-            <SectionHeader
-              title="منتجات جديدة 🆕"
-              actionLabel="الكل"
-              onAction={handleViewAllNewProducts}
-              extra={
-                <div className="flex items-center gap-1">
-                  <Star className="w-3.5 h-3.5 text-amber-500 dark:text-amber-400 fill-amber-500" />
-                  <span className="text-xs text-[var(--color-text-tertiary)] font-medium">الأحدث</span>
+            {!dataLoaded
+              ? <><SkeletonCard /><SkeletonCard /><SkeletonCard /><SkeletonCard /></>
+              : displayedNewProducts.length === 0 ? (
+                <div className="col-span-2 py-6 text-center">
+                  <p className="text-[var(--color-text-tertiary)] text-sm">لا توجد منتجات جديدة حالياً</p>
                 </div>
-              }
-            />
-            <div className="grid grid-cols-2 gap-3">
-              {!productsLoaded
-                ? <><SkeletonCard /><SkeletonCard /><SkeletonCard /><SkeletonCard /></>
-                : displayedNewProducts.length === 0 ? (
-                  <div className="col-span-2 py-6 text-center">
-                    <p className="text-[var(--color-text-tertiary)] text-sm">لا توجد منتجات جديدة حالياً</p>
-                  </div>
-                ) : displayedNewProducts.map((product) => (
-                  <ProductCard
-                    key={product.id}
-                    product={product}
-                    isFavorite={favSet.has(product.id)}
-                    onReport={handleReportProduct}
-                    onShare={handleShareProduct}
-                    onOpen={handleOpenProductDetail}
-                    onToggleFavorite={handleToggleFavorite}
-                    isLoggedIn={!!user}
-                  />
-                ))}
-            </div>
-          </section>
-        </LazySection>
+              ) : displayedNewProducts.map((product) => (
+                <ProductCard
+                  key={product.id}
+                  product={product}
+                  isFavorite={favSet.has(product.id)}
+                  onReport={handleReportProduct}
+                  onShare={handleShareProduct}
+                  onOpen={handleOpenProductDetail}
+                  onToggleFavorite={handleToggleFavorite}
+                  isLoggedIn={!!user}
+                />
+              ))}
+          </div>
+        </section>
       </main>
 
       {/* Report Modal */}

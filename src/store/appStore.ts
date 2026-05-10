@@ -6,6 +6,15 @@ import { ttlCache } from '@/lib/ttlCache';
 
 export type { Product, Store, Favorite };
 
+interface HomeData {
+  featured_products: any[];
+  new_products: any[];
+  featured_stores: any[];
+  offers: any[];
+  featured_total?: number;
+  new_total?: number;
+}
+
 interface AppState {
   // UI State
   activeTab: number;
@@ -20,6 +29,10 @@ interface AppState {
   followedStores: Store[];
   myStore: Store | null;
   myProducts: Product[];
+
+  // Home page data
+  homeData: HomeData | null;
+  homeDataLoading: boolean;
 
   // Loading & Error
   myProductsLoading: boolean;
@@ -50,14 +63,21 @@ interface AppState {
   fetchFavorites: (_userId: string) => Promise<void>;
   fetchFollowedStores: (_userId: string) => Promise<void>;
 
+  // Home page data actions
+  fetchHomePage: (_userId?: string) => Promise<HomeData | null>;
+  loadHomeFromCache: () => HomeData | null;
+  saveHomeToCache: (_data: HomeData) => void;
+
 }
 
-export const useAppStore = create<AppState>((set) => ({
+export const useAppStore = create<AppState>((set, get) => ({
   activeTab: 0,
   favorites: [],
   followedStores: [],
   myStore: null,
   myProducts: [],
+  homeData: null,
+  homeDataLoading: false,
   subScreen: 'none',
   selectedStoreId: null,
   selectedProductId: null,
@@ -140,6 +160,50 @@ export const useAppStore = create<AppState>((set) => ({
       // Non-critical: screens can retry
     } finally {
       markHydrated('followedStores');
+    }
+  },
+
+  // ── Home page data: fetch from API ──
+  fetchHomePage: async (userId?: string) => {
+    set({ homeDataLoading: true });
+    try {
+      const url = `/api/home?userId=${userId || ''}&fpPage=1&npPage=1`;
+      const { data, error } = await apiGet<HomeData>(url);
+      if (!error && data) {
+        set({ homeData: data, homeDataLoading: false });
+        // Save to localStorage for instant next load
+        get().saveHomeToCache(data);
+        return data;
+      }
+      set({ homeDataLoading: false });
+      return null;
+    } catch {
+      set({ homeDataLoading: false });
+      return null;
+    }
+  },
+
+  // ── Home page data: load from localStorage cache ──
+  loadHomeFromCache: () => {
+    try {
+      const raw = localStorage.getItem('homepage_cache');
+      if (!raw) return null;
+      const cached = JSON.parse(raw);
+      // Cache expires after 10 minutes
+      if (Date.now() - cached.ts > 10 * 60 * 1000) return null;
+      set({ homeData: cached.data });
+      return cached.data;
+    } catch {
+      return null;
+    }
+  },
+
+  // ── Home page data: save to localStorage cache ──
+  saveHomeToCache: (data) => {
+    try {
+      localStorage.setItem('homepage_cache', JSON.stringify({ data, ts: Date.now() }));
+    } catch {
+      // localStorage quota exceeded
     }
   },
 }));

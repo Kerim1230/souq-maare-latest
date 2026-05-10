@@ -1,5 +1,5 @@
 export const runtime = 'nodejs'
-import { NextRequest } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseAdmin, TABLES, handleCount } from '@/lib/supabase-db';
 import { mapProduct, mapStore } from '@/lib/api-utils';
 import { checkRateGuard } from '@/server/lib/rate-guard';
@@ -41,7 +41,14 @@ export const GET = withRoute(async (request: NextRequest) => {
     const fpOffset = (fpPage - 1) * FEATURED_PRODUCTS_LIMIT;
     const npOffset = (npPage - 1) * NEW_PRODUCTS_LIMIT;
 
-    return await getHomeData(userId, fpOffset, FEATURED_PRODUCTS_LIMIT, npOffset, NEW_PRODUCTS_LIMIT);
+    const result = await getHomeData(userId, fpOffset, FEATURED_PRODUCTS_LIMIT, npOffset, NEW_PRODUCTS_LIMIT);
+
+    // Add Cache-Control for client-side and CDN caching
+    if (result instanceof NextResponse) {
+      result.headers.set('Cache-Control', 'public, max-age=30, s-maxage=30');
+    }
+
+    return result;
   } catch (error) {
     logger.error('Home data fetch error', 'Home', { error: (error as Error)?.message });
     return serverError('حدث خطأ أثناء تحميل البيانات');
