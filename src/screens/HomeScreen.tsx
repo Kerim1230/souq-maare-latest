@@ -1,7 +1,8 @@
 'use client';
 import React, { memo, useEffect, useState, useCallback, useMemo, useRef } from 'react';
+import { motion } from 'framer-motion';
 import { apiPost, apiDelete } from '@/lib/fetchApi';
-import { Search, Star, ChevronLeft, Verified, Flag, Clock, Share2, Bell, Wallet, Gift, Trophy, Store as StoreIcon, Percent } from 'lucide-react';
+import { Search, Star, ChevronLeft, Verified, Flag, Clock, Share2, Bell, Wallet, Gift, Trophy, Store as StoreIcon, Percent, LogIn } from 'lucide-react';
 import { SkeletonCard } from '@/components/market/Card';
 import { SafeImage, StoreLogo } from '@/components/market/SafeImage';
 import { ShareSheet } from '@/components/market/ShareSheet';
@@ -67,7 +68,7 @@ const StoreCard: React.FC<{ store: Store }> = memo(({ store }) => {
     <div
       onClick={handleOpen}
       className="flex-shrink-0 flex flex-col items-center gap-2 cursor-pointer active:opacity-80"
-      style={{ contain: 'layout style', width: '88px' }}
+      style={{ width: '88px' }}
     >
       <div
         className="w-[72px] h-[72px] rounded-2xl overflow-hidden shadow-sm"
@@ -428,6 +429,11 @@ export const HomeScreen: React.FC = () => {
               </div>
             </div>
             <div className="flex items-center gap-2">
+              {!user && (
+                <button onClick={() => setSubScreen('auth')} className="relative w-10 h-10 bg-emerald-400/20 backdrop-blur-sm rounded-xl flex items-center justify-center hover:bg-emerald-400/30 transition-colors border border-emerald-400/20" aria-label="تسجيل الدخول">
+                  <LogIn className="w-[18px] h-[18px] text-emerald-300" />
+                </button>
+              )}
               <button onClick={() => setSubScreen('wallet')} className="relative w-10 h-10 bg-[var(--color-surface)]/10 backdrop-blur-sm rounded-xl flex items-center justify-center hover:bg-[var(--color-surface)]/20 transition-colors" aria-label="محفظة النقاط">
                 <Wallet className="w-[18px] h-[18px] text-teal-300 dark:text-teal-600/70" />
                 {walletBalance > 0 && (
@@ -466,7 +472,11 @@ export const HomeScreen: React.FC = () => {
       <main className="px-5 space-y-6 mt-4">
 
         {/* ═══ 2. OFFERS & CONTESTS 🎁 ═══ */}
-        <section>
+        <motion.section
+          initial={{ opacity: 0, y: 15 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3, delay: 0.05 }}
+        >
           <SectionHeader title="العروض والمسابقات 🎁" actionLabel="الكل" onAction={handleViewAllOffers} />
           {!dataLoaded ? (
             <div className="flex gap-3 overflow-hidden">
@@ -498,7 +508,7 @@ export const HomeScreen: React.FC = () => {
                     key={offer.id}
                     onClick={() => openOfferDetail(offer.id)}
                     className="flex-shrink-0 min-w-[170px] max-w-[200px] snap-start cursor-pointer active:opacity-80"
-                    style={{ contain: 'layout style' }}
+                    style={{ willChange: 'transform' }}
                   >
                     <div
                       className="relative h-[210px] rounded-2xl overflow-hidden shadow-sm border border-white/10"
@@ -561,16 +571,24 @@ export const HomeScreen: React.FC = () => {
               })}
             </div>
           )}
-        </section>
+        </motion.section>
 
         {/* ═══ 3. CATEGORIES 📂 ═══ */}
-        <section>
+        <motion.section
+          initial={{ opacity: 0, y: 15 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3, delay: 0.1 }}
+        >
           <SectionHeader title="الفئات 📂" />
           <CategoryGrid onCategoryClick={handleCategoryClick} />
-        </section>
+        </motion.section>
 
         {/* ═══ 4. FEATURED PRODUCTS ⭐ ═══ */}
-        <section>
+        <motion.section
+          initial={{ opacity: 0, y: 15 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3, delay: 0.15 }}
+        >
           <SectionHeader title="منتجات مميزة ⭐" actionLabel="الكل" onAction={handleViewAllFeatured} />
           {!dataLoaded ? (
             <div className="flex gap-3 overflow-hidden">
@@ -599,10 +617,14 @@ export const HomeScreen: React.FC = () => {
               ))}
             </div>
           )}
-        </section>
+        </motion.section>
 
         {/* ═══ 5. FEATURED STORES 🏪 ═══ */}
-        <section>
+        <motion.section
+          initial={{ opacity: 0, y: 15 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3, delay: 0.2 }}
+        >
           <SectionHeader title="متاجر مميزة 🏪" actionLabel="الكل" onAction={handleViewAllStores} />
           <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide snap-x snap-mandatory">
             {!dataLoaded
@@ -619,10 +641,14 @@ export const HomeScreen: React.FC = () => {
                 ))
               )}
           </div>
-        </section>
+        </motion.section>
 
         {/* ═══ 6. NEW PRODUCTS 🆕 — 2-column grid ═══ */}
-        <section>
+        <motion.section
+          initial={{ opacity: 0, y: 15 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3, delay: 0.25 }}
+        >
           <SectionHeader
             title="منتجات جديدة 🆕"
             actionLabel="الكل"
@@ -654,7 +680,7 @@ export const HomeScreen: React.FC = () => {
                 />
               ))}
           </div>
-        </section>
+        </motion.section>
       </main>
 
       {/* Report Modal */}

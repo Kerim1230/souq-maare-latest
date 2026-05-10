@@ -182,7 +182,7 @@ export interface VerificationData {
 }
 
 // ===== Navigation Types =====
-export type SubScreen = 'none' | 'store-detail' | 'product-detail' | 'offer-detail' | 'wallet' | 'purchase-points' | 'transactions' | 'admin-dashboard' | 'expired-content' | 'verification' | 'share-earn' | 'notifications' | 'store-messages' | 'user-messages' | 'settings' | 'help' | 'contact-support' | 'policy' | 'debug-push';
+export type SubScreen = 'none' | 'store-detail' | 'product-detail' | 'offer-detail' | 'wallet' | 'purchase-points' | 'transactions' | 'admin-dashboard' | 'expired-content' | 'verification' | 'share-earn' | 'notifications' | 'store-messages' | 'user-messages' | 'settings' | 'help' | 'contact-support' | 'policy' | 'debug-push' | 'auth';
 
 // ===== Pagination Types =====
 export interface PaginatedResult<T> {

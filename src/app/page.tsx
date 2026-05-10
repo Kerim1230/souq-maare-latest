@@ -2,7 +2,8 @@
 
 import React, { useEffect, useRef, useState, lazy, Suspense, useCallback, useMemo } from 'react';
 import { Toaster } from 'react-hot-toast';
-import { Home, Store, Search, Heart, User, MessageCircle } from 'lucide-react';
+import { AnimatePresence, motion } from 'framer-motion';
+import { Home, Store, Search, Heart, User, MessageCircle, LogIn } from 'lucide-react';
 import { useAuthStore } from '@/store/authStore';
 import { useAppStore } from '@/store/appStore';
 import { useAutoDeleteStore } from '@/store/autoDeleteStore';
@@ -62,7 +63,6 @@ const SplashScreen: React.FC = () => {
   const [showText, setShowText] = useState(false);
 
   useEffect(() => {
-    // Render text on next animation frame after hydration completes
     const raf = requestAnimationFrame(() => setShowText(true));
     return () => cancelAnimationFrame(raf);
   }, []);
@@ -75,7 +75,6 @@ const SplashScreen: React.FC = () => {
         <div className="w-24 h-24 rounded-3xl overflow-hidden shadow-xl shadow-emerald-500/30 mb-6 glow-primary">
           <img src="/app-icon.png" alt="" className="w-full h-full object-cover" />
         </div>
-        {/* Text only rendered on client after mount to prevent hydration mismatch */}
         <div className="h-[42px] flex flex-col items-center">
           {showText ? (
             <>
@@ -94,17 +93,53 @@ const SplashScreen: React.FC = () => {
   );
 };
 
+// ── Auth Gate Component — shown when visitor tries to access protected features ──
+const AuthGate: React.FC<{ title: string; description: string }> = ({ title, description }) => {
+  const setSubScreen = useAppStore(s => s.setSubScreen);
+  return (
+    <div className="min-h-screen bg-[var(--color-bg)] flex flex-col">
+      <div className="gradient-dark px-6 pt-12 pb-14 flex flex-col items-center relative overflow-hidden">
+        <div className="absolute top-[-40px] right-[-30px] w-[160px] h-[160px] rounded-full bg-teal-600/20 blur-[60px]" />
+        <div className="absolute bottom-[-20px] left-[-20px] w-[100px] h-[100px] rounded-full bg-emerald-600/15 blur-[50px]" />
+        <div className="relative z-10">
+          <div className="w-16 h-16 rounded-2xl overflow-hidden shadow-xl shadow-emerald-500/30 mb-4 glow-primary">
+            <img src="/app-icon.png" alt="سوق شامل" className="w-full h-full object-cover" />
+          </div>
+          <h1 className="text-[22px] font-black text-white tracking-tight text-center">{title}</h1>
+          <p className="text-teal-300 dark:text-teal-600/60 text-[13px] mt-1 font-semibold text-center">{description}</p>
+        </div>
+      </div>
+      <div className="flex-1 bg-[var(--color-surface)] border border-[var(--color-border)] rounded-t-[28px] -mt-6 relative z-10 shadow-[0_-4px_30px_rgba(5,150,105,0.06)] flex flex-col items-center justify-center px-6">
+        <div className="w-20 h-20 bg-emerald-50/60 dark:bg-emerald-900/20 rounded-3xl flex items-center justify-center mb-5">
+          <LogIn className="w-10 h-10 text-emerald-400" />
+        </div>
+        <h2 className="text-lg font-bold text-[var(--color-text)] mb-2">سجّل الدخول للمتابعة</h2>
+        <p className="text-[var(--color-text-tertiary)] text-sm text-center mb-6 max-w-[280px] leading-relaxed">
+          أنشئ حسابك أو سجّل الدخول للوصول إلى هذه الميزة
+        </p>
+        <button
+          onClick={() => setSubScreen('auth')}
+          className="w-full max-w-[320px] py-3.5 rounded-2xl gradient-primary text-white font-bold text-[15px] shadow-lg shadow-emerald-500/20 hover:shadow-xl hover:shadow-emerald-500/30 active:scale-[0.98] transition-all flex items-center justify-center gap-2"
+        >
+          <LogIn className="w-5 h-5" />
+          تسجيل الدخول أو إنشاء حساب
+        </button>
+      </div>
+    </div>
+  );
+};
+
 // Static tab config — defined outside component to avoid re-creation
 const tabs = [
-  { id: 0, label: 'الرئيسية', icon: Home },
-  { id: 1, label: 'متجري', icon: Store },
-  { id: 2, label: 'البحث', icon: Search },
-  { id: 3, label: 'المفضلة', icon: Heart },
-  { id: 4, label: 'حسابي', icon: User },
+  { id: 0, label: 'الرئيسية', icon: Home, requiresAuth: false },
+  { id: 1, label: 'متجري', icon: Store, requiresAuth: true },
+  { id: 2, label: 'البحث', icon: Search, requiresAuth: false },
+  { id: 3, label: 'المفضلة', icon: Heart, requiresAuth: true },
+  { id: 4, label: 'حسابي', icon: User, requiresAuth: true },
 ] as const;
 
 // Memoized bottom nav tab — prevents re-render on every state change
-const NavTab = React.memo(({ tab, isActive, onClick }: { tab: typeof tabs[number]; isActive: boolean; onClick: (_id: number) => void }) => {
+const NavTab = React.memo(({ tab, isActive, onClick, isLoggedIn }: { tab: typeof tabs[number]; isActive: boolean; onClick: (_id: number) => void; isLoggedIn: boolean }) => {
   const Icon = tab.icon;
   return (
     <button
@@ -136,9 +171,31 @@ const NavTab = React.memo(({ tab, isActive, onClick }: { tab: typeof tabs[number
 });
 NavTab.displayName = 'NavTab';
 
+// ── Framer Motion variants ──
+const tabVariants = {
+  enter: { opacity: 0, y: 10 },
+  center: { opacity: 1, y: 0 },
+  exit: { opacity: 0, y: -10 },
+};
+
+const subScreenVariants = {
+  initial: { y: 30, opacity: 0 },
+  animate: { y: 0, opacity: 1, transition: { duration: 0.25, ease: [0.25, 0.1, 0.25, 1] } },
+  exit: { y: 20, opacity: 0, transition: { duration: 0.2, ease: [0.25, 0.1, 0.25, 1] } },
+};
+
 // Main tab screens - loaded on demand (memoized to prevent unnecessary re-mounts)
 const tabScreens = [HomeScreen, MyStoreScreen, SearchScreen, FavoritesScreen, ProfileScreen];
 const memoizedTabScreens = tabScreens.map(Screen => React.memo(Screen));
+
+// Auth gate for each protected tab
+const authGates: React.FC[] = [
+  () => null, // Tab 0: Home - no auth needed
+  () => <AuthGate title="متجري" description="أنشئ متجرك وابدأ البيع" />, // Tab 1: My Store
+  () => null, // Tab 2: Search - no auth needed
+  () => <AuthGate title="المفضلة" description="احفظ منتجاتك المفضلة" />, // Tab 3: Favorites
+  () => <AuthGate title="حسابي" description="إدارة حسابك الشخصي" />, // Tab 4: Profile
+];
 
 function SubScreenLoader({ subScreen }: { subScreen: string }) {
   const Screen = useMemo(() => {
@@ -161,6 +218,7 @@ function SubScreenLoader({ subScreen }: { subScreen: string }) {
       case 'contact-support': return ContactSupportScreen;
       case 'policy': return PolicyScreen;
       case 'debug-push': return DebugPushScreen;
+      case 'auth': return AuthScreen;
       default: return null;
     }
   }, [subScreen]);
@@ -181,8 +239,6 @@ const MainLayout: React.FC = () => {
   const timerStarted = useRef(false);
 
   // ── Deep link handler ──
-  // When a push notification is clicked, sw.js opens '/?deepLink=/store/xxx'
-  // This effect reads the deepLink param and navigates to the correct subScreen
   const setSubScreen = useAppStore(s => s.setSubScreen);
   const setSelectedStoreId = useAppStore(s => s.setSelectedStoreId);
   const setSelectedProductId = useAppStore(s => s.setSelectedProductId);
@@ -196,15 +252,12 @@ const MainLayout: React.FC = () => {
 
     console.log('[DeepLink] Detected deep link:', deepLink);
 
-    // Clean the URL so it doesn't re-trigger on navigation
     const url = new URL(window.location.href);
     url.searchParams.delete('deepLink');
     window.history.replaceState({}, '', url.pathname);
 
-    // Normalize: ensure deepLink starts with /
     const normalizedLink = deepLink.startsWith('/') ? deepLink : `/${deepLink}`;
 
-    // Parse deep link and navigate
     try {
       if (normalizedLink.startsWith('/store/')) {
         const storeId = normalizedLink.replace('/store/', '').split('?')[0];
@@ -228,7 +281,6 @@ const MainLayout: React.FC = () => {
           console.log('[DeepLink] Navigated to offer:', offerId);
         }
       } else if (normalizedLink.startsWith('/chat')) {
-        // If there's a storeId or userId in the chat deep link, handle it
         const chatParams = new URLSearchParams(normalizedLink.split('?')[1] || '');
         const storeId = chatParams.get('storeId');
         const userId = chatParams.get('userId');
@@ -251,66 +303,9 @@ const MainLayout: React.FC = () => {
         console.log('[DeepLink] Navigated to verification');
       }
     } catch {
-      // Invalid deep link format, ignore
       console.warn('[DeepLink] Failed to parse deep link:', deepLink);
     }
-  }, []); // Run once on mount
-
-  // --- Transition: tab slide helpers ---
-  // CSS transitions don't fire on initial mount (no previous value to transition from),
-  // so no mounted guard is needed.
-  const getTabTransform = useCallback((tabIndex: number): string => {
-    if (activeTab === tabIndex) return 'translateX(0)';
-    return tabIndex < activeTab ? 'translateX(-10px)' : 'translateX(10px)';
-  }, [activeTab]);
-
-  // --- Transition: subscreen slide-up / slide-down ---
-  // Use React's "set state during render" pattern to synchronously track
-  // the incoming subscreen, avoiding the need for synchronous setState in effects.
-  const [displayedSubScreen, setDisplayedSubScreen] = useState<string | null>(null);
-  const [subScreenVisible, setSubScreenVisible] = useState(false);
-  const exitTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  if (subScreen !== 'none' && displayedSubScreen !== subScreen) {
-    setDisplayedSubScreen(subScreen);
-    setSubScreenVisible(false);
-  }
-
-  useEffect(() => {
-    // Clear any pending exit timer
-    if (exitTimerRef.current) {
-      clearTimeout(exitTimerRef.current);
-      exitTimerRef.current = null;
-    }
-
-    if (subScreen !== 'none' && !subScreenVisible) {
-      // Entrance: double rAF to ensure off-screen position is painted first
-      const raf = requestAnimationFrame(() => {
-        requestAnimationFrame(() => {
-          setSubScreenVisible(true);
-        });
-      });
-      return () => cancelAnimationFrame(raf);
-    }
-
-    if (subScreen === 'none' && displayedSubScreen !== null && subScreenVisible) {
-      // Exit: animate out, then unmount after transition completes
-      const id = requestAnimationFrame(() => {
-        setSubScreenVisible(false);
-        exitTimerRef.current = setTimeout(() => {
-          setDisplayedSubScreen(null);
-          exitTimerRef.current = null;
-        }, 250);
-      });
-      return () => {
-        cancelAnimationFrame(id);
-        if (exitTimerRef.current) {
-          clearTimeout(exitTimerRef.current);
-          exitTimerRef.current = null;
-        }
-      };
-    }
-  }, [subScreen, subScreenVisible, displayedSubScreen]);
+  }, []);
 
   useEffect(() => {
     initAutoDelete();
@@ -325,52 +320,69 @@ const MainLayout: React.FC = () => {
   }, [user?.id, initAutoDelete, startAutoDeleteTimer, archiveAndCleanup, stopAutoDeleteTimer]);
 
   const handleTabChange = useCallback((tabId: number) => {
+    // If user is not logged in and tries to access a protected tab, show auth gate
+    const tab = tabs.find(t => t.id === tabId);
+    if (tab?.requiresAuth && !user) {
+      // Set the active tab first (to show the auth gate for that tab)
+      setActiveTab(tabId);
+      return;
+    }
     setActiveTab(tabId);
-  }, [setActiveTab]);
+  }, [setActiveTab, user]);
+
+  // Determine if current tab should show auth gate
+  const currentTabConfig = tabs.find(t => t.id === activeTab);
+  const showAuthGate = currentTabConfig?.requiresAuth && !user;
 
   return (
     <div className="flex flex-col bg-[var(--color-bg)] overflow-hidden" style={{ height: '100dvh' }}>
       {/* Main content area */}
       <div className="flex-1 overflow-hidden relative">
-        {memoizedTabScreens.map((Screen, index) => (
-          <div
-            key={index}
-            className={`absolute inset-0 overflow-y-auto ${
-              activeTab === index && subScreen === 'none'
-                ? 'opacity-100 pointer-events-auto z-10'
-                : 'opacity-0 pointer-events-none z-0'
-            }`}
-            style={{
-              WebkitOverflowScrolling: 'touch',
-              transform: getTabTransform(index),
-              transition: 'opacity 200ms ease-in-out, transform 200ms ease-in-out',
-            }}
-          >
-            <ErrorBoundary>
-              <Suspense fallback={<ScreenLoader />}>
-                <Screen />
-              </Suspense>
-            </ErrorBoundary>
-          </div>
-        ))}
+        <AnimatePresence mode="wait">
+          {subScreen === 'none' && (
+            <motion.div
+              key={`tab-${activeTab}`}
+              variants={tabVariants}
+              initial="enter"
+              animate="center"
+              exit="exit"
+              transition={{ duration: 0.2, ease: [0.25, 0.1, 0.25, 1] }}
+              className="absolute inset-0 overflow-y-auto"
+              style={{ WebkitOverflowScrolling: 'touch' }}
+            >
+              <ErrorBoundary>
+                {showAuthGate ? (
+                  <Suspense fallback={<ScreenLoader />}>
+                    {React.createElement(authGates[activeTab])}
+                  </Suspense>
+                ) : (
+                  <Suspense fallback={<ScreenLoader />}>
+                    {React.createElement(memoizedTabScreens[activeTab])}
+                  </Suspense>
+                )}
+              </ErrorBoundary>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
-        {displayedSubScreen !== null && (
-          <div
-            className="absolute inset-0 overflow-y-auto z-20 bg-[var(--color-bg)]"
-            style={{
-              WebkitOverflowScrolling: 'touch',
-              transition: 'transform 250ms ease-out, opacity 200ms ease-in-out',
-              transform: subScreenVisible ? 'translateY(0)' : 'translateY(20px)',
-              opacity: subScreenVisible ? 1 : 0,
-              // Prevent invisible overlay from blocking clicks during transition
-              pointerEvents: subScreenVisible ? 'auto' : 'none',
-            }}
-          >
-            <ErrorBoundary>
-              <SubScreenLoader subScreen={displayedSubScreen} />
-            </ErrorBoundary>
-          </div>
-        )}
+        {/* SubScreen overlay with slide-up animation */}
+        <AnimatePresence>
+          {subScreen !== 'none' && (
+            <motion.div
+              key={`sub-${subScreen}`}
+              variants={subScreenVariants}
+              initial="initial"
+              animate="animate"
+              exit="exit"
+              className="absolute inset-0 overflow-y-auto z-20 bg-[var(--color-bg)]"
+              style={{ WebkitOverflowScrolling: 'touch' }}
+            >
+              <ErrorBoundary>
+                <SubScreenLoader subScreen={subScreen} />
+              </ErrorBoundary>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
 
       {/* Bottom Navigation — FIXED to viewport bottom */}
@@ -383,6 +395,7 @@ const MainLayout: React.FC = () => {
                 tab={tab}
                 isActive={activeTab === tab.id}
                 onClick={handleTabChange}
+                isLoggedIn={!!user}
               />
             ))}
           </div>
@@ -412,10 +425,7 @@ export default function App() {
   }, [initialize, notificationInit]);
 
   // ── Global data initialization on login ──
-  // Uses Hydration Coordinator Layer: each entity is loaded exactly once per session.
-  // resetHydration() is called on logout (user goes from truthy → falsy).
   useEffect(() => {
-    // Detect logout: reset all hydration flags so next login re-fetches
     if (!user) {
       resetHydration();
       return;
@@ -428,27 +438,23 @@ export default function App() {
       try {
         const tasks: Promise<void>[] = [];
 
-        // 1. Favorites — one-time via hydration guard
         if (!isHydrated('favorites')) {
           tasks.push(useAppStore.getState().fetchFavorites(userId).then(() => {}));
         }
 
-        // 2. Followed stores — one-time via hydration guard
         if (!isHydrated('followedStores')) {
           tasks.push(useAppStore.getState().fetchFollowedStores(userId).then(() => {}));
         }
 
-        // 3. Wallet — one-time via hydration guard
         if (!isHydrated('wallet')) {
           tasks.push((async () => {
             const { usePointsStore } = await import('@/store/pointsStore');
             const ps = usePointsStore.getState();
-            ps.initialize(); // Load settings only (user-agnostic)
-            await ps.fetchWallet(userId); // markHydrated('wallet') called inside on success
+            ps.initialize();
+            await ps.fetchWallet(userId);
           })());
         }
 
-        // 4. Notifications — one-time via hydration guard
         if (!isHydrated('notifications')) {
           tasks.push((async () => {
             await useNotificationStore.getState().fetchNotifications(userId);
@@ -465,8 +471,10 @@ export default function App() {
     loadGlobalData();
   }, [user?.id]);
 
+  // Show splash screen while auth is initializing
   if (!initialized) return <SplashScreen />;
 
+  // ALWAYS show MainLayout — even for unauthenticated visitors
   return (
     <>
       <NetworkIndicator />
@@ -501,12 +509,8 @@ export default function App() {
         }}
       />
       <ErrorBoundary>
-        {user ? (
-          <>
-            <NotificationProvider userId={user.id} />
-            <MainLayout />
-          </>
-        ) : <AuthScreen />}
+        {user && <NotificationProvider userId={user.id} />}
+        <MainLayout />
       </ErrorBoundary>
     </>
   );
