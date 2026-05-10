@@ -48,3 +48,23 @@ Stage Summary:
 - **ShareSheet.tsx**: Fixed WhatsApp URL format, added Web Share API with image file support, added debug console.log
 - **share/[type]/[id]/page.tsx**: Added og:image:secure_url and og:image:type meta tags
 - All changes pushed to GitHub successfully
+
+---
+Task ID: 3
+Agent: Main Agent
+Task: Update Vercel env var, generate new icon, trigger redeploy
+
+Work Log:
+- Updated NEXT_PUBLIC_BASE_URL on Vercel from https://souq-maare-latest.vercel.app to https://suq-shamel.vercel.app via PATCH API
+- Generated new app-icon.png using AI image generation (green-teal gradient, Arabic letter ش, golden frame, shopping icons)
+- Updated logo.svg with matching design: golden decorative double border, gradient letter ش with gold outline, small shopping icons (cart, tag, store, star)
+- Triggered Vercel redeploy via deploy hook API
+- Verified both deployments reached READY state on Vercel
+- Committed and pushed to GitHub (commit a6fff68)
+
+Stage Summary:
+- **NEXT_PUBLIC_BASE_URL** on Vercel: Updated to https://suq-shamel.vercel.app
+- **app-icon.png**: New AI-generated icon (85KB, 1024x1024)
+- **logo.svg**: New SVG with golden frame, shopping icons, gradient letter
+- **Vercel deployments**: Both READY and promoted to production
+- All changes pushed to GitHub
