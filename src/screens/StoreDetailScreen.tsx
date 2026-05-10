@@ -243,7 +243,7 @@ export const StoreDetailScreen: React.FC = () => {
 
   const ProductCard: React.FC<{ product: Product }> = ({ product }) => (
     <div
-      className="bg-[var(--color-surface)] rounded-2xl overflow-hidden border border-[var(--color-border)] shadow-sm cursor-pointer active:scale-[0.98] transition-transform duration-150"
+      className="bg-[var(--color-surface)] rounded-2xl overflow-hidden border-2 shadow-sm cursor-pointer active:scale-[0.98] transition-all duration-150 hover:shadow-lg" style={{ borderColor: theme.color?.solid || '#e5e7eb' }}
       onClick={() => { const { openProductDetail } = useAppStore.getState(); openProductDetail(product.id); }}
     >
       <div className="aspect-square bg-gradient-to-br from-emerald-50/50 to-teal-50/50 dark:from-emerald-900/20 dark:to-teal-900/20 relative overflow-hidden" style={theme.color ? { background: `linear-gradient(135deg, ${theme.color.lightFrom}80, ${theme.color.lightTo}80)` } : undefined}>
@@ -409,13 +409,13 @@ export const StoreDetailScreen: React.FC = () => {
         
         {/* Top actions */}
         <div className="absolute top-10 right-4 z-20">
-          <button onClick={() => setSubScreen('none')} className="w-9 h-9 bg-black/20 backdrop-blur-md rounded-xl flex items-center justify-center text-white hover:bg-black/30 transition-colors">
+          <button onClick={() => setSubScreen('none')} className="w-10 h-10 bg-black/20 backdrop-blur-md rounded-full flex items-center justify-center text-white hover:bg-black/30 transition-colors shadow-sm hover:shadow-md">
             <ArrowRight className="w-5 h-5" />
           </button>
         </div>
         <div className="absolute top-10 left-4 z-20 flex gap-2">
-          <button onClick={() => setReportModal({ isOpen: true, targetType: 'store', targetId: store.id, targetName: store.name })} className="w-9 h-9 bg-black/20 backdrop-blur-md rounded-xl flex items-center justify-center text-white hover:bg-black/30 transition-colors" aria-label="إبلاغ"><Flag className="w-5 h-5" /></button>
-          <button onClick={() => { if (store) { setShareTarget({ type: 'store', id: store.id, name: store.name, description: store.description, storeName: store.name, imageUrl: store.logo_url || store.cover_url }); setShowShareSheet(true); } }} className="w-9 h-9 bg-black/20 backdrop-blur-md rounded-xl flex items-center justify-center text-white hover:bg-black/30 transition-colors"><Share2 className="w-5 h-5" /></button>
+          <button onClick={() => setReportModal({ isOpen: true, targetType: 'store', targetId: store.id, targetName: store.name })} className="w-10 h-10 bg-black/20 backdrop-blur-md rounded-full flex items-center justify-center text-white hover:bg-black/30 transition-colors shadow-sm hover:shadow-md" aria-label="إبلاغ"><Flag className="w-5 h-5" /></button>
+          <button onClick={() => { if (store) { setShareTarget({ type: 'store', id: store.id, name: store.name, description: store.description, storeName: store.name, imageUrl: store.logo_url || store.cover_url }); setShowShareSheet(true); } }} className="w-10 h-10 bg-black/20 backdrop-blur-md rounded-full flex items-center justify-center text-white hover:bg-black/30 transition-colors shadow-sm hover:shadow-md"><Share2 className="w-5 h-5" /></button>
         </div>
 
         {/* Bottom stats on cover */}
@@ -440,9 +440,9 @@ export const StoreDetailScreen: React.FC = () => {
         <div className="bg-[var(--color-surface)] rounded-2xl border border-[var(--color-border)] shadow-lg shadow-black/5 dark:shadow-black/20">
           <div className="px-5 pb-5">
             {/* Logo */}
-            <div className="-mt-7 mb-3 relative z-10 flex items-end justify-between">
+            <div className="-mt-8 mb-3 relative z-10 flex items-end justify-between">
               <div style={theme.color ? { boxShadow: `0 4px 14px ${theme.color.shadowLight}` } : { boxShadow: '0 4px 14px rgba(16, 185, 129, 0.2)' }}>
-                <StoreLogo src={store.logo_url} name={store.name} size="lg" className="border-[3px] border-[var(--color-surface)] shadow-lg" />
+                <StoreLogo src={store.logo_url} name={store.name} size="lg" className="border-4 border-[var(--color-surface)] shadow-lg" />
               </div>
               {!isStoreOwner && (
                 <button
@@ -462,10 +462,10 @@ export const StoreDetailScreen: React.FC = () => {
 
             {/* Name + Badges */}
             <div className="flex items-center gap-2 mb-1.5 flex-wrap">
-              <h2 className="text-xl font-black text-[var(--color-text)]">{store.name}</h2>
+              <h2 className="text-2xl font-black text-[var(--color-text)]">{store.name}</h2>
               {isVerified && (
-                <span className="inline-flex items-center gap-1 bg-gradient-to-r from-amber-400 to-amber-500 text-white text-[10px] font-black px-2 py-0.5 rounded-full shadow-sm">
-                  <ShieldCheck className="w-3.5 h-3.5" />متجر موثق 🛠️
+                <span className="inline-flex items-center gap-1 bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 text-[10px] font-black px-2.5 py-1 rounded-full shadow-sm">
+                  <ShieldCheck className="w-3.5 h-3.5" />متجر موثق
                 </span>
               )}
               {store.is_featured && (
@@ -476,7 +476,7 @@ export const StoreDetailScreen: React.FC = () => {
             </div>
 
             {/* Description */}
-            <p className="text-[var(--color-text-secondary)] text-sm leading-relaxed line-clamp-2">{store.description || 'لا يوجد وصف بعد'}</p>
+            <p className="text-[var(--color-text-secondary)] text-sm leading-relaxed line-clamp-3 mt-1">{store.description || 'لا يوجد وصف بعد'}</p>
 
             {/* Location */}
             {(store.governorate || store.district || store.location) && (
@@ -551,10 +551,10 @@ export const StoreDetailScreen: React.FC = () => {
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-bold whitespace-nowrap transition-all duration-200 flex-shrink-0 ${
+                className={`flex items-center gap-1.5 px-5 py-2.5 rounded-full text-sm font-medium whitespace-nowrap transition-all duration-200 flex-shrink-0 ${
                   activeTab === tab.id
                     ? 'text-white shadow-md'
-                    : 'text-[var(--color-text-secondary)] hover:opacity-90'
+                    : 'text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800'
                 }`}
                 style={
                   activeTab === tab.id
@@ -686,38 +686,38 @@ export const StoreDetailScreen: React.FC = () => {
               <div>
                 <h3 className="text-[13px] font-bold text-emerald-600 dark:text-emerald-400 mb-3 flex items-center gap-2" style={theme.color ? { color: theme.color.solid } : undefined}><Sparkles className="w-4 h-4" />عن المتجر</h3>
                 <div className="space-y-2 divide-y divide-[var(--color-border)]">
-                  <div className="flex items-center gap-3 p-3 bg-[var(--color-bg)] rounded-xl">
+                  <div className="flex items-center gap-3 py-2.5 px-3 bg-[var(--color-bg)] rounded-xl">
                     <div className="w-9 h-9 rounded-xl bg-emerald-50 dark:bg-emerald-900/20 flex items-center justify-center text-emerald-500" style={theme.color ? { background: theme.color.solidLight + '18', color: theme.color.solid } : undefined}><ShoppingBag className="w-4 h-4" /></div>
                     <div><p className="text-[12px] font-bold text-[var(--color-text)]">{store.name}</p><p className="text-[10px] text-[var(--color-text-tertiary)]">اسم المتجر</p></div>
                   </div>
-                  <div className="flex items-center gap-3 p-3 bg-[var(--color-bg)] rounded-xl">
+                  <div className="flex items-center gap-3 py-2.5 px-3 bg-[var(--color-bg)] rounded-xl">
                     <div className="w-9 h-9 rounded-xl bg-emerald-50 dark:bg-emerald-900/20 flex items-center justify-center text-emerald-500" style={theme.color ? { background: theme.color.solidLight + '18', color: theme.color.solid } : undefined}><Package className="w-4 h-4" /></div>
                     <div><p className="text-[12px] font-bold text-[var(--color-text)]">{products.length} منتج</p><p className="text-[10px] text-[var(--color-text-tertiary)]">إجمالي المنتجات المنشورة</p></div>
                   </div>
-                  <div className="flex items-center gap-3 p-3 bg-[var(--color-bg)] rounded-xl">
+                  <div className="flex items-center gap-3 py-2.5 px-3 bg-[var(--color-bg)] rounded-xl">
                     <div className="w-9 h-9 rounded-xl bg-emerald-50 dark:bg-emerald-900/20 flex items-center justify-center text-emerald-500" style={theme.color ? { background: theme.color.solidLight + '18', color: theme.color.solid } : undefined}><Users className="w-4 h-4" /></div>
                     <div><p className="text-[12px] font-bold text-[var(--color-text)]">{followersCount.toLocaleString('ar-SY')} متابع</p><p className="text-[10px] text-[var(--color-text-tertiary)]">عدد المتابعين</p></div>
                   </div>
-                  <div className="flex items-center gap-3 p-3 bg-[var(--color-bg)] rounded-xl">
+                  <div className="flex items-center gap-3 py-2.5 px-3 bg-[var(--color-bg)] rounded-xl">
                     <div className="w-9 h-9 rounded-xl bg-emerald-50 dark:bg-emerald-900/20 flex items-center justify-center text-emerald-500" style={theme.color ? { background: theme.color.solidLight + '18', color: theme.color.solid } : undefined}><Eye className="w-4 h-4" /></div>
                     <div><p className="text-[12px] font-bold text-[var(--color-text)]">{totalViews.toLocaleString('ar-SY')} مشاهدة</p><p className="text-[10px] text-[var(--color-text-tertiary)]">إجمالي مشاهدات المنتجات</p></div>
                   </div>
-                  <div className="flex items-center gap-3 p-3 bg-[var(--color-bg)] rounded-xl">
+                  <div className="flex items-center gap-3 py-2.5 px-3 bg-[var(--color-bg)] rounded-xl">
                     <div className="w-9 h-9 rounded-xl bg-emerald-50 dark:bg-emerald-900/20 flex items-center justify-center text-emerald-500" style={theme.color ? { background: theme.color.solidLight + '18', color: theme.color.solid } : undefined}><Gift className="w-4 h-4" /></div>
                     <div><p className="text-[12px] font-bold text-[var(--color-text)]">{offers.length} عرض ومسابقة</p><p className="text-[10px] text-[var(--color-text-tertiary)]">العروض والمسابقات النشطة</p></div>
                   </div>
                   {store.category && (
-                    <div className="flex items-center gap-3 p-3 bg-[var(--color-bg)] rounded-xl">
+                    <div className="flex items-center gap-3 py-2.5 px-3 bg-[var(--color-bg)] rounded-xl">
                       <div className="w-9 h-9 rounded-xl bg-emerald-50 dark:bg-emerald-900/20 flex items-center justify-center text-emerald-500" style={theme.color ? { background: theme.color.solidLight + '18', color: theme.color.solid } : undefined}><Sparkles className="w-4 h-4" /></div>
                       <div><p className="text-[12px] font-bold text-[var(--color-text)]">{store.category}</p><p className="text-[10px] text-[var(--color-text-tertiary)]">تصنيف المتجر</p></div>
                     </div>
                   )}
-                  <div className="flex items-center gap-3 p-3 bg-[var(--color-bg)] rounded-xl">
+                  <div className="flex items-center gap-3 py-2.5 px-3 bg-[var(--color-bg)] rounded-xl">
                     <div className="w-9 h-9 rounded-xl bg-emerald-50 dark:bg-emerald-900/20 flex items-center justify-center text-emerald-500" style={theme.color ? { background: theme.color.solidLight + '18', color: theme.color.solid } : undefined}><Calendar className="w-4 h-4" /></div>
                     <div><p className="text-[12px] font-bold text-[var(--color-text)]">{new Date(store.created_at).toLocaleDateString('ar-SY')}</p><p className="text-[10px] text-[var(--color-text-tertiary)]">تاريخ إنشاء المتجر</p></div>
                   </div>
                   {(store.location || store.governorate || store.district) && (
-                    <div className="flex items-center gap-3 p-3 bg-[var(--color-bg)] rounded-xl">
+                    <div className="flex items-center gap-3 py-2.5 px-3 bg-[var(--color-bg)] rounded-xl">
                       <div className="w-9 h-9 rounded-xl bg-emerald-50 dark:bg-emerald-900/20 flex items-center justify-center text-emerald-500" style={theme.color ? { background: theme.color.solidLight + '18', color: theme.color.solid } : undefined}><MapPin className="w-4 h-4" /></div>
                       <div><p className="text-[12px] font-bold text-[var(--color-text)]">{store.location || [store.governorate, store.city, store.district].filter(Boolean).join(' - ')}</p><p className="text-[10px] text-[var(--color-text-tertiary)]">الموقع</p></div>
                     </div>

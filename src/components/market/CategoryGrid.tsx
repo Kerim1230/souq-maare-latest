@@ -630,7 +630,7 @@ export const CategoryGrid: React.FC<CategoryGridProps> = memo(({ onCategoryClick
               >
                 <span className="text-2xl">{cat.emoji}</span>
               </div>
-              <p className="text-[11px] font-medium text-center leading-tight text-gray-700 dark:text-gray-300 line-clamp-2 mt-1.5">
+              <p className="text-[11px] font-medium text-center leading-tight text-gray-700 dark:text-gray-300 line-clamp-1 mt-1.5">
                 {cat.name}
               </p>
             </button>

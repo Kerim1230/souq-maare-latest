@@ -608,7 +608,7 @@ export const HomeScreen: React.FC = () => {
           ) : (
             <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide snap-x snap-mandatory">
               {displayedFeaturedProducts.map((product) => (
-                <div key={product.id} className="flex-shrink-0 w-40 snap-start">
+                <div key={product.id} className="flex-shrink-0 w-[150px] snap-start">
                   <ProductCard
                     product={product}
                     isFavorite={favSet.has(product.id)}
