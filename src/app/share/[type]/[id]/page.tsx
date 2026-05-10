@@ -2,7 +2,7 @@ import { Metadata } from 'next';
 import { getSupabaseAdmin, TABLES } from '@/lib/supabase-db';
 import { optimizeImage } from '@/lib/image-optimize';
 
-// ISR: Revalidate shared pages every 5 minutes (faster than 1 hour for new products)
+// ISR: Revalidate shared pages every 5 minutes
 export const revalidate = 300;
 
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://suq-shamel.vercel.app';
@@ -12,6 +12,120 @@ interface PageProps {
   params: Promise<{ type: string; id: string }>;
 }
 
+// ── Shared data fetching logic (used by both generateMetadata and the page) ──
+
+interface ShareData {
+  type: string;
+  id: string;
+  name?: string;
+  title?: string;
+  description?: string;
+  price?: number;
+  image_url?: string | null;
+  store_name?: string | null;
+  store_logo?: string | null;
+  discount?: string | null;
+  is_verified?: boolean;
+  is_featured?: boolean;
+  is_new?: boolean;
+  products_count?: number;
+  followers_count?: number;
+  category?: string;
+  expires_at?: string | null;
+}
+
+async function fetchShareData(type: string, id: string): Promise<ShareData | null> {
+  try {
+    const sb = getSupabaseAdmin();
+
+    if (type === 'store') {
+      const { data: store, error } = await sb
+        .from(TABLES.STORES)
+        .select('id, name, description, logo_url, cover_url, category, is_verified, is_featured')
+        .eq('id', id)
+        .maybeSingle();
+
+      if (error || !store) return null;
+
+      // Fetch counts in parallel
+      const [productsRes, followersRes] = await Promise.all([
+        sb.from(TABLES.PRODUCTS).select('*', { count: 'exact', head: true }).eq('store_id', id),
+        sb.from(TABLES.STORE_FOLLOWS).select('*', { count: 'exact', head: true }).eq('store_id', id),
+      ]);
+
+      return {
+        type: 'store',
+        id: store.id,
+        name: store.name,
+        description: store.description,
+        image_url: store.logo_url || store.cover_url,
+        category: store.category,
+        is_verified: store.is_verified,
+        is_featured: store.is_featured,
+        products_count: productsRes.count ?? 0,
+        followers_count: followersRes.count ?? 0,
+      };
+    }
+
+    if (type === 'product') {
+      const { data: product, error } = await sb
+        .from(TABLES.PRODUCTS)
+        .select('id, name, description, price, image_url, category, is_featured, is_new, store_id, store:stores(name, logo_url)')
+        .eq('id', id)
+        .maybeSingle();
+
+      if (error || !product) return null;
+
+      const storeInfo = product.store as unknown as { name: string; logo_url: string } | null;
+
+      return {
+        type: 'product',
+        id: product.id,
+        name: product.name,
+        description: product.description,
+        price: product.price,
+        image_url: product.image_url,
+        category: product.category,
+        is_featured: product.is_featured,
+        is_new: product.is_new,
+        store_name: storeInfo?.name || null,
+        store_logo: storeInfo?.logo_url || null,
+      };
+    }
+
+    if (type === 'offer' || type === 'contest') {
+      const { data: offer, error } = await sb
+        .from(TABLES.STORE_OFFERS)
+        .select('id, title, description, image_url, type, discount, expires_at, store:stores(name, logo_url)')
+        .eq('id', id)
+        .maybeSingle();
+
+      if (error || !offer) return null;
+
+      const storeInfo = offer.store as unknown as { name: string; logo_url: string } | null;
+
+      return {
+        type: offer.type === 'contest' ? 'contest' : 'offer',
+        id: offer.id,
+        title: offer.title,
+        description: offer.description,
+        image_url: offer.image_url,
+        discount: offer.discount,
+        expires_at: offer.expires_at,
+        store_name: storeInfo?.name || null,
+        store_logo: storeInfo?.logo_url || null,
+      };
+    }
+
+    return null;
+  } catch (err) {
+    console.error('[SharePage] fetchShareData error:', err);
+    return null;
+  }
+}
+
+// ── Metadata generation for OG tags ──
+
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { type, id } = await params;
 
@@ -19,48 +133,30 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   let description = 'تسوق بكل سهولة وأمان في سوق شامل';
   let imageUrl = DEFAULT_OG_IMAGE;
 
-  try {
-    const sb = getSupabaseAdmin();
+  const data = await fetchShareData(type, id);
 
-    if (type === 'store') {
-      const { data: store } = await sb
-        .from(TABLES.STORES)
-        .select('name, description, logo_url, cover_url')
-        .eq('id', id)
-        .maybeSingle();
-      if (store) {
-        title = `${store.name} - سوق شامل`;
-        description = store.description || `${store.name} في سوق شامل الإلكتروني`;
-        const rawImage = store.logo_url || store.cover_url;
-        imageUrl = rawImage ? optimizeImage(rawImage, { width: 1200, height: 630, crop: 'fill', quality: 'auto', format: 'jpg' }) : DEFAULT_OG_IMAGE;
-      }
-    } else if (type === 'product') {
-      const { data: product } = await sb
-        .from(TABLES.PRODUCTS)
-        .select('name, price, image_url, store:stores(name)')
-        .eq('id', id)
-        .maybeSingle();
-      if (product) {
-        const storeName = ((product.store as unknown as { name: string } | null)?.name) || '';
-        title = `${product.name} - ${storeName}`;
-        description = `${Number(product.price).toLocaleString()} ل.س • ${storeName} • سوق شامل`;
-        imageUrl = product.image_url ? optimizeImage(product.image_url, { width: 1200, height: 630, crop: 'fill', quality: 'auto', format: 'jpg' }) : DEFAULT_OG_IMAGE;
-      }
-    } else if (type === 'offer' || type === 'contest') {
-      const { data: offer } = await sb
-        .from(TABLES.STORE_OFFERS)
-        .select('title, description, image_url, type, store:stores(name)')
-        .eq('id', id)
-        .maybeSingle();
-      if (offer) {
-        const storeName = ((offer.store as unknown as { name: string } | null)?.name) || '';
-        const label = offer.type === 'contest' ? 'مسابقة' : 'عرض';
-        title = `${label}: ${offer.title} - سوق شامل`;
-        description = `${offer.description || offer.title} • ${storeName}`;
-        imageUrl = offer.image_url ? optimizeImage(offer.image_url, { width: 1200, height: 630, crop: 'fill', quality: 'auto', format: 'jpg' }) : DEFAULT_OG_IMAGE;
-      }
+  if (data) {
+    const displayName = data.name || data.title || '';
+    const storeName = data.store_name || '';
+
+    if (data.type === 'store') {
+      title = `${displayName} - سوق شامل`;
+      description = data.description || `${displayName} في سوق شامل الإلكتروني`;
+    } else if (data.type === 'product') {
+      title = `${displayName} - ${storeName}`;
+      description = data.price
+        ? `${Number(data.price).toLocaleString()} ل.س • ${storeName} • سوق شامل`
+        : `${displayName} • ${storeName} • سوق شامل`;
+    } else {
+      const label = data.type === 'contest' ? 'مسابقة' : 'عرض';
+      title = `${label}: ${displayName} - سوق شامل`;
+      description = `${data.description || displayName} • ${storeName}`;
     }
-  } catch { /* ignore db errors */ }
+
+    if (data.image_url) {
+      imageUrl = optimizeImage(data.image_url, { width: 1200, height: 630, crop: 'fill', quality: 'auto', format: 'jpg' });
+    }
+  }
 
   // Ensure imageUrl is absolute
   if (imageUrl && !imageUrl.startsWith('http')) {
@@ -102,26 +198,12 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   };
 }
 
+// ── Share Page ──
+
 export default async function SharePage({ params }: PageProps) {
   const { type, id } = await params;
 
-  let data: any = null;
-  let error = false;
-
-  try {
-    const res = await fetch(`${BASE_URL}/api/share/data?type=${type}&id=${id}`, {
-      next: { revalidate: 300 },
-    });
-    if (res.ok) {
-      data = await res.json();
-      // Extract nested data if wrapped in { ok: true, data: {...} }
-      if (data?.ok && data?.data) data = data.data;
-    } else {
-      error = true;
-    }
-  } catch {
-    error = true;
-  }
+  const data = await fetchShareData(type, id);
 
   // Determine type label and colors
   const typeConfig: Record<string, { label: string; emoji: string; color: string; gradientFrom: string; gradientTo: string }> = {
@@ -130,11 +212,51 @@ export default async function SharePage({ params }: PageProps) {
     offer: { label: 'عرض', emoji: '🎁', color: '#d97706', gradientFrom: '#d97706', gradientTo: '#f59e0b' },
     contest: { label: 'مسابقة', emoji: '🏆', color: '#e11d48', gradientFrom: '#e11d48', gradientTo: '#ec4899' },
   };
-  const cfg = typeConfig[type] || typeConfig.product;
-  const hasImage = data?.image_url;
+  const cfg = typeConfig[data?.type || type] || typeConfig.product;
 
-  // Resolve image URL for display (absolute + Cloudinary-optimized)
-  const displayImageUrl = hasImage
+  if (!data) {
+    // ── Item Not Found ──
+    return (
+      <div style={{ minHeight: '100vh', direction: 'rtl', fontFamily: "'Cairo', Tahoma, sans-serif" }}>
+        <style dangerouslySetInnerHTML={{ __html: `
+          @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap');
+          .btn-primary {
+            display: flex; align-items: center; justify-content: center; gap: 8px;
+            width: 100%; padding: 16px 24px; text-align: center;
+            background: linear-gradient(135deg, #059669, #14b8a6); color: white;
+            border: none; border-radius: 16px; font-size: 17px; font-weight: 800;
+            font-family: 'Cairo', sans-serif; text-decoration: none;
+            box-shadow: 0 6px 24px rgba(16, 185, 129, 0.35);
+            cursor: pointer; transition: all 0.2s;
+          }
+          .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 28px rgba(16, 185, 129, 0.45); }
+          .btn-primary:active { transform: translateY(0); }
+        `}} />
+        <div style={{
+          minHeight: '100vh', display: 'flex', flexDirection: 'column',
+          alignItems: 'center', justifyContent: 'center', padding: '24px',
+          background: 'linear-gradient(135deg, #f0fdf4, #ecfdf5)',
+        }}>
+          <div style={{
+            background: 'white', borderRadius: '24px', padding: '48px 32px',
+            textAlign: 'center', maxWidth: '400px', width: '100%',
+            boxShadow: '0 4px 24px rgba(0,0,0,0.06)',
+            border: '1px solid rgba(16, 185, 129, 0.08)',
+          }}>
+            <span style={{ fontSize: '56px', marginBottom: '16px', display: 'block' }}>🔍</span>
+            <h3 style={{ fontSize: '20px', fontWeight: 900, color: '#022c22', marginBottom: '8px' }}>لم يتم العثور على المحتوى</h3>
+            <p style={{ fontSize: '14px', color: '#94a3b8', lineHeight: 1.8, marginBottom: '24px' }}>ربما تم حذف هذا العنصر أو الرابط غير صحيح</p>
+            <a href="/" className="btn-primary">🚀 افتح سوق شامل</a>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // ── Item Found: Beautiful Preview ──
+  const displayName = data.name || data.title || '';
+  const hasImage = !!data.image_url;
+  const displayImageUrl = hasImage && data.image_url
     ? optimizeImage(data.image_url, { width: 800, height: 600, quality: 'auto', format: 'auto' })
     : '';
 
@@ -164,214 +286,189 @@ export default async function SharePage({ params }: PageProps) {
         .btn-secondary:hover { background: #ecfdf5; border-color: #a7f3d0; }
       `}} />
 
-      {data && !error ? (
-        // ── Item Found: Beautiful Preview ──
-        <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
-          {/* Hero Image Section */}
-          <div style={{
-            position: 'relative',
-            height: hasImage ? '380px' : '280px',
-            background: hasImage
-              ? 'linear-gradient(to bottom, transparent 60%, #f8faf9 100%)'
-              : `linear-gradient(135deg, ${cfg.gradientFrom}, ${cfg.gradientTo})`,
-            overflow: 'hidden',
-          }}>
-            {hasImage ? (
-              <>
-                <img
-                  src={displayImageUrl}
-                  alt={data.name || data.title}
-                  style={{
-                    width: '100%', height: '100%', objectFit: 'cover',
-                  }}
-                />
-                <div style={{
-                  position: 'absolute', bottom: 0, left: 0, right: 0, height: '50%',
-                  background: 'linear-gradient(to bottom, transparent, #f8faf9)',
-                }} />
-              </>
-            ) : (
+      <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
+        {/* Hero Image Section */}
+        <div style={{
+          position: 'relative',
+          height: hasImage ? '380px' : '280px',
+          background: hasImage
+            ? 'linear-gradient(to bottom, transparent 60%, #f8faf9 100%)'
+            : `linear-gradient(135deg, ${cfg.gradientFrom}, ${cfg.gradientTo})`,
+          overflow: 'hidden',
+        }}>
+          {hasImage && displayImageUrl ? (
+            <>
+              <img
+                src={displayImageUrl}
+                alt={displayName}
+                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+              />
               <div style={{
-                display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-                height: '100%', gap: '12px',
-              }}>
-                <span style={{ fontSize: '64px', filter: 'drop-shadow(0 4px 12px rgba(0,0,0,0.2))' }}>{cfg.emoji}</span>
-                <span style={{
-                  fontSize: '14px', fontWeight: 700, color: 'rgba(255,255,255,0.8)',
-                  background: 'rgba(255,255,255,0.15)', padding: '4px 16px', borderRadius: '20px',
-                  backdropFilter: 'blur(8px)',
-                }}>
-                  {cfg.label}
-                </span>
-              </div>
-            )}
-
-            {/* Type Badge — overlaid on image */}
-            {hasImage && (
-              <div style={{
-                position: 'absolute', top: '16px', right: '16px', zIndex: 10,
-                background: `linear-gradient(135deg, ${cfg.gradientFrom}, ${cfg.gradientTo})`,
-                color: 'white', fontSize: '12px', fontWeight: 800,
-                padding: '6px 14px', borderRadius: '12px',
-                display: 'flex', alignItems: 'center', gap: '6px',
-                boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+                position: 'absolute', bottom: 0, left: 0, right: 0, height: '50%',
+                background: 'linear-gradient(to bottom, transparent, #f8faf9)',
+              }} />
+            </>
+          ) : (
+            <div style={{
+              display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+              height: '100%', gap: '12px',
+            }}>
+              <span style={{ fontSize: '64px', filter: 'drop-shadow(0 4px 12px rgba(0,0,0,0.2))' }}>{cfg.emoji}</span>
+              <span style={{
+                fontSize: '14px', fontWeight: 700, color: 'rgba(255,255,255,0.8)',
+                background: 'rgba(255,255,255,0.15)', padding: '4px 16px', borderRadius: '20px',
                 backdropFilter: 'blur(8px)',
               }}>
-                <span>{cfg.emoji}</span> {cfg.label}
-              </div>
-            )}
+                {cfg.label}
+              </span>
+            </div>
+          )}
 
-            {/* Verified / Featured Badges */}
-            {hasImage && (data.is_featured || data.is_new) && (
-              <div style={{ position: 'absolute', top: '16px', left: '16px', display: 'flex', gap: '6px', zIndex: 10 }}>
-                {data.is_new && <span style={{ background: 'linear-gradient(135deg, #059669, #14b8a6)', color: 'white', fontSize: '11px', fontWeight: 700, padding: '5px 12px', borderRadius: '10px', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>✨ جديد</span>}
-                {data.is_featured && <span style={{ background: 'linear-gradient(135deg, #f59e0b, #ef4444)', color: 'white', fontSize: '11px', fontWeight: 700, padding: '5px 12px', borderRadius: '10px', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>⭐ مميز</span>}
-              </div>
-            )}
-          </div>
-
-          {/* Content Card — overlaps image */}
-          <div style={{ marginTop: hasImage ? '-60px' : '0', position: 'relative', zIndex: 20, padding: '0 20px', flex: 1 }}>
+          {/* Type Badge */}
+          {hasImage && (
             <div style={{
-              background: 'white', borderRadius: '24px',
-              boxShadow: '0 4px 32px rgba(0,0,0,0.06)',
-              border: '1px solid rgba(16, 185, 129, 0.08)',
-              overflow: 'hidden', padding: '24px',
+              position: 'absolute', top: '16px', right: '16px', zIndex: 10,
+              background: `linear-gradient(135deg, ${cfg.gradientFrom}, ${cfg.gradientTo})`,
+              color: 'white', fontSize: '12px', fontWeight: 800,
+              padding: '6px 14px', borderRadius: '12px',
+              display: 'flex', alignItems: 'center', gap: '6px',
+              boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
             }}>
-              {/* Name */}
-              <h1 style={{ fontSize: '24px', fontWeight: 900, color: '#022c22', marginBottom: '10px', lineHeight: 1.4 }}>
-                {data.name || data.title}
-              </h1>
-
-              {/* Store Name */}
-              {data.store_name && (
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
-                  <div style={{
-                    width: '28px', height: '28px', borderRadius: '8px',
-                    background: `linear-gradient(135deg, ${cfg.gradientFrom}22, ${cfg.gradientTo}22)`,
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  }}>
-                    <span style={{ fontSize: '14px' }}>🏪</span>
-                  </div>
-                  <span style={{ fontSize: '15px', color: '#475569', fontWeight: 700 }}>{data.store_name}</span>
-                  {data.is_verified && (
-                    <span style={{
-                      fontSize: '11px', color: '#d97706', fontWeight: 800,
-                      background: '#fef3c7', padding: '3px 8px', borderRadius: '6px',
-                      border: '1px solid #fde68a',
-                    }}>✓ موثق</span>
-                  )}
-                </div>
-              )}
-
-              {/* Price */}
-              {data.price && (
-                <div style={{
-                  display: 'inline-flex', alignItems: 'center', gap: '8px',
-                  background: `linear-gradient(135deg, ${cfg.gradientFrom}11, ${cfg.gradientTo}11)`,
-                  border: `1px solid ${cfg.gradientFrom}22`,
-                  padding: '10px 18px', borderRadius: '14px', marginBottom: '12px',
-                }}>
-                  <span style={{ fontSize: '14px' }}>💰</span>
-                  <span style={{ fontSize: '22px', fontWeight: 900, color: cfg.color }}>
-                    {Number(data.price).toLocaleString('ar-SY')}
-                  </span>
-                  <span style={{ fontSize: '14px', fontWeight: 700, color: cfg.color }}>ل.س</span>
-                </div>
-              )}
-
-              {/* Discount */}
-              {data.discount && (
-                <div style={{
-                  display: 'inline-flex', alignItems: 'center', gap: '8px',
-                  background: '#fef3c7', color: '#d97706', fontSize: '15px', fontWeight: 800,
-                  padding: '8px 16px', borderRadius: '12px', marginBottom: '12px',
-                  border: '1px solid #fde68a', marginLeft: data.price ? '8px' : '0',
-                }}>
-                  🔥 خصم {data.discount}
-                </div>
-              )}
-
-              {/* Description */}
-              {data.description && (
-                <p style={{
-                  fontSize: '15px', color: '#475569', marginTop: '12px',
-                  lineHeight: 1.9, marginBottom: '12px',
-                  padding: '12px', background: '#f8faf9', borderRadius: '12px',
-                  border: '1px solid #f1f5f9',
-                }}>
-                  {data.description}
-                </p>
-              )}
-
-              {/* Store Stats */}
-              {data.products_count !== undefined && (
-                <div style={{
-                  display: 'flex', gap: '16px', marginTop: '12px', padding: '14px',
-                  background: '#f8faf9', borderRadius: '14px', border: '1px solid #f1f5f9',
-                }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <span style={{ fontSize: '16px' }}>📦</span>
-                    <span style={{ fontSize: '14px', color: '#475569', fontWeight: 700 }}>{data.products_count} منتج</span>
-                  </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <span style={{ fontSize: '16px' }}>👥</span>
-                    <span style={{ fontSize: '14px', color: '#475569', fontWeight: 700 }}>{data.followers_count || 0} متابع</span>
-                  </div>
-                  {data.is_featured && (
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                      <span style={{ fontSize: '16px' }}>⭐</span>
-                      <span style={{ fontSize: '14px', color: '#d97706', fontWeight: 700 }}>متجر مميز</span>
-                    </div>
-                  )}
-                </div>
-              )}
+              <span>{cfg.emoji}</span> {cfg.label}
             </div>
-          </div>
+          )}
 
-          {/* CTA Buttons */}
-          <div style={{ padding: '20px 20px 24px' }}>
-            <a href="/" className="btn-primary" style={{ marginBottom: '10px' }}>
-              🚀 فتح في سوق شامل
-            </a>
-            <a href="/?signup=true" className="btn-secondary" style={{ marginBottom: '16px' }}>
-              📱 إنشاء حساب مجاني
-            </a>
-
-            {/* Footer */}
-            <div style={{ textAlign: 'center', paddingTop: '16px', borderTop: '1px solid #f1f5f9' }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', marginBottom: '6px' }}>
-                <div style={{ width: '24px', height: '24px', borderRadius: '8px', overflow: 'hidden' }}>
-                  <img src="/app-icon.png" alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                </div>
-                <span style={{ fontSize: '13px', fontWeight: 700, color: '#022c22' }}>سوق شامل الإلكتروني</span>
-              </div>
-              <p style={{ fontSize: '11px', color: '#cbd5e1' }}>
-                © {new Date().getFullYear()} جميع الحقوق محفوظة
-              </p>
+          {/* Featured / New Badges */}
+          {hasImage && (data.is_featured || data.is_new) && (
+            <div style={{ position: 'absolute', top: '16px', left: '16px', display: 'flex', gap: '6px', zIndex: 10 }}>
+              {data.is_new && <span style={{ background: 'linear-gradient(135deg, #059669, #14b8a6)', color: 'white', fontSize: '11px', fontWeight: 700, padding: '5px 12px', borderRadius: '10px', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>✨ جديد</span>}
+              {data.is_featured && <span style={{ background: 'linear-gradient(135deg, #f59e0b, #ef4444)', color: 'white', fontSize: '11px', fontWeight: 700, padding: '5px 12px', borderRadius: '10px', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>⭐ مميز</span>}
             </div>
-          </div>
+          )}
         </div>
-      ) : (
-        // ── Item Not Found ──
-        <div style={{
-          minHeight: '100vh', display: 'flex', flexDirection: 'column',
-          alignItems: 'center', justifyContent: 'center', padding: '24px',
-          background: 'linear-gradient(135deg, #f0fdf4, #ecfdf5)',
-        }}>
+
+        {/* Content Card */}
+        <div style={{ marginTop: hasImage ? '-60px' : '0', position: 'relative', zIndex: 20, padding: '0 20px', flex: 1 }}>
           <div style={{
-            background: 'white', borderRadius: '24px', padding: '48px 32px',
-            textAlign: 'center', maxWidth: '400px', width: '100%',
-            boxShadow: '0 4px 24px rgba(0,0,0,0.06)',
+            background: 'white', borderRadius: '24px',
+            boxShadow: '0 4px 32px rgba(0,0,0,0.06)',
             border: '1px solid rgba(16, 185, 129, 0.08)',
+            overflow: 'hidden', padding: '24px',
           }}>
-            <span style={{ fontSize: '56px', marginBottom: '16px', display: 'block' }}>🔍</span>
-            <h3 style={{ fontSize: '20px', fontWeight: 900, color: '#022c22', marginBottom: '8px' }}>لم يتم العثور على المحتوى</h3>
-            <p style={{ fontSize: '14px', color: '#94a3b8', lineHeight: 1.8, marginBottom: '24px' }}>ربما تم حذف هذا العنصر أو الرابط غير صحيح</p>
-            <a href="/" className="btn-primary">🚀 افتح سوق شامل</a>
+            {/* Name */}
+            <h1 style={{ fontSize: '24px', fontWeight: 900, color: '#022c22', marginBottom: '10px', lineHeight: 1.4 }}>
+              {displayName}
+            </h1>
+
+            {/* Store Name */}
+            {data.store_name && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
+                <div style={{
+                  width: '28px', height: '28px', borderRadius: '8px',
+                  background: `linear-gradient(135deg, ${cfg.gradientFrom}22, ${cfg.gradientTo}22)`,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                }}>
+                  <span style={{ fontSize: '14px' }}>🏪</span>
+                </div>
+                <span style={{ fontSize: '15px', color: '#475569', fontWeight: 700 }}>{data.store_name}</span>
+                {data.is_verified && (
+                  <span style={{
+                    fontSize: '11px', color: '#d97706', fontWeight: 800,
+                    background: '#fef3c7', padding: '3px 8px', borderRadius: '6px',
+                    border: '1px solid #fde68a',
+                  }}>✓ موثق</span>
+                )}
+              </div>
+            )}
+
+            {/* Price */}
+            {data.price != null && (
+              <div style={{
+                display: 'inline-flex', alignItems: 'center', gap: '8px',
+                background: `linear-gradient(135deg, ${cfg.gradientFrom}11, ${cfg.gradientTo}11)`,
+                border: `1px solid ${cfg.gradientFrom}22`,
+                padding: '10px 18px', borderRadius: '14px', marginBottom: '12px',
+              }}>
+                <span style={{ fontSize: '14px' }}>💰</span>
+                <span style={{ fontSize: '22px', fontWeight: 900, color: cfg.color }}>
+                  {Number(data.price).toLocaleString('ar-SY')}
+                </span>
+                <span style={{ fontSize: '14px', fontWeight: 700, color: cfg.color }}>ل.س</span>
+              </div>
+            )}
+
+            {/* Discount */}
+            {data.discount && (
+              <div style={{
+                display: 'inline-flex', alignItems: 'center', gap: '8px',
+                background: '#fef3c7', color: '#d97706', fontSize: '15px', fontWeight: 800,
+                padding: '8px 16px', borderRadius: '12px', marginBottom: '12px',
+                border: '1px solid #fde68a', marginLeft: data.price != null ? '8px' : '0',
+              }}>
+                🔥 خصم {data.discount}
+              </div>
+            )}
+
+            {/* Description */}
+            {data.description && (
+              <p style={{
+                fontSize: '15px', color: '#475569', marginTop: '12px',
+                lineHeight: 1.9, marginBottom: '12px',
+                padding: '12px', background: '#f8faf9', borderRadius: '12px',
+                border: '1px solid #f1f5f9',
+              }}>
+                {data.description}
+              </p>
+            )}
+
+            {/* Store Stats */}
+            {data.products_count !== undefined && (
+              <div style={{
+                display: 'flex', gap: '16px', marginTop: '12px', padding: '14px',
+                background: '#f8faf9', borderRadius: '14px', border: '1px solid #f1f5f9',
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <span style={{ fontSize: '16px' }}>📦</span>
+                  <span style={{ fontSize: '14px', color: '#475569', fontWeight: 700 }}>{data.products_count} منتج</span>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <span style={{ fontSize: '16px' }}>👥</span>
+                  <span style={{ fontSize: '14px', color: '#475569', fontWeight: 700 }}>{data.followers_count || 0} متابع</span>
+                </div>
+                {data.is_featured && (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <span style={{ fontSize: '16px' }}>⭐</span>
+                    <span style={{ fontSize: '14px', color: '#d97706', fontWeight: 700 }}>متجر مميز</span>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         </div>
-      )}
+
+        {/* CTA Buttons */}
+        <div style={{ padding: '20px 20px 24px' }}>
+          <a href="/" className="btn-primary" style={{ marginBottom: '10px' }}>
+            🚀 فتح في سوق شامل
+          </a>
+          <a href="/?signup=true" className="btn-secondary" style={{ marginBottom: '16px' }}>
+            📱 إنشاء حساب مجاني
+          </a>
+
+          {/* Footer */}
+          <div style={{ textAlign: 'center', paddingTop: '16px', borderTop: '1px solid #f1f5f9' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', marginBottom: '6px' }}>
+              <div style={{ width: '24px', height: '24px', borderRadius: '8px', overflow: 'hidden' }}>
+                <img src="/app-icon.png" alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              </div>
+              <span style={{ fontSize: '13px', fontWeight: 700, color: '#022c22' }}>سوق شامل الإلكتروني</span>
+            </div>
+            <p style={{ fontSize: '11px', color: '#cbd5e1' }}>
+              © {new Date().getFullYear()} جميع الحقوق محفوظة
+            </p>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
