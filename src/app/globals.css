@@ -69,22 +69,6 @@
   .scrollbar-hide::-webkit-scrollbar,
   .no-scrollbar::-webkit-scrollbar { display: none; }
 
-  .pb-safe {
-    padding-bottom: env(safe-area-inset-bottom, 0px);
-  }
-
-  /* Safe bottom padding for content that must clear the fixed bottom nav bar.
-     Accounts for: nav bar height (~64px) + safe-area inset + extra margin. */
-  .safe-bottom {
-    padding-bottom: calc(80px + env(safe-area-inset-bottom, 0px));
-  }
-
-  /* Stronger safe-bottom variant with !important to override any conflicting styles.
-     Ensures buttons are NEVER hidden behind the fixed bottom navigation bar. */
-  .bottom-nav-safe {
-    padding-bottom: calc(100px + env(safe-area-inset-bottom, 0px)) !important;
-  }
-
   /* RTL safety utility */
   [dir="rtl"] .rtl-safe {
     direction: rtl;
@@ -183,25 +167,6 @@
     animation: shimmer 1.5s infinite;
   }
 
-  /* Bottom nav — fixed to viewport bottom */
-  .bottom-nav {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    z-index: 100;
-    background: rgba(255, 255, 255, 0.94);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    border-top: 1px solid #d1fae5;
-    box-shadow: 0 -1px 24px rgba(16, 185, 129, 0.08);
-  }
-  .dark .bottom-nav {
-    background: rgba(10, 22, 18, 0.94);
-    border-top: 1px solid #1a3a2a;
-    box-shadow: 0 -1px 24px rgba(0, 0, 0, 0.3);
-  }
-
   /* Selection */
   ::selection {
     background: #10b98120;
@@ -262,4 +227,55 @@
       box-shadow: 0 -1px 12px rgba(16, 185, 129, 0.08) !important;
     }
   }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   UNLAYERED STYLES — Higher cascade priority than @layer base/utilities.
+   These MUST stay outside any @layer to guarantee they override Tailwind.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* Bottom navigation bar — fixed to viewport bottom */
+.bottom-nav {
+  position: fixed !important;
+  bottom: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  z-index: 100 !important;
+  background: rgba(255, 255, 255, 0.94);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-top: 1px solid #d1fae5;
+  box-shadow: 0 -1px 24px rgba(16, 185, 129, 0.08);
+}
+.dark .bottom-nav {
+  background: rgba(10, 22, 18, 0.94);
+  border-top: 1px solid #1a3a2a;
+  box-shadow: 0 -1px 24px rgba(0, 0, 0, 0.3);
+}
+
+/* Safe-area padding for the bottom nav itself */
+.pb-safe {
+  padding-bottom: env(safe-area-inset-bottom, 0px) !important;
+}
+
+/* Safe bottom padding for tab screen content that must clear the fixed bottom nav.
+   Accounts for: nav bar height (~64px) + safe-area inset + extra margin.
+   Uses !important to override any Tailwind utility that might conflict. */
+.safe-bottom {
+  padding-bottom: calc(80px + env(safe-area-inset-bottom, 0px)) !important;
+}
+
+/* Robust safe-bottom variant for screen containers.
+   Guarantees buttons are NEVER hidden behind the fixed bottom navigation bar.
+   Value: 100px base + safe-area inset, with !important for maximum specificity. */
+.bottom-nav-safe {
+  padding-bottom: calc(100px + env(safe-area-inset-bottom, 0px)) !important;
+}
+
+/* Scroll container padding for the main tab content area.
+   Applied to the motion.div that wraps tab screens in page.tsx.
+   This is the PRIMARY mechanism for creating space above the fixed bottom nav.
+   Value accounts for: nav height (~64px) + nav padding + safe-area + generous buffer. */
+.tab-scroll-area {
+  padding-bottom: calc(100px + env(safe-area-inset-bottom, 0px)) !important;
 }

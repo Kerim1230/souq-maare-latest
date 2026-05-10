@@ -83,19 +83,18 @@ export const SearchScreen: React.FC = () => {
 
         if (cancelled) return;
 
-        // Check if ALL requests failed
-        const allFailed =
-          (productsRes.status === 'rejected' || (productsRes.status === 'fulfilled' && productsRes.value?.ok === false)) &&
-          (storesRes.status === 'rejected' || (storesRes.status === 'fulfilled' && storesRes.value?.ok === false)) &&
-          (offersRes.status === 'rejected' || (offersRes.status === 'fulfilled' && offersRes.value?.ok === false));
+        const defaultProducts = (productsRes.status === 'fulfilled' && productsRes.value?.ok !== false) ? (productsRes.value?.data?.products || []) : [];
+        const defaultStores = (storesRes.status === 'fulfilled' && storesRes.value?.ok !== false) ? (storesRes.value?.data?.stores || []) : [];
+        const defaultOffers = (offersRes.status === 'fulfilled' && offersRes.value?.ok !== false) ? (offersRes.value?.data?.offers || []) : [];
 
-        if (allFailed) {
+        // Only show error if ALL three failed — partial data is still useful
+        const productFailed = productsRes.status === 'rejected' || productsRes.value?.ok === false;
+        const storeFailed = storesRes.status === 'rejected' || storesRes.value?.ok === false;
+        const offerFailed = offersRes.status === 'rejected' || offersRes.value?.ok === false;
+
+        if (productFailed && storeFailed && offerFailed) {
           setInitialError('تعذر تحميل البيانات. تحقق من اتصالك بالإنترنت');
         }
-
-        const defaultProducts = (productsRes.status === 'fulfilled' ? productsRes.value?.data?.products : null) || [];
-        const defaultStores = (storesRes.status === 'fulfilled' ? storesRes.value?.data?.stores : null) || [];
-        const defaultOffers = (offersRes.status === 'fulfilled' ? offersRes.value?.data?.offers : null) || [];
 
         initialDataRef.current = { products: defaultProducts, stores: defaultStores, offers: defaultOffers };
 

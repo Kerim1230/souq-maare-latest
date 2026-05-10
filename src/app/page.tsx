@@ -97,7 +97,7 @@ const SplashScreen: React.FC = () => {
 const AuthGate: React.FC<{ title: string; description: string }> = ({ title, description }) => {
   const setSubScreen = useAppStore(s => s.setSubScreen);
   return (
-    <div className="min-h-screen bg-[var(--color-bg)] flex flex-col">
+    <div className="min-h-screen bg-[var(--color-bg)] flex flex-col bottom-nav-safe">
       <div className="gradient-dark px-6 pt-12 pb-14 flex flex-col items-center relative overflow-hidden">
         <div className="absolute top-[-40px] right-[-30px] w-[160px] h-[160px] rounded-full bg-teal-600/20 blur-[60px]" />
         <div className="absolute bottom-[-20px] left-[-20px] w-[100px] h-[100px] rounded-full bg-emerald-600/15 blur-[50px]" />
@@ -347,7 +347,7 @@ const MainLayout: React.FC = () => {
               animate="center"
               exit="exit"
               transition={{ duration: 0.2, ease: [0.25, 0.1, 0.25, 1] }}
-              className="absolute inset-0 overflow-y-auto pb-28"
+              className="absolute inset-0 overflow-y-auto tab-scroll-area"
               style={{ WebkitOverflowScrolling: 'touch' }}
             >
               <ErrorBoundary>
@@ -374,7 +374,7 @@ const MainLayout: React.FC = () => {
               initial="initial"
               animate="animate"
               exit="exit"
-              className="absolute inset-0 overflow-y-auto z-20 bg-[var(--color-bg)] pb-6"
+              className="absolute inset-0 overflow-y-auto z-20 bg-[var(--color-bg)] pb-8"
               style={{ WebkitOverflowScrolling: 'touch' }}
             >
               <ErrorBoundary>

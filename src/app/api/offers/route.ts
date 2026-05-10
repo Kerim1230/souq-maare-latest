@@ -33,7 +33,8 @@ export const GET = withRoute(async (request: NextRequest) => {
     }
 
     if (search) {
-      query = query.ilike('title', `%${search}%`);
+      const escaped = search.replace(/%/g, '\\%').replace(/_/g, '\\_');
+      query = query.ilike('title', `%${escaped}%`);
     }
 
     const { data: offers, error } = await query;
