@@ -142,7 +142,7 @@ export const ProductCard: React.FC<ProductCardProps> = memo(({
       className={`bg-[var(--color-surface)] ${compact ? 'rounded-xl border' : 'rounded-2xl border-2'} overflow-hidden shadow-sm hover:shadow-lg transition-shadow duration-300 cursor-pointer active:opacity-80`}
       style={{ contain: 'layout style', borderColor: borderColor || '#e5e7eb' }}
     >
-      <div className={`relative ${compact ? 'aspect-square' : horizontal ? 'aspect-square' : 'aspect-[4/3]'} bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-900/20 dark:to-teal-900/20 overflow-hidden`}>
+      <div className={`relative ${compact || horizontal ? 'aspect-square' : 'aspect-square'} bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-900/20 dark:to-teal-900/20 overflow-hidden`}>
         <SafeImage src={product.image_url} alt={product.name} className="w-full h-full object-cover" />
         {badges}
 

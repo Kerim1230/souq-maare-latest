@@ -74,7 +74,7 @@ const StoreCard: React.FC<{ store: Store; getStoreColorById: (_colorId: string) 
       style={{ width: '120px' }}
     >
       <div
-        className="w-16 h-16 rounded-full overflow-hidden shadow-sm group-hover:shadow-md transition-shadow duration-200 ring-2 ring-offset-2 ring-gray-200 dark:ring-gray-700 ring-offset-white dark:ring-offset-[var(--color-bg)]"
+        className="w-16 h-16 rounded-full overflow-hidden shadow-sm group-hover:shadow-md transition-shadow duration-200 border-2 ring-2 ring-offset-2 ring-gray-200 dark:ring-gray-700 ring-offset-white dark:ring-offset-[var(--color-bg)]"
         style={{ borderColor, boxShadow: resolvedColor ? `0 2px 8px ${shadowColor}` : undefined }}
       >
         <StoreLogo src={store.logo_url} name={store.name} size="sm" className="w-full h-full" />
