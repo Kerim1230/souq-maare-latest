@@ -92,3 +92,26 @@ Stage Summary:
 - All screens updated with top-nav-safe for proper spacing
 - Hide/show toggle functionality preserved with updated directions
 - Deployed: https://suq-shamel.vercel.app
+
+---
+Task ID: 2
+Agent: Main Agent
+Task: Redesign product cards and move toggle button to corner
+
+Work Log:
+- Moved nav toggle chevron from center (left-1/2 -translate-x-1/2) to far-left corner (left-2) in page.tsx
+- Moved floating restore button from center to left-3
+- Added `compact` prop to ProductCard component for smaller card variant
+- Compact mode: aspect-square image, smaller fav button (w-6 h-6), no share/report buttons, p-2 padding, text-[11px] name, text-xs price, no store info/category/expiry, rounded-xl
+- Changed featured products from w-[160px] to w-[140px], display limit from 3 to 5
+- Changed new products from grid-cols-2 gap-4 to grid-cols-4 gap-1.5 with compact prop
+- Increased new products display limit from 3 to 12 (3 rows × 4 columns)
+- Updated empty state col-span from 2 to 4
+- Committed, pushed to GitHub, deployed to Vercel
+
+Stage Summary:
+- Toggle button moved to far-left corner of the nav bar
+- ProductCard now supports compact mode for dense grids
+- New products section uses 4-column compact grid (12 products max)
+- Featured products cards slightly narrower (140px vs 160px)
+- Deployed: https://suq-shamel.vercel.app
