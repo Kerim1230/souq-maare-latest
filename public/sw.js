@@ -27,7 +27,7 @@ self.addEventListener('install', (event) => {
 });
 
 self.addEventListener('activate', (event) => {
-  // Aggressively delete ALL old caches (including old app name caches like suq-hurriya-v1)
+  // Aggressively delete ALL old caches from previous versions
   // and any previous versions of suq-shamel cache to ensure fresh JS bundles are served
   event.waitUntil(
     caches.keys().then((keys) => {

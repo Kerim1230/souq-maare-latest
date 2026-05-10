@@ -78,7 +78,7 @@ export default function RootLayout({
       <head>
         {/*
           Service Worker Migration Script — runs BEFORE React hydrates.
-          Detects old Service Workers (from "سوق الحرية" era), unregisters them,
+          Detects old Service Workers from previous versions, unregisters them,
           clears all caches, and reloads the page so fresh JS bundles are loaded.
           Uses localStorage flag to ensure this only runs once.
         */}
