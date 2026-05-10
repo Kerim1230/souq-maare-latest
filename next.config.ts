@@ -37,6 +37,16 @@ const nextConfig: NextConfig = {
   async headers() {
     return [
       {
+        // Root page: Clear browser cache to force fresh load after deployments
+        source: '/',
+        headers: [
+          {
+            key: 'Clear-Site-Data',
+            value: '"cache"',
+          },
+        ],
+      },
+      {
         source: '/(.*)',
         headers: [
           {

@@ -1,4 +1,4 @@
-const CACHE_NAME = 'suq-shamel-v6';
+const CACHE_NAME = 'suq-shamel-v10';
 const STATIC_ASSETS = [
   '/',
   '/manifest.json',
@@ -18,12 +18,12 @@ const API_CACHE_TTL = 10 * 60 * 1000;
 const STATIC_EXT_REGEX = /\.(css|woff2?|ttf|eot|png|jpg|jpeg|gif|svg|ico|webp|avif)$/i;
 
 self.addEventListener('install', (event) => {
+  self.skipWaiting(); // Activate new SW immediately — prevents stale chunks
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
       return cache.addAll(STATIC_ASSETS);
     })
   );
-  self.skipWaiting();
 });
 
 self.addEventListener('activate', (event) => {

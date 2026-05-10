@@ -463,11 +463,16 @@ export default function App() {
   // When a new deployment invalidates old chunk filenames,
   // the browser may fail to load them. Detect this and force a hard reload
   // with cache busting to get fresh assets.
+  // Uses a 3-second delay to avoid interrupting rapid error bursts,
+  // and caps at 3 reloads within 60 seconds to prevent infinite loops.
   useEffect(() => {
-    const CHUNK_ERROR_PATTERN = /Loading chunk|Loading CSS chunk|Failed to fetch dynamically imported module|chunk\s+\w+\s+failed|Importing a module script failed/i;
+    const CHUNK_ERROR_PATTERN = /Loading chunk|Loading CSS chunk|Failed to fetch dynamically imported module|Failed to load chunk|chunk\s+\w+\s+failed|Importing a module script failed|ChunkLoadError/i;
     const MAX_RELOAD_ATTEMPTS = 3;
     const RELOAD_KEY = 'suq_chunk_reload_count';
     const RELOAD_TIMESTAMP_KEY = 'suq_chunk_reload_ts';
+    const RELOAD_DELAY_MS = 3000; // 3-second delay before reloading
+
+    let reloadTimer: ReturnType<typeof setTimeout> | null = null;
 
     function handleChunkRecovery(source: string) {
       // Prevent infinite reload loop — max 3 reloads within 60 seconds
@@ -489,13 +494,27 @@ export default function App() {
         sessionStorage.setItem(RELOAD_TIMESTAMP_KEY, String(now));
       }
 
-      console.warn(`[ChunkError] Detected stale chunk (${source}), clearing caches and reloading...`);
-      // Clear all caches
+      // Avoid scheduling multiple reloads
+      if (reloadTimer) return;
+
+      console.warn(`[ChunkError] Detected stale chunk (${source}), clearing caches and reloading in ${RELOAD_DELAY_MS / 1000}s...`);
+
+      // Clear all caches immediately
       if ('caches' in window) {
         caches.keys().then((keys) => Promise.all(keys.map((k) => caches.delete(k))));
       }
-      // Force hard reload with cache bust
-      window.location.reload();
+
+      // Unregister old service workers to prevent them from serving stale assets
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.getRegistrations().then((regs) => {
+          regs.forEach((reg) => reg.unregister());
+        });
+      }
+
+      // Reload after delay — gives time for other chunk errors to surface
+      reloadTimer = setTimeout(() => {
+        window.location.reload();
+      }, RELOAD_DELAY_MS);
     }
 
     // Handle synchronous error events
@@ -521,6 +540,7 @@ export default function App() {
     return () => {
       window.removeEventListener('error', handleError);
       window.removeEventListener('unhandledrejection', handleUnhandledRejection);
+      if (reloadTimer) clearTimeout(reloadTimer);
     };
   }, []);
 
