@@ -193,7 +193,7 @@ export const ProfileScreen: React.FC = () => {
               className="gradient-primary overflow-hidden shadow-lg shadow-emerald-500/20 rounded-2xl flex-shrink-0"
             />
             <div className="flex-1 min-w-0">
-              <h2 className="text-[16px] font-black text-[var(--color-text)] truncate">{user?.full_name || 'مستخدم سوق الحرية'}</h2>
+              <h2 className="text-[16px] font-black text-[var(--color-text)] truncate">{user?.full_name || 'مستخدم سوق شامل'}</h2>
               <p className="text-[12px] text-[var(--color-text-secondary)] mt-0.5 truncate">{user?.email}</p>
               <div className="flex items-center gap-2 mt-1.5">
                 {isAdmin && <span className="inline-flex items-center gap-1 bg-gradient-to-r from-amber-400 to-amber-500 text-white text-[9px] font-black px-2 py-0.5 rounded-full"><Shield className="w-3 h-3" />مدير</span>}
@@ -345,7 +345,7 @@ export const ProfileScreen: React.FC = () => {
 
           {/* Footer */}
           <div className="text-center pt-1 pb-4">
-            <p className="text-[11px] gradient-text-primary font-semibold">سوق الحرية الإلكتروني</p>
+            <p className="text-[11px] gradient-text-primary font-semibold">سوق شامل الإلكتروني</p>
             <p className="text-[10px] text-[var(--color-text-tertiary)] mt-0.5">الإصدار ١.٠.٠</p>
           </div>
         </div>

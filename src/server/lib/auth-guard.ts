@@ -1,7 +1,7 @@
 /**
  * Auth Guards — Local JWT session cookies + Supabase profile lookup.
  *
- * Authentication is handled via JWT session cookies (suq_hurriya_sid).
+ * Authentication is handled via JWT session cookies (suq_shamel_sid).
  * Supabase public.users table stores profile data (is_admin, email, etc.).
  */
 

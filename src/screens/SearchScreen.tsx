@@ -123,7 +123,7 @@ export const SearchScreen: React.FC = () => {
     setAiLoading(true);
     setAiExplanation(null);
 
-    const aiPrompt = `أنت مساعد بحث ذكي في تطبيق "سوق الحرية" السوري للتجارة الإلكترونية.
+    const aiPrompt = `أنت مساعد بحث ذكي في تطبيق "سوق شامل" السوري للتجارة الإلكترونية.
 حلل طلب المستخدم التالي وأعد JSON فقط بدون أي نص إضافي:
 {
   "keywords": ["كلمة1", "كلمة2", "كلمة3"],

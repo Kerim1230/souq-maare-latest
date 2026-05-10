@@ -4,7 +4,7 @@ import { withRoute } from '@/server/lib/route-wrapper';
 import { getAppSetting } from '@/lib/supabase-db';
 import { success, badRequest } from '@/lib/api-response';
 
-const SYSTEM_PROMPT = `أنت مساعد مفيد لمستخدمي تطبيق "سوق الحرية" الإلكتروني - منصة سورية للتجارة الإلكترونية.
+const SYSTEM_PROMPT = `أنت مساعد مفيد لمستخدمي تطبيق "سوق شامل" الإلكتروني - منصة سورية للتجارة الإلكترونية.
 تساعد المستخدمين في:
 - كيفية إنشاء المتاجر وإدارة المنتجات
 - نظام النقاط والمحفظة
@@ -26,8 +26,8 @@ function getProviderHeaders(baseUrl: string): Record<string, string> {
   const headers: Record<string, string> = {};
 
   if (baseUrl.includes('openrouter.ai')) {
-    headers['HTTP-Referer'] = 'https://suq-hurriya.com';
-    headers['X-Title'] = 'SuqHurriya';
+    headers['HTTP-Referer'] = 'https://suq-shamel.com';
+    headers['X-Title'] = 'SuqShamel';
   }
 
   return headers;

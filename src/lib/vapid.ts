@@ -14,7 +14,7 @@ import { logger } from '@/lib/logger';
 
 const VAPID_PUBLIC_KEY = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY || '';
 const VAPID_PRIVATE_KEY = process.env.VAPID_PRIVATE_KEY || '';
-const VAPID_SUBJECT = process.env.VAPID_SUBJECT || 'mailto:admin@suq-hurriya.com';
+const VAPID_SUBJECT = process.env.VAPID_SUBJECT || 'mailto:admin@suq-shamel.com';
 
 let vapidConfigured = false;
 

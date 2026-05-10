@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from 'next/server';
 // ── Session Cookie ──
 
 /** Session cookie name */
-export const SESSION_COOKIE = 'suq_hurriya_sid';
+export const SESSION_COOKIE = 'suq_shamel_sid';
 
 /** Token expiry: 24 hours in seconds */
 const TOKEN_EXPIRY = 24 * 60 * 60;

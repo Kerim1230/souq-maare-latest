@@ -1,7 +1,7 @@
 {
-  "name": "سوق الحرية",
-  "short_name": "سوق الحرية",
-  "description": "سوق الحرية — منصة التجارة الإلكترونية المحلية",
+  "name": "سوق شامل",
+  "short_name": "سوق شامل",
+  "description": "سوق شامل — منصة التجارة الإلكترونية المحلية",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",

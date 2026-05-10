@@ -8,7 +8,7 @@ import { withRoute } from '@/server/lib/route-wrapper';
 const VALID_TYPES = ['store', 'product', 'offer', 'contest'] as const;
 type ValidType = (typeof VALID_TYPES)[number];
 
-const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://suq-hurriya.vercel.app';
+const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://suq-shamel.vercel.app';
 
 /** Ensure image URL is absolute (for OG tags and share previews). */
 function ensureAbsolute(url: string | null | undefined): string | null {

@@ -99,7 +99,7 @@ function awardWelcomeBonus(userId: string) {
       userId,
       type: 'points',
       category: 'welcome_bonus',
-      title: '🎁 مرحباً بك في سوق الحرية!',
+      title: '🎁 مرحباً بك في سوق شامل!',
       body: `لقد حصلت على ${WELCOME_BONUS_POINTS} نقطة مجانية كمكافأة تسجيل! استخدمها لشراء المنتجات أو توثيق متجرك.`,
       icon: 'Gift',
       priority: 'high',

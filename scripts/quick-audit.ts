@@ -1,7 +1,7 @@
-const BASE = 'https://suq-hurriya.vercel.app';
+const BASE = 'https://suq-shamel.vercel.app';
 
 async function main() {
-  console.log('═══ Quick Audit: suq-hurriya.vercel.app ═══\n');
+  console.log('═══ Quick Audit: suq-shamel.vercel.app ═══\n');
 
   // Public endpoints
   await t('health', '/api/health');
@@ -31,7 +31,7 @@ async function main() {
 
   const setCookie = signinRes.headers.getSetCookie?.()?.[0] || signinRes.headers.get('set-cookie') || '';
   console.log('  Debug: set-cookie =', setCookie.substring(0, 80));
-  const sidMatch = setCookie.match(/suq_hurriya_sid=[^;]+/);
+  const sidMatch = setCookie.match(/suq_shamel_sid=[^;]+/);
   const sid = sidMatch ? sidMatch[0] : '';
 
   if (sid) {

@@ -70,7 +70,7 @@ export const AuthScreen: React.FC = () => {
           toast.error('بريد إلكتروني أو كلمة مرور غير صحيحة');
         }
       } else {
-        toast.success('مرحباً بك في سوق الحرية!');
+        toast.success('مرحباً بك في سوق شامل!');
       }
     } else {
       // Pass referrer to signup if available
@@ -108,12 +108,12 @@ export const AuthScreen: React.FC = () => {
         <div className="relative z-10">
           {/* Logo */}
           <div className="w-16 h-16 rounded-2xl overflow-hidden shadow-xl shadow-emerald-500/30 mb-4 glow-primary">
-            <img src="/app-icon.png" alt="سوق الحرية" className="w-full h-full object-cover" />
+            <img src="/app-icon.png" alt="سوق شامل" className="w-full h-full object-cover" />
           </div>
 
           {/* Title */}
           <h1 className="text-[22px] font-black text-white tracking-tight text-center">
-            سوق الحرية
+            سوق شامل
           </h1>
           <p className="text-teal-300 dark:text-teal-600/60 text-[13px] mt-1 font-semibold text-center">
             الإلكتروني
@@ -204,7 +204,7 @@ export const AuthScreen: React.FC = () => {
                     <Sparkles className="w-[18px] h-[18px] text-white" />
                   </div>
                   <p className="text-[13px] text-slate-700 font-semibold leading-relaxed">
-                    انضم إلى سوق الحرية واكتشف{' '}
+                    انضم إلى سوق شامل واكتشف{' '}
                     <span className="text-emerald-600 font-black text-[15px]">أفضل المتاجر</span>{' '}
                     والمنتجات المحلية
                   </p>
@@ -227,7 +227,7 @@ export const AuthScreen: React.FC = () => {
           <div className="mt-7">
             <div className="bg-emerald-50/40 dark:bg-emerald-900/20 rounded-2xl p-4 border border-emerald-100/40 dark:border-emerald-800/30">
               <p className="text-[12px] text-[var(--color-text-tertiary)] text-center font-medium leading-relaxed">
-                💡 أنشئ حسابك الآن وانضم إلى سوق الحرية
+                💡 أنشئ حسابك الآن وانضم إلى سوق شامل
               </p>
             </div>
           </div>

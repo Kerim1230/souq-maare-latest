@@ -373,10 +373,10 @@ export const HomeScreen: React.FC = () => {
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-xl overflow-hidden shadow-lg shadow-emerald-500/30 flex-shrink-0">
-                <img src="/app-icon.png" alt="سوق الحرية" className="w-full h-full object-cover" />
+                <img src="/app-icon.png" alt="سوق شامل" className="w-full h-full object-cover" />
               </div>
               <div className="flex items-baseline gap-1.5">
-                <span className="text-white font-black text-lg leading-none tracking-tight">سوق الحرية</span>
+                <span className="text-white font-black text-lg leading-none tracking-tight">سوق شامل</span>
                 <span className="text-teal-400/50 text-xs">/</span>
                 <span className="text-teal-300 dark:text-teal-600/60 text-sm font-semibold">الإلكتروني</span>
               </div>

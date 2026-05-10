@@ -183,7 +183,7 @@ export const AdminDashboard: React.FC = () => {
             </div>
             <div>
               <h1 className="text-white text-[20px] font-black">لوحة تحكم المدير</h1>
-              <p className="text-teal-300 dark:text-teal-600/50 text-[12px] mt-0.5">سوق الحرية الإلكتروني</p>
+              <p className="text-teal-300 dark:text-teal-600/50 text-[12px] mt-0.5">سوق شامل الإلكتروني</p>
             </div>
           </div>
         </div>
@@ -1441,7 +1441,7 @@ function SettingsTab({ store }: { store: StoreType }) {
                 type="text"
                 value={recipientName}
                 onChange={e => setRecipientName(e.target.value)}
-                placeholder="مثال: سوق الحرية"
+                placeholder="مثال: سوق شامل"
                 className="w-full h-11 bg-[var(--color-surface)] border border-emerald-100 dark:border-emerald-800 rounded-xl px-4 text-[14px] text-[var(--color-text)] placeholder:text-[var(--color-text-tertiary)] outline-none focus:ring-2 focus:ring-emerald-500/15"
               />
             </div>
@@ -1764,7 +1764,7 @@ function PushDebugTab() {
     await delay(400);
     try {
       const reg = await navigator.serviceWorker.ready;
-      await reg.showNotification('🔍 إشعار تجريبي — سوق الحرية', {
+      await reg.showNotification('🔍 إشعار تجريبي — سوق شامل', {
         body: 'إذا ترى هذا الإشعار، فالنظام يعمل بشكل صحيح! ✅',
         icon: '/app-icon.png', badge: '/app-icon.png', tag: 'admin-debug-test', requireInteraction: true,
       });

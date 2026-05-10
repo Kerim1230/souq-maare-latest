@@ -85,7 +85,7 @@ export function getClientIp(request: Request): string {
   if (realIp) return realIp;
   // Fallback: use session cookie hash for differentiation
   const cookieHeader = request.headers.get('cookie');
-  const sessionMatch = cookieHeader?.match(/suq_hurriya_sid=([^;]+)/);
+  const sessionMatch = cookieHeader?.match(/suq_shamel_sid=([^;]+)/);
   return sessionMatch ? `sid:${sessionMatch[1].slice(0, 16)}` : 'unknown';
 }
 

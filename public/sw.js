@@ -1,4 +1,4 @@
-const CACHE_NAME = 'suq-hurriya-v1';
+const CACHE_NAME = 'suq-shamel-v1';
 const STATIC_ASSETS = [
   '/',
   '/manifest.json',
@@ -196,7 +196,7 @@ self.addEventListener('fetch', (event) => {
 
 self.addEventListener('push', (event) => {
   let data = {
-    title: 'سوق الحرية',
+    title: 'سوق شامل',
     body: 'لديك إشعار جديد',
     url: '/',
     tag: 'suq-default',

@@ -52,7 +52,7 @@ export interface ShamCashSettings {
 
 // ===== DEFAULT SETTINGS (in-memory UI preference) =====
 const DEFAULT_SHAM_CASH: ShamCashSettings = {
-  recipientName: 'سوق الحرية',
+  recipientName: 'سوق شامل',
   accountNumber: '0961234567',
   qrImage: '',
   pointPrice: 1,

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-const CSRF_COOKIE = 'suq_hurriya_csrf';
+const CSRF_COOKIE = 'suq_shamel_csrf';
 const CSRF_HEADER = 'x-csrf-token';
 
 // Generate a random 32-byte hex token

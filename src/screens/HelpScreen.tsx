@@ -121,7 +121,7 @@ export const HelpScreen: React.FC = () => {
             <div>
               <h1 className="text-white text-lg font-bold">مركز المساعدة الذكي</h1>
               <div className="flex items-center gap-1.5">
-                <p className="text-teal-300/60 text-[11px]">اسأل أي سؤال عن سوق الحرية</p>
+                <p className="text-teal-300/60 text-[11px]">اسأل أي سؤال عن سوق شامل</p>
                 {providerName && (
                   <>
                     <span className="text-teal-400/30 text-[10px]">•</span>
@@ -167,7 +167,7 @@ export const HelpScreen: React.FC = () => {
                   <Bot className="w-7 h-7 text-emerald-500" />
                 </div>
                 <p className="text-[14px] font-bold text-[var(--color-text)]">مرحباً بك! 🤖</p>
-                <p className="text-[12px] text-[var(--color-text-tertiary)] text-center max-w-[280px]">اسألني أي سؤال عن سوق الحرية وكيفية استخدام التطبيق</p>
+                <p className="text-[12px] text-[var(--color-text-tertiary)] text-center max-w-[280px]">اسألني أي سؤال عن سوق شامل وكيفية استخدام التطبيق</p>
                 {connectionConfirmed && (
                   <div className="flex items-center gap-1.5 bg-emerald-50/60 dark:bg-emerald-900/15 px-3 py-1.5 rounded-lg">
                     <div className="w-2 h-2 bg-emerald-500 rounded-full" />

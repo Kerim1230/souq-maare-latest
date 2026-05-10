@@ -15,7 +15,7 @@ import { getKeyValue } from '@/server/lib/external-keys';
 
 /** Options passed to the uploadImage function */
 export interface UploadOptions {
-  /** Cloudinary folder to organize uploads (default: 'suq-hurriya') */
+  /** Cloudinary folder to organize uploads (default: 'suq-shamel') */
   folder?: string;
   /** Cloudinary transformation string or object */
   transformation?: string | Record<string, unknown>;
@@ -192,7 +192,7 @@ export async function uploadImage(
 
   // Build upload parameters
   const uploadParams: Record<string, unknown> = {
-    folder: options.folder || 'suq-hurriya',
+    folder: options.folder || 'suq-shamel',
     overwrite: options.overwrite !== undefined ? options.overwrite : true,
     resource_type: 'image',
   };
@@ -269,7 +269,7 @@ export async function uploadImage(
  *
  * @example
  * ```ts
- * const deleted = await deleteImage('suq-hurriya/products/abc123');
+ * const deleted = await deleteImage('suq-shamel/products/abc123');
  * ```
  */
 export async function deleteImage(publicId: string): Promise<boolean> {

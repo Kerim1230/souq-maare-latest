@@ -325,7 +325,7 @@ export const ExpiredContentScreen: React.FC = () => {
 
         {/* Footer */}
         <div className="text-center pt-5 pb-4">
-          <p className="text-[11px] gradient-text-primary font-semibold">سوق الحرية الإلكتروني</p>
+          <p className="text-[11px] gradient-text-primary font-semibold">سوق شامل الإلكتروني</p>
           <p className="text-[10px] text-[var(--color-text-tertiary)] mt-0.5">إدارة المحتوى المنتهي</p>
         </div>
       </div>

@@ -131,7 +131,7 @@ export const SettingsScreen: React.FC = () => {
   ];
 
   const cleanupItems = [
-    { id: 'notifications', label: 'حذف الإشعارات القديمة', description: 'مسح جميع الإشعارات المحفوظة محلياً', icon: <Bell className="w-4 h-4" />, keys: ['suq_hurriya_notifications'] },
+    { id: 'notifications', label: 'حذف الإشعارات القديمة', description: 'مسح جميع الإشعارات المحفوظة محلياً', icon: <Bell className="w-4 h-4" />, keys: ['suq_shamel_notifications'] },
     { id: 'cache', label: 'حذف Cache محلي', description: 'مسح البيانات المؤقتة المخزنة للتطبيق', icon: <HardDrive className="w-4 h-4" />, keys: ['suq_cache_products', 'suq_cache_stores', 'suq_cache_data'] },
     { id: 'temp', label: 'حذف بيانات مؤقتة', description: 'حذف البيانات المؤقتة وغير الدائمة', icon: <Clock className="w-4 h-4" />, keys: [] },
     { id: 'favorites', label: 'تنظيف المفضلة التالفة', description: 'إزالة المنتجات المحذوفة من المفضلة', icon: <Database className="w-4 h-4" />, keys: [] },

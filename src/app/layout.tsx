@@ -15,16 +15,16 @@ const cairo = Cairo({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_BASE_URL || 'https://suq-hurriya.vercel.app'),
+  metadataBase: new URL(process.env.NEXT_PUBLIC_BASE_URL || 'https://suq-shamel.vercel.app'),
   title: {
-    default: 'سوق الحرية الإلكتروني | تسوق بكل سهولة وأمان',
-    template: '%s | سوق الحرية',
+    default: 'سوق شامل الإلكتروني | تسوق بكل سهولة وأمان',
+    template: '%s | سوق شامل',
   },
-  description: 'سوق الحرية الإلكتروني - تسوق بكل سهولة وأمان. منتجات متنوعة، متاجر محلية، عروض حصرية وأسعار مناسبة.',
-  keywords: ['سوق الحرية', 'تسوق إلكتروني', 'متاجر محلية', 'منتجات', 'عروض', 'الحرية'],
-  authors: [{ name: 'سوق الحرية' }],
-  creator: 'سوق الحرية',
-  publisher: 'سوق الحرية',
+  description: 'سوق شامل الإلكتروني - تسوق بكل سهولة وأمان. منتجات متنوعة، متاجر محلية، عروض حصرية وأسعار مناسبة.',
+  keywords: ['سوق شامل', 'تسوق إلكتروني', 'متاجر محلية', 'منتجات', 'عروض', 'شامل'],
+  authors: [{ name: 'سوق شامل' }],
+  creator: 'سوق شامل',
+  publisher: 'سوق شامل',
   formatDetection: {
     email: false,
     address: false,
@@ -33,13 +33,13 @@ export const metadata: Metadata = {
   openGraph: {
     type: 'website',
     locale: 'ar_SY',
-    siteName: 'سوق الحرية الإلكتروني',
-    title: 'سوق الحرية الإلكتروني',
+    siteName: 'سوق شامل الإلكتروني',
+    title: 'سوق شامل الإلكتروني',
     description: 'تسوق بكل سهولة وأمان - منتجات متنوعة ومتاجر محلية',
   },
   twitter: {
     card: 'summary',
-    title: 'سوق الحرية الإلكتروني',
+    title: 'سوق شامل الإلكتروني',
     description: 'تسوق بكل سهولة وأمان',
   },
   robots: {
@@ -80,7 +80,7 @@ export default function RootLayout({
           attribute="class"
           defaultTheme="light"
           enableSystem={false}
-          storageKey="suq-hurriya-theme"
+          storageKey="suq-shamel-theme"
         >
           <PwaInstallListener />
           {children}

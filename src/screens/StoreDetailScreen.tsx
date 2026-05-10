@@ -727,7 +727,7 @@ export const StoreDetailScreen: React.FC = () => {
               {isVerified && (
                 <div className="flex items-center gap-3 p-3 bg-gradient-to-r from-amber-50 to-amber-50/50 dark:from-amber-900/20 dark:to-amber-900/10 rounded-xl border border-amber-200/40 dark:border-amber-800/20">
                   <div className="w-9 h-9 rounded-xl bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center"><ShieldCheck className="w-5 h-5 text-amber-500" /></div>
-                  <div><p className="text-[12px] font-bold text-amber-700 dark:text-amber-300">متجر موثق</p><p className="text-[10px] text-amber-600/70 dark:text-amber-400/70">هذا المتجر موثق من إدارة سوق الحرية</p></div>
+                  <div><p className="text-[12px] font-bold text-amber-700 dark:text-amber-300">متجر موثق</p><p className="text-[10px] text-amber-600/70 dark:text-amber-400/70">هذا المتجر موثق من إدارة سوق شامل</p></div>
                 </div>
               )}
             </div>

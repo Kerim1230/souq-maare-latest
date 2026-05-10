@@ -1,5 +1,5 @@
 /**
- * 🔍 Full Application Audit Script — سوق الحرية الإلكتروني
+ * 🔍 Full Application Audit Script — سوق شامل الإلكتروني
  *
  * Comprehensive automated audit that tests all API endpoints.
  * Respects rate limits by using sequential auth flows with delays.
@@ -7,7 +7,7 @@
  *
  * Usage:
  *   npx tsx scripts/full-audit.ts
- *   AUDIT_BASE_URL=https://suq-hurriya.vercel.app npx tsx scripts/full-audit.ts
+ *   AUDIT_BASE_URL=https://suq-shamel.vercel.app npx tsx scripts/full-audit.ts
  *   AUDIT_USERS=10 npx tsx scripts/full-audit.ts   (default: 10)
  */
 
@@ -104,8 +104,8 @@ async function timedFetch(
 
 function extractSessionCookie(cookieHeader?: string): string {
   if (!cookieHeader) return '';
-  // The app uses 'suq_hurriya_sid' as the session cookie name
-  const match = cookieHeader.match(/suq_hurriya_sid=[^;]+/);
+  // The app uses 'suq_shamel_sid' as the session cookie name
+  const match = cookieHeader.match(/suq_shamel_sid=[^;]+/);
   return match ? match[0] : '';
 }
 
@@ -1221,7 +1221,7 @@ async function main() {
   const startedAt = new Date().toISOString();
 
   console.log('═══════════════════════════════════════════════════════════');
-  console.log('🔍 سوق الحرية — Full Application Audit');
+  console.log('🔍 سوق شامل — Full Application Audit');
   console.log('═══════════════════════════════════════════════════════════');
   console.log(`  Base URL:  ${BASE_URL}`);
   console.log(`  Users:     ${TOTAL_USERS}`);
