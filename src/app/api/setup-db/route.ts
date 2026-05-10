@@ -125,6 +125,26 @@ export const POST = withRoute(async (request: NextRequest) => {
     results.push({ table: 'stores.governorate/city', action: 'check', status: 'ERROR', error: err.message });
   }
 
+  // ── 6. Check stores.location column ──
+  try {
+    const { data, error } = await sb
+      .from(TABLES.STORES)
+      .select('location')
+      .limit(1);
+    if (error && error.message?.includes('location')) {
+      results.push({
+        table: 'stores.location',
+        action: 'ADD COLUMN (manual SQL required)',
+        status: 'MISSING',
+        error: 'Run: ALTER TABLE stores ADD COLUMN IF NOT EXISTS location TEXT;',
+      });
+    } else {
+      results.push({ table: 'stores.location', action: 'check', status: 'EXISTS' });
+    }
+  } catch (err: any) {
+    results.push({ table: 'stores.location', action: 'check', status: 'ERROR', error: err.message });
+  }
+
   // ── Build SQL commands for manual execution ──
   const missingItems = results.filter(r => r.status === 'MISSING');
   const sqlCommands: string[] = [];
@@ -179,6 +199,13 @@ ALTER TABLE users ADD COLUMN IF NOT EXISTS city TEXT;
 -- Add governorate and city columns to stores table
 ALTER TABLE stores ADD COLUMN IF NOT EXISTS governorate TEXT;
 ALTER TABLE stores ADD COLUMN IF NOT EXISTS city TEXT;
+`.trim());
+  }
+
+  if (missingItems.some(r => r.table === 'stores.location')) {
+    sqlCommands.push(`
+-- Add location column to stores table
+ALTER TABLE stores ADD COLUMN IF NOT EXISTS location TEXT;
 `.trim());
   }
 

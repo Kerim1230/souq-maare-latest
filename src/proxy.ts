@@ -48,6 +48,7 @@ const CSRF_EXEMPT_ROUTES = [
   '/api/auth/signup',
   '/api/auth/signin',
   '/api/webhooks/',
+  '/api/migrate',
 ]
 
 function isCsrfExempt(pathname: string): boolean {
