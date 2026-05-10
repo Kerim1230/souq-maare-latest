@@ -249,3 +249,37 @@ Stage Summary:
 - **HomeScreen.tsx**: Complete rewrite with centralized data, instant cache display, SkeletonHome
 - **API route**: Added Cache-Control: public, max-age=30 for CDN caching
 - **Production**: Deployed and verified at suq-shamel.vercel.app ✅
+
+---
+Task ID: 11
+Agent: Main Agent
+Task: Comprehensive UX improvement - homepage always visible, no auth required, Framer Motion transitions
+
+Work Log:
+- ROOT CAUSE identified: In page.tsx, `{user ? <MainLayout /> : <AuthScreen />}` prevented unauthenticated visitors from seeing the homepage at all. When no user is logged in, the app showed only the AuthScreen instead of MainLayout.
+- Added 'auth' to SubScreen type in types/index.ts
+- Rewrote page.tsx completely:
+  - Removed the `{user ? <MainLayout /> : <AuthScreen />}` pattern
+  - MainLayout now ALWAYS renders, even for unauthenticated visitors
+  - Added AuthGate component for protected tabs (متجري, المفضلة, حسابي) - shows beautiful login prompt when visitor clicks protected tab
+  - Added tabs with requiresAuth flag to control which tabs need authentication
+  - Added Framer Motion AnimatePresence for tab transitions (fade+slide with 200ms duration)
+  - Added Framer Motion AnimatePresence for subscreen transitions (slide-up with 250ms duration)
+  - AuthScreen is now accessible as a subScreen ('auth') from anywhere
+  - NotificationProvider is still conditional on user (only rendered when logged in)
+- Updated HomeScreen.tsx:
+  - Added Framer Motion staggered entrance animations for all sections (offers, categories, featured products, stores, new products)
+  - Added LogIn icon button in header for unauthenticated visitors
+  - Removed `contain: 'layout style'` from StoreCard (was causing disappearing issues)
+  - Changed `willChange: 'transform'` on offer cards instead of `contain: layout style`
+- Pushed to GitHub (commit 47fe36a)
+- Deployed to Vercel (production: https://my-project-sandy-tau-46.vercel.app)
+- Aliased to suq-shamel.vercel.app
+
+Stage Summary:
+- **page.tsx**: Complete rewrite - MainLayout always visible, AuthGate for protected tabs, Framer Motion transitions
+- **HomeScreen.tsx**: Entrance animations, login button for visitors, removed contain CSS
+- **types/index.ts**: Added 'auth' to SubScreen type
+- **Production**: Deployed and aliased to suq-shamel.vercel.app ✅
+- Visitors can now browse homepage, search, and store pages without logging in
+- Protected features (متجري, المفضلة, حسابي) show beautiful AuthGate with login button
