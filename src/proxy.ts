@@ -189,6 +189,7 @@ export function proxy(request: NextRequest) {
   // Skip CSRF cookie on share pages so Vercel CDN can cache them (set-cookie prevents caching)
   if (isSharePage) {
     response.headers.set('Cache-Control', 'public, max-age=300, s-maxage=300, stale-while-revalidate=600');
+    response.headers.set('X-Share-Page', 'true');
   }
 
   // ── Cache headers for public API GET endpoints ──
