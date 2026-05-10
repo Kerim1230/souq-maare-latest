@@ -148,3 +148,26 @@ Stage Summary:
 - **sw.js**: CACHE_NAME bumped to v3 for forced cache refresh
 - **layout.tsx**: Migration script updated to v3
 - **Vercel**: All deployed and verified ✅
+
+---
+Task ID: 7
+Agent: Main Agent
+Task: Fix share page showing empty/blank - data not loading
+
+Work Log:
+- Diagnosed root cause: SharePage was using `fetch()` to call internal API `/api/share/data` during server-side rendering. On Vercel serverless, a function cannot call itself during SSR - the fetch fails silently, resulting in `data = null` and the "not found" page being shown.
+- Created shared `fetchShareData()` function that queries Supabase directly (same pattern as generateMetadata)
+- Replaced the self-referential fetch call with direct Supabase queries
+- Both generateMetadata() and SharePage() now use the same fetchShareData() function
+- Tested all 3 share page types on production:
+  - Product page: Shows name "فوزي", price "1,000 ل.س" ✅
+  - Store page: Shows store name "متجر مستخدم فحص 1" ✅  
+  - Offer page: Shows offer title "عرض تجريبي" ✅
+- Verified OG tags are present and correct for WhatsApp/Facebook
+- Committed and pushed (commit 0e7cefa), Vercel deployment READY
+
+Stage Summary:
+- **Root cause**: Self-referential fetch on Vercel serverless fails silently
+- **Fix**: Direct Supabase queries instead of fetch-to-self
+- **Result**: All share pages now display product/store/offer data correctly ✅
+- OG tags (og:title, og:image, og:description, twitter:card) all present ✅
