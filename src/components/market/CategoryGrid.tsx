@@ -601,7 +601,7 @@ export const CategoryGrid: React.FC<CategoryGridProps> = memo(({ onCategoryClick
       <div className="grid grid-cols-4 sm:grid-cols-5 md:grid-cols-6 gap-3">
         {Array.from({ length: 8 }).map((_, i) => (
           <div key={i} className="flex flex-col items-center gap-2">
-            <div className="w-14 h-14 rounded-2xl bg-gray-100 dark:bg-gray-800 animate-pulse" />
+            <div className="w-16 h-16 rounded-2xl bg-gray-100 dark:bg-gray-800 animate-pulse" />
             <div className="h-3 w-12 rounded bg-gray-100 dark:bg-gray-800 animate-pulse" />
           </div>
         ))}
@@ -624,13 +624,13 @@ export const CategoryGrid: React.FC<CategoryGridProps> = memo(({ onCategoryClick
               aria-label={cat.name}
             >
               <div
-                className={`w-14 h-14 rounded-2xl flex items-center justify-center
+                className={`w-16 h-16 rounded-2xl flex items-center justify-center
                   ${palette.iconBg} ${palette.border} border
                   group-hover:scale-105 group-hover:shadow-md transition-all duration-200`}
               >
                 <span className="text-2xl">{cat.emoji}</span>
               </div>
-              <p className="text-[11px] font-medium text-center leading-tight text-gray-700 dark:text-gray-300 line-clamp-1 mt-1.5">
+              <p className="text-[11px] font-medium text-center mt-2 line-clamp-1 text-gray-700 dark:text-gray-300">
                 {cat.name}
               </p>
             </button>

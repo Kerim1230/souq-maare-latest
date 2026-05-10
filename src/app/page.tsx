@@ -139,7 +139,7 @@ const tabs = [
 ] as const;
 
 // Memoized bottom nav tab — prevents re-render on every state change
-const NavTab = React.memo(({ tab, isActive, onClick, isLoggedIn }: { tab: typeof tabs[number]; isActive: boolean; onClick: (_id: number) => void; isLoggedIn: boolean }) => {
+const NavTab = React.memo(({ tab, isActive, onClick, isLoggedIn: _isLoggedIn }: { tab: typeof tabs[number]; isActive: boolean; onClick: (_id: number) => void; isLoggedIn: boolean }) => {
   const Icon = tab.icon;
   return (
     <button
@@ -147,20 +147,20 @@ const NavTab = React.memo(({ tab, isActive, onClick, isLoggedIn }: { tab: typeof
       className={`flex flex-col items-center gap-0.5 px-4 py-1.5 rounded-xl transition-all duration-150 ${
         isActive
           ? 'text-emerald-600 dark:text-emerald-400'
-          : 'text-slate-400 dark:text-slate-500 hover:text-emerald-700 dark:hover:text-emerald-300'
+          : 'text-slate-400 dark:text-slate-500 hover:text-emerald-700 dark:hover:text-emerald-300 hover:bg-gray-100 dark:hover:bg-gray-800'
       }`}
     >
       <div className={`p-1 rounded-xl transition-all duration-150 ${
         isActive
-          ? 'bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-900/30 dark:to-teal-900/30 shadow-sm'
-          : ''
+          ? 'bg-emerald-50 dark:bg-emerald-900/30 shadow-sm'
+          : 'hover:bg-gray-100 dark:hover:bg-gray-800'
       }`}>
         <Icon
-          className={`w-5 h-5 ${isActive ? 'text-emerald-600 dark:text-emerald-400' : ''}`}
+          className={`w-6 h-6 ${isActive ? 'text-emerald-600 dark:text-emerald-400' : ''}`}
           strokeWidth={isActive ? 2.5 : 1.8}
         />
       </div>
-      <span className={`text-[10px] font-bold ${isActive ? 'text-emerald-600 dark:text-emerald-400' : ''}`}>
+      <span className={`text-[10px] font-medium ${isActive ? 'text-emerald-600 dark:text-emerald-400' : ''}`}>
         {tab.label}
       </span>
       {isActive && (
@@ -414,7 +414,7 @@ const MainLayout: React.FC = () => {
 
       {/* Bottom Navigation — FIXED to viewport bottom, hideable */}
       {subScreen === 'none' && (
-        <nav className={`bottom-nav fixed bottom-0 left-0 right-0 z-[100] pb-safe transition-transform duration-300 ease-in-out ${navHidden ? 'translate-y-full' : 'translate-y-0'}`}>
+        <nav className={`bottom-nav fixed bottom-0 left-0 right-0 z-[100] pb-safe transition-transform duration-300 ease-in-out bg-white/90 dark:bg-gray-800/90 backdrop-blur-lg border-t border-gray-200 dark:border-gray-700 ${navHidden ? 'translate-y-full' : 'translate-y-0'}`}>
           {/* Toggle chevron — at the top center of the nav */}
           <button
             onClick={toggleNav}

@@ -39,12 +39,12 @@ const DEFAULT_CONTEST_COLOR = '#e11d48'; // rose solid
 // Memoized section header
 const SectionHeader: React.FC<{ title: string; actionLabel?: string; onAction?: () => void; extra?: React.ReactNode }> = memo(({ title, actionLabel, onAction, extra }) => {
   return (
-  <div className="flex items-center justify-between mb-4">
-    <h2 className="text-sm font-bold text-[var(--color-text)]">{title}</h2>
+  <div className="flex items-center justify-between mb-4 px-0">
+    <h2 className="text-lg font-bold text-gray-800 dark:text-gray-100">{title}</h2>
     <div className="flex items-center gap-2">
       {extra}
       {actionLabel && (
-        <button onClick={onAction} className="text-xs font-bold text-emerald-500 flex items-center gap-0.5">
+        <button onClick={onAction} className="text-xs font-medium text-emerald-600 dark:text-emerald-400 hover:underline flex items-center gap-0.5">
           {actionLabel} <ChevronLeft className="w-3.5 h-3.5" />
         </button>
       )}
@@ -71,18 +71,21 @@ const StoreCard: React.FC<{ store: Store; getStoreColorById: (_colorId: string) 
     <div
       onClick={handleOpen}
       className="flex-shrink-0 flex flex-col items-center gap-2 cursor-pointer active:opacity-80 group"
-      style={{ width: '88px' }}
+      style={{ width: '120px' }}
     >
       <div
-        className="w-16 h-16 rounded-2xl overflow-hidden shadow-sm group-hover:shadow-md transition-shadow duration-200"
+        className="w-20 h-20 rounded-2xl overflow-hidden shadow-sm group-hover:shadow-md transition-shadow duration-200"
         style={{ border: '2.5px solid', borderColor, boxShadow: resolvedColor ? `0 2px 8px ${shadowColor}` : undefined }}
       >
         <StoreLogo src={store.logo_url} name={store.name} size="md" className="w-full h-full" />
       </div>
-      <div className="flex items-center gap-0.5 max-w-[84px]">
-        <p className="text-xs font-semibold text-[var(--color-text)] line-clamp-1 text-center">{store.name}</p>
+      <div className="p-4 text-center">
+        <p className="text-sm font-semibold text-gray-800 dark:text-gray-100 line-clamp-1">{store.name}</p>
+        {store.description && <p className="text-[11px] text-gray-500 dark:text-gray-400 line-clamp-1 mt-1">{store.description}</p>}
         {store.is_verified && (
-          <Verified className="w-3 h-3 flex-shrink-0" style={resolvedColor ? { color: resolvedColor.solid } : undefined} />
+          <span className="bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 text-[10px] px-2 py-0.5 rounded-full inline-flex items-center gap-1 mt-2">
+            <Verified className="w-3 h-3" />موثق
+          </span>
         )}
       </div>
     </div>
@@ -464,7 +467,7 @@ export const HomeScreen: React.FC = () => {
       <div className="px-5 -mt-6 relative z-20 mb-2">
         <div
           onClick={() => setActiveTab(2)}
-          className="bg-[var(--color-surface)] rounded-2xl flex items-center gap-3 px-4 h-12 border border-[var(--color-border)] cursor-pointer shadow-sm hover:shadow-md transition-shadow duration-300"
+          className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 h-12 px-4 flex items-center gap-3 cursor-pointer hover:shadow-md transition-shadow duration-300 focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
         >
           <Search className="w-5 h-5 text-slate-400" />
           <span className="text-[var(--color-text-tertiary)] text-[15px] font-medium flex-1">ابحث عن منتجات، متاجر، عروض...</span>
@@ -516,14 +519,14 @@ export const HomeScreen: React.FC = () => {
                     style={{ willChange: 'transform' }}
                   >
                     <div
-                      className="relative h-[210px] rounded-2xl overflow-hidden shadow-sm border border-white/10"
-                      style={{ background: `linear-gradient(135deg, ${themeFrom}dd, ${themeTo}99, ${themeColor}55)` }}
+                      className="relative h-[210px] rounded-2xl overflow-hidden shadow-sm border-2"
+                      style={{ background: `linear-gradient(135deg, ${themeFrom}dd, ${themeTo}99, ${themeColor}55)`, borderColor: themeColor }}
                     >
                       {offer.image_url && <SafeImage src={offer.image_url} alt={offer.title} className="absolute inset-0 w-full h-full object-cover opacity-25" fallback={null} />}
                       <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-black/10" />
 
                       {offer.discount && (
-                        <div className="absolute top-3 left-3 z-10 w-[52px] h-[52px] rounded-full bg-white/95 dark:bg-black/70 backdrop-blur-sm flex flex-col items-center justify-center shadow-lg" style={{ border: `2px solid ${themeColor}` }}>
+                        <div className="absolute top-3 left-3 z-10 w-16 h-16 rounded-full bg-white/95 dark:bg-black/70 backdrop-blur-sm flex flex-col items-center justify-center shadow-lg" style={{ border: `2px solid ${themeColor}` }}>
                           <Percent className="w-3 h-3" style={{ color: themeColor }} />
                           <span className="text-[11px] font-black leading-none" style={{ color: themeColor }}>{offer.discount}</span>
                         </div>
@@ -608,7 +611,7 @@ export const HomeScreen: React.FC = () => {
           ) : (
             <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide snap-x snap-mandatory">
               {displayedFeaturedProducts.map((product) => (
-                <div key={product.id} className="flex-shrink-0 w-[150px] snap-start">
+                <div key={product.id} className="flex-shrink-0 w-[160px] snap-start">
                   <ProductCard
                     product={product}
                     isFavorite={favSet.has(product.id)}
