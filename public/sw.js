@@ -1,4 +1,4 @@
-const CACHE_NAME = 'suq-shamel-v1';
+const CACHE_NAME = 'suq-shamel-v2';
 const STATIC_ASSETS = [
   '/',
   '/manifest.json',
@@ -27,14 +27,18 @@ self.addEventListener('install', (event) => {
 });
 
 self.addEventListener('activate', (event) => {
+  // Aggressively delete ALL old caches (including old app name caches like suq-hurriya-v1)
+  // and any previous versions of suq-shamel cache to ensure fresh JS bundles are served
   event.waitUntil(
     caches.keys().then((keys) => {
       return Promise.all(
-        keys.filter((key) => key !== CACHE_NAME).map((key) => caches.delete(key))
+        keys.filter((key) => key !== CACHE_NAME).map((key) => {
+          console.log('[SW] Deleting old cache:', key);
+          return caches.delete(key);
+        })
       );
-    })
+    }).then(() => self.clients.claim())
   );
-  self.clients.claim();
 });
 
 // Handle SKIP_WAITING message from the app to activate new SW immediately

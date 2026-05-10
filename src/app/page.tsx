@@ -50,25 +50,48 @@ const ScreenLoader: React.FC = () => (
 );
 
 const APP_NAME = 'سوق شامل';
+const APP_SUBTITLE = 'الإلكتروني';
 
-const SplashScreen: React.FC = () => (
-  <div className="min-h-screen flex flex-col items-center justify-center gradient-dark relative overflow-hidden">
-    <div className="absolute top-[-120px] right-[-80px] w-[300px] h-[300px] rounded-full bg-teal-600/20 blur-[80px]" />
-    <div className="absolute bottom-[-100px] left-[-60px] w-[250px] h-[250px] rounded-full bg-emerald-600/15 blur-[80px]" />
-    <div className="relative z-10">
-      <div className="w-24 h-24 rounded-3xl overflow-hidden shadow-xl shadow-emerald-500/30 mb-6 glow-primary">
-        <img src="/app-icon.png" alt={APP_NAME} className="w-full h-full object-cover" suppressHydrationWarning />
+/**
+ * SplashScreen – uses client-only rendering for text to avoid hydration mismatch
+ * when old Service Worker caches serve stale JS bundles.
+ * During SSR, only the icon and loading animation are rendered.
+ * After mount, the app name and subtitle fade in.
+ */
+const SplashScreen: React.FC = () => {
+  const [showText, setShowText] = useState(false);
+
+  useEffect(() => {
+    // Render text on next tick after hydration completes
+    setShowText(true);
+  }, []);
+
+  return (
+    <div className="min-h-screen flex flex-col items-center justify-center gradient-dark relative overflow-hidden">
+      <div className="absolute top-[-120px] right-[-80px] w-[300px] h-[300px] rounded-full bg-teal-600/20 blur-[80px]" />
+      <div className="absolute bottom-[-100px] left-[-60px] w-[250px] h-[250px] rounded-full bg-emerald-600/15 blur-[80px]" />
+      <div className="relative z-10">
+        <div className="w-24 h-24 rounded-3xl overflow-hidden shadow-xl shadow-emerald-500/30 mb-6 glow-primary">
+          <img src="/app-icon.png" alt="" className="w-full h-full object-cover" />
+        </div>
+        {/* Text only rendered on client after mount to prevent hydration mismatch */}
+        <div className="h-[42px] flex flex-col items-center">
+          {showText ? (
+            <>
+              <h1 className="text-[28px] font-black text-white text-center">{APP_NAME}</h1>
+              <p className="text-teal-300/60 text-[14px] mt-1.5 font-medium text-center">{APP_SUBTITLE}</p>
+            </>
+          ) : null}
+        </div>
       </div>
-      <h1 className="text-[28px] font-black text-white text-center" suppressHydrationWarning>{APP_NAME}</h1>
-      <p className="text-teal-300/60 text-[14px] mt-1.5 font-medium text-center">الإلكتروني</p>
+      <div className="mt-8 flex gap-2">
+        <div className="w-2 h-2 rounded-full gradient-primary animate-bounce" style={{ animationDelay: '0ms' }} />
+        <div className="w-2 h-2 rounded-full gradient-primary animate-bounce" style={{ animationDelay: '150ms' }} />
+        <div className="w-2 h-2 rounded-full gradient-primary animate-bounce" style={{ animationDelay: '300ms' }} />
+      </div>
     </div>
-    <div className="mt-8 flex gap-2">
-      <div className="w-2 h-2 rounded-full gradient-primary animate-bounce" style={{ animationDelay: '0ms' }} />
-      <div className="w-2 h-2 rounded-full gradient-primary animate-bounce" style={{ animationDelay: '150ms' }} />
-      <div className="w-2 h-2 rounded-full gradient-primary animate-bounce" style={{ animationDelay: '300ms' }} />
-    </div>
-  </div>
-);
+  );
+};
 
 // Static tab config — defined outside component to avoid re-creation
 const tabs = [
