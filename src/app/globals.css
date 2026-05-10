@@ -79,6 +79,12 @@
     padding-bottom: calc(80px + env(safe-area-inset-bottom, 0px));
   }
 
+  /* Stronger safe-bottom variant with !important to override any conflicting styles.
+     Ensures buttons are NEVER hidden behind the fixed bottom navigation bar. */
+  .bottom-nav-safe {
+    padding-bottom: calc(100px + env(safe-area-inset-bottom, 0px)) !important;
+  }
+
   /* RTL safety utility */
   [dir="rtl"] .rtl-safe {
     direction: rtl;

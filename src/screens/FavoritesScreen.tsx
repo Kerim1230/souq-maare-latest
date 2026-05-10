@@ -166,7 +166,7 @@ export const FavoritesScreen: React.FC = () => {
   // This prevents the flash: empty → data that causes favorites flicker.
   if (!isHydrated('favorites') && !forceShow) {
     return (
-      <div className="bg-[var(--color-bg)] min-h-screen safe-bottom">
+      <div className="bg-[var(--color-bg)] min-h-screen bottom-nav-safe">
         <div className="gradient-dark px-5 pt-8 pb-6 relative overflow-hidden">
           <div className="absolute top-[-30px] right-[-20px] w-[140px] h-[140px] rounded-full bg-rose-600/15 blur-[50px]" />
           <div className="relative z-10 flex items-center gap-3">
@@ -200,7 +200,7 @@ export const FavoritesScreen: React.FC = () => {
   }
 
   return (
-    <div className="bg-[var(--color-bg)] min-h-screen safe-bottom">
+    <div className="bg-[var(--color-bg)] min-h-screen bottom-nav-safe">
       {/* Header */}
       <div className="gradient-dark px-5 pt-8 pb-6 relative overflow-hidden">
         <div className="absolute top-[-30px] right-[-20px] w-[140px] h-[140px] rounded-full bg-rose-600/15 blur-[50px]" />

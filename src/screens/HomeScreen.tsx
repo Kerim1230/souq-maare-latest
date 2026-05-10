@@ -96,7 +96,7 @@ function buildFavSet(favorites: Array<{ product_id?: string }>): Set<string> {
 
 // ── Skeleton Home — full page skeleton for initial load ──
 const SkeletonHome: React.FC = () => (
-  <div className="min-h-screen bg-[var(--color-bg)] safe-bottom">
+  <div className="min-h-screen bg-[var(--color-bg)] bottom-nav-safe">
     {/* Skeleton header */}
     <div className="gradient-dark px-5 pt-8 pb-10">
       <div className="flex items-center justify-between">
@@ -404,7 +404,7 @@ export const HomeScreen: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-[var(--color-bg)] safe-bottom">
+    <div className="min-h-screen bg-[var(--color-bg)] bottom-nav-safe">
       {/* Thin progress bar for silent auto-refresh */}
       {(isRefreshing || homeDataLoading) && (
         <div className="fixed top-0 left-0 right-0 z-[200] h-[2px] transition-all duration-300">

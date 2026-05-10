@@ -604,7 +604,7 @@ export const MyStoreScreen: React.FC = () => {
   ];
 
   return (
-    <div className="bg-[var(--color-bg)] min-h-screen safe-bottom relative z-10">
+    <div className="bg-[var(--color-bg)] min-h-screen bottom-nav-safe relative z-10">
       {/* Header */}
       <div className="gradient-dark px-5 pt-8 pb-6 relative overflow-hidden">
         <div className="absolute top-[-30px] right-[-20px] w-[140px] h-[140px] rounded-full bg-teal-600/15 blur-[50px]" />

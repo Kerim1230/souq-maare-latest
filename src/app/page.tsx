@@ -347,7 +347,7 @@ const MainLayout: React.FC = () => {
               animate="center"
               exit="exit"
               transition={{ duration: 0.2, ease: [0.25, 0.1, 0.25, 1] }}
-              className="absolute inset-0 overflow-y-auto pb-4"
+              className="absolute inset-0 overflow-y-auto pb-28"
               style={{ WebkitOverflowScrolling: 'touch' }}
             >
               <ErrorBoundary>
@@ -374,7 +374,7 @@ const MainLayout: React.FC = () => {
               initial="initial"
               animate="animate"
               exit="exit"
-              className="absolute inset-0 overflow-y-auto z-20 bg-[var(--color-bg)]"
+              className="absolute inset-0 overflow-y-auto z-20 bg-[var(--color-bg)] pb-6"
               style={{ WebkitOverflowScrolling: 'touch' }}
             >
               <ErrorBoundary>
