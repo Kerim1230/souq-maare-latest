@@ -318,3 +318,31 @@ Stage Summary:
   ALTER TABLE stores ADD COLUMN IF NOT EXISTS district TEXT;
 - The code gracefully handles the missing column with try/catch fallback logic
 - Migration endpoint available at POST /api/migrate?secret=add-district-2025 (requires DB credentials)
+
+---
+Task ID: 2
+Agent: Main Agent
+Task: Fix "Failed to load chunk" error and search page issues
+
+Work Log:
+- Analyzed root cause of chunk loading error: Service Worker's cache-first strategy for _next/static was serving stale chunks after deployments
+- Rewrote public/sw.js with critical fixes:
+  - Changed _next/static JS chunks from cache-first to network-first (prevents stale chunk references)
+  - Changed HTML caching from aggressive network-first-with-cache to network-only with short TTL fallback
+  - Bumped CACHE_NAME from v4 to v5 to force cache invalidation
+  - Separated JS file handling (.js, /chunks/, /webpack-) from other static assets
+- Updated src/app/layout.tsx: bumped SW migration key from v4 to v5 to force SW re-registration
+- Added global chunk error recovery in src/app/page.tsx:
+  - Detects "Loading chunk", "Failed to fetch dynamically imported module" errors
+  - Clears all Service Worker caches and forces hard reload
+- Fixed search page (src/screens/SearchScreen.tsx):
+  - Changed Promise.all to Promise.allSettled for initial data loading (prevents silent failure if any API is down)
+  - Increased bottom padding from pb-24 to pb-28 (fixes content hidden behind bottom nav)
+- Committed and pushed: "إصلاح خطأ تحميل الكتل وصفحة البحث"
+
+Stage Summary:
+- Chunk loading error: Fixed by changing SW strategy for JS chunks from cache-first to network-first
+- Search page: Fixed by using Promise.allSettled and adding error recovery
+- SW migration v5 forces all users to get fresh Service Worker
+- Global chunk error handler provides automatic recovery for edge cases
+- All changes pushed to GitHub
