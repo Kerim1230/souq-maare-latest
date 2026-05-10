@@ -11,20 +11,20 @@ interface CategoryGridProps {
 //         pink, teal, orange, green, yellow, fuchsia, red, gray
 // ═══════════════════════════════════════════════════════════
 const COLOR_PALETTE: Record<string, { iconBg: string; border: string }> = {
-  emerald: { iconBg: 'bg-emerald-500/15 dark:bg-emerald-500/10',  border: 'border-emerald-500/25' },
-  rose:    { iconBg: 'bg-rose-500/15 dark:bg-rose-500/10',        border: 'border-rose-500/25' },
-  amber:   { iconBg: 'bg-amber-500/15 dark:bg-amber-500/10',     border: 'border-amber-500/25' },
-  sky:     { iconBg: 'bg-sky-500/15 dark:bg-sky-500/10',         border: 'border-sky-500/25' },
-  violet:  { iconBg: 'bg-violet-500/15 dark:bg-violet-500/10',   border: 'border-violet-500/25' },
-  slate:   { iconBg: 'bg-slate-400/15 dark:bg-slate-400/10',     border: 'border-slate-400/25' },
-  pink:    { iconBg: 'bg-pink-500/15 dark:bg-pink-500/10',       border: 'border-pink-500/25' },
-  teal:    { iconBg: 'bg-teal-500/15 dark:bg-teal-500/10',       border: 'border-teal-500/25' },
-  orange:  { iconBg: 'bg-orange-500/15 dark:bg-orange-500/10',   border: 'border-orange-500/25' },
-  green:   { iconBg: 'bg-green-500/15 dark:bg-green-500/10',     border: 'border-green-500/25' },
-  yellow:  { iconBg: 'bg-yellow-500/15 dark:bg-yellow-500/10',   border: 'border-yellow-500/25' },
-  fuchsia: { iconBg: 'bg-fuchsia-500/15 dark:bg-fuchsia-500/10', border: 'border-fuchsia-500/25' },
-  red:     { iconBg: 'bg-red-500/15 dark:bg-red-500/10',         border: 'border-red-500/25' },
-  gray:    { iconBg: 'bg-gray-400/15 dark:bg-gray-400/10',       border: 'border-gray-400/25' },
+  emerald: { iconBg: 'bg-gradient-to-br from-emerald-400/20 to-emerald-600/10 dark:from-emerald-400/15 dark:to-emerald-600/5',  border: 'border-emerald-500/25' },
+  rose:    { iconBg: 'bg-gradient-to-br from-rose-400/20 to-rose-600/10 dark:from-rose-400/15 dark:to-rose-600/5',        border: 'border-rose-500/25' },
+  amber:   { iconBg: 'bg-gradient-to-br from-amber-400/20 to-amber-600/10 dark:from-amber-400/15 dark:to-amber-600/5',     border: 'border-amber-500/25' },
+  sky:     { iconBg: 'bg-gradient-to-br from-sky-400/20 to-sky-600/10 dark:from-sky-400/15 dark:to-sky-600/5',         border: 'border-sky-500/25' },
+  violet:  { iconBg: 'bg-gradient-to-br from-violet-400/20 to-violet-600/10 dark:from-violet-400/15 dark:to-violet-600/5',   border: 'border-violet-500/25' },
+  slate:   { iconBg: 'bg-gradient-to-br from-slate-300/20 to-slate-500/10 dark:from-slate-300/15 dark:to-slate-500/5',     border: 'border-slate-400/25' },
+  pink:    { iconBg: 'bg-gradient-to-br from-pink-400/20 to-pink-600/10 dark:from-pink-400/15 dark:to-pink-600/5',       border: 'border-pink-500/25' },
+  teal:    { iconBg: 'bg-gradient-to-br from-teal-400/20 to-teal-600/10 dark:from-teal-400/15 dark:to-teal-600/5',       border: 'border-teal-500/25' },
+  orange:  { iconBg: 'bg-gradient-to-br from-orange-400/20 to-orange-600/10 dark:from-orange-400/15 dark:to-orange-600/5',   border: 'border-orange-500/25' },
+  green:   { iconBg: 'bg-gradient-to-br from-green-400/20 to-green-600/10 dark:from-green-400/15 dark:to-green-600/5',     border: 'border-green-500/25' },
+  yellow:  { iconBg: 'bg-gradient-to-br from-yellow-400/20 to-yellow-600/10 dark:from-yellow-400/15 dark:to-yellow-600/5',   border: 'border-yellow-500/25' },
+  fuchsia: { iconBg: 'bg-gradient-to-br from-fuchsia-400/20 to-fuchsia-600/10 dark:from-fuchsia-400/15 dark:to-fuchsia-600/5', border: 'border-fuchsia-500/25' },
+  red:     { iconBg: 'bg-gradient-to-br from-red-400/20 to-red-600/10 dark:from-red-400/15 dark:to-red-600/5',         border: 'border-red-500/25' },
+  gray:    { iconBg: 'bg-gradient-to-br from-gray-300/20 to-gray-500/10 dark:from-gray-300/15 dark:to-gray-500/5',       border: 'border-gray-400/25' },
 };
 
 // ═══════════════════════════════════════════════════════════
@@ -613,7 +613,7 @@ export const CategoryGrid: React.FC<CategoryGridProps> = memo(({ onCategoryClick
 
   return (
     <div>
-      <div className="grid grid-cols-4 sm:grid-cols-5 md:grid-cols-6 gap-y-4 gap-x-2">
+      <div className="grid grid-cols-4 sm:grid-cols-5 md:grid-cols-6 gap-y-5 gap-x-3">
         {displayedCategories.map((cat) => {
           const palette = COLOR_PALETTE[cat.color] ?? COLOR_PALETTE.gray;
           return (
@@ -625,12 +625,12 @@ export const CategoryGrid: React.FC<CategoryGridProps> = memo(({ onCategoryClick
             >
               <div
                 className={`w-14 h-14 rounded-2xl flex items-center justify-center
-                  ${palette.iconBg} shadow-sm ${palette.border} border
-                  group-hover:scale-105 transition-transform duration-200`}
+                  ${palette.iconBg} ${palette.border} border
+                  group-hover:scale-105 group-hover:shadow-md transition-all duration-200`}
               >
                 <span className="text-2xl">{cat.emoji}</span>
               </div>
-              <p className="text-[10px] font-semibold text-center leading-tight text-gray-700 dark:text-gray-300 line-clamp-2">
+              <p className="text-[11px] font-medium text-center leading-tight text-gray-700 dark:text-gray-300 line-clamp-2 mt-1.5">
                 {cat.name}
               </p>
             </button>
@@ -643,7 +643,7 @@ export const CategoryGrid: React.FC<CategoryGridProps> = memo(({ onCategoryClick
           <button
             onClick={() => setShowAll(!showAll)}
             className="text-xs font-bold text-emerald-500 hover:text-emerald-600
-              bg-emerald-50 dark:bg-emerald-900/20 px-4 py-2 rounded-xl
+              bg-emerald-50 dark:bg-emerald-900/20 px-5 py-2.5 rounded-full
               hover:bg-emerald-100 dark:hover:bg-emerald-900/30 transition-colors"
           >
             {showAll ? 'عرض أقل' : `عرض الكل (${categories.length})`}

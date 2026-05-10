@@ -271,10 +271,10 @@ export const StoreDetailScreen: React.FC = () => {
           </button>
         )}
       </div>
-      <div className="p-2.5">
-        <p className="text-[12px] font-bold text-[var(--color-text)] line-clamp-1">{product.name}</p>
+      <div className="p-3">
+        <p className="text-[13px] font-semibold text-[var(--color-text)] line-clamp-1">{product.name}</p>
         {product.category && <p className="text-[11px] text-[var(--color-text-tertiary)] mt-0.5">{product.category}</p>}
-        <p className="text-[13px] font-bold gradient-text-primary mt-1" style={theme.color ? { background: theme.themeBg, WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' } : undefined}>{product.price.toLocaleString('ar-SY')} ل.س</p>
+        <p className="text-[15px] font-bold gradient-text-primary mt-1" style={theme.color ? { background: theme.themeBg, WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' } : undefined}>{product.price.toLocaleString('ar-SY')} ل.س</p>
         <div className="flex items-center justify-between mt-1.5">
           <div className="flex items-center gap-1">
             <Eye className="w-3 h-3 text-[var(--color-text-tertiary)]" />
@@ -360,7 +360,7 @@ export const StoreDetailScreen: React.FC = () => {
         </div>
 
         {/* Content */}
-        <div className="p-3">
+        <div className="p-3.5">
           {/* Type label */}
           <span
             className="inline-flex items-center gap-1 text-[9px] font-bold px-2 py-0.5 rounded-full"
@@ -370,11 +370,11 @@ export const StoreDetailScreen: React.FC = () => {
           </span>
 
           {/* Title */}
-          <p className="text-[13px] font-bold text-[var(--color-text)] line-clamp-1 mt-1.5">{offer.title}</p>
+          <p className="text-sm font-semibold text-[var(--color-text)] line-clamp-1 mt-1.5">{offer.title}</p>
 
           {/* Description */}
           {truncatedDesc && (
-            <p className="text-[11px] text-[var(--color-text-tertiary)] mt-0.5 line-clamp-2 leading-relaxed">{truncatedDesc}</p>
+            <p className="text-xs text-[var(--color-text-tertiary)] mt-0.5 line-clamp-2 leading-relaxed">{truncatedDesc}</p>
           )}
 
           {/* Bottom: discount + timer */}
@@ -438,7 +438,7 @@ export const StoreDetailScreen: React.FC = () => {
       {/* Store Info Card */}
       <div className="px-4 -mt-12 relative z-10">
         <div className="bg-[var(--color-surface)] rounded-2xl border border-[var(--color-border)] shadow-lg shadow-black/5 dark:shadow-black/20">
-          <div className="px-4 pb-4">
+          <div className="px-5 pb-5">
             {/* Logo */}
             <div className="-mt-7 mb-3 relative z-10 flex items-end justify-between">
               <div style={theme.color ? { boxShadow: `0 4px 14px ${theme.color.shadowLight}` } : { boxShadow: '0 4px 14px rgba(16, 185, 129, 0.2)' }}>
@@ -447,7 +447,7 @@ export const StoreDetailScreen: React.FC = () => {
               {!isStoreOwner && (
                 <button
                   onClick={handleFollow}
-                  className={`flex items-center gap-1.5 text-[12px] px-4 py-2 rounded-xl font-bold transition-all active:scale-[0.98] ${
+                  className={`flex items-center gap-1.5 text-[13px] px-5 py-2.5 rounded-xl font-bold transition-all active:scale-[0.98] ${
                     isFollowing
                       ? 'bg-[var(--color-surface)] border border-[var(--color-border)] text-[var(--color-text-secondary)]'
                       : theme.hasTheme ? 'text-white shadow-md' : 'gradient-primary text-white shadow-md'
@@ -462,7 +462,7 @@ export const StoreDetailScreen: React.FC = () => {
 
             {/* Name + Badges */}
             <div className="flex items-center gap-2 mb-1.5 flex-wrap">
-              <h2 className="text-[17px] font-black text-[var(--color-text)]">{store.name}</h2>
+              <h2 className="text-xl font-black text-[var(--color-text)]">{store.name}</h2>
               {isVerified && (
                 <span className="inline-flex items-center gap-1 bg-gradient-to-r from-amber-400 to-amber-500 text-white text-[10px] font-black px-2 py-0.5 rounded-full shadow-sm">
                   <ShieldCheck className="w-3.5 h-3.5" />متجر موثق 🛠️
@@ -476,13 +476,13 @@ export const StoreDetailScreen: React.FC = () => {
             </div>
 
             {/* Description */}
-            <p className="text-[var(--color-text-secondary)] text-[13px] leading-relaxed line-clamp-2">{store.description || 'لا يوجد وصف بعد'}</p>
+            <p className="text-[var(--color-text-secondary)] text-sm leading-relaxed line-clamp-2">{store.description || 'لا يوجد وصف بعد'}</p>
 
             {/* Location */}
             {(store.governorate || store.district || store.location) && (
               <div className="flex items-center gap-1.5 mt-2">
                 <MapPin className="w-3.5 h-3.5 text-emerald-500" style={theme.color ? { color: theme.color.solid } : undefined} />
-                <span className="text-[12px] text-[var(--color-text-secondary)]">
+                <span className="text-[13px] text-[var(--color-text-secondary)]">
                   {store.location || [store.governorate, store.city, store.district].filter(Boolean).join(' - ')}
                 </span>
               </div>
@@ -545,13 +545,13 @@ export const StoreDetailScreen: React.FC = () => {
 
       <div className="px-4 mt-4 space-y-4">
         {/* Tabs */}
-        <div className="bg-[var(--color-surface)] rounded-2xl p-1.5 border border-[var(--color-border)] shadow-sm">
+        <div className="bg-[var(--color-surface)] rounded-2xl p-2 border border-[var(--color-border)] shadow-sm">
           <div className="flex overflow-x-auto scrollbar-hide gap-1">
             {tabs.map((tab) => (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`flex items-center gap-1.5 px-3 py-2.5 rounded-xl text-[11px] font-bold whitespace-nowrap transition-all duration-200 flex-shrink-0 ${
+                className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-bold whitespace-nowrap transition-all duration-200 flex-shrink-0 ${
                   activeTab === tab.id
                     ? 'text-white shadow-md'
                     : 'text-[var(--color-text-secondary)] hover:opacity-90'
@@ -682,10 +682,10 @@ export const StoreDetailScreen: React.FC = () => {
         {/* Info Tab */}
         {activeTab === 'info' && (
           <section>
-            <div className="bg-[var(--color-surface)] rounded-2xl p-4 border border-[var(--color-border)] shadow-sm space-y-4">
+            <div className="bg-[var(--color-surface)] rounded-2xl p-5 border border-[var(--color-border)] shadow-sm space-y-3">
               <div>
                 <h3 className="text-[13px] font-bold text-emerald-600 dark:text-emerald-400 mb-3 flex items-center gap-2" style={theme.color ? { color: theme.color.solid } : undefined}><Sparkles className="w-4 h-4" />عن المتجر</h3>
-                <div className="space-y-2.5">
+                <div className="space-y-2 divide-y divide-[var(--color-border)]">
                   <div className="flex items-center gap-3 p-3 bg-[var(--color-bg)] rounded-xl">
                     <div className="w-9 h-9 rounded-xl bg-emerald-50 dark:bg-emerald-900/20 flex items-center justify-center text-emerald-500" style={theme.color ? { background: theme.color.solidLight + '18', color: theme.color.solid } : undefined}><ShoppingBag className="w-4 h-4" /></div>
                     <div><p className="text-[12px] font-bold text-[var(--color-text)]">{store.name}</p><p className="text-[10px] text-[var(--color-text-tertiary)]">اسم المتجر</p></div>

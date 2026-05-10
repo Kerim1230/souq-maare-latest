@@ -93,13 +93,13 @@ export const ProductCard: React.FC<ProductCardProps> = memo(({
       <div className="mb-1">
         <div className="flex items-center gap-1">
           {product.store_logo && <StoreLogo src={product.store_logo} name={product.store_name} size="xs" />}
-          <span className="text-[10px] text-emerald-600 font-bold line-clamp-1">{product.store_name}</span>
+          <span className="text-xs text-emerald-600 font-bold line-clamp-1">{product.store_name}</span>
           {product.store_verified && <Verified className="w-3 h-3 text-emerald-500 flex-shrink-0" />}
         </div>
         {product.store_governorate && (
           <div className="flex items-center gap-0.5 mt-0.5">
             <MapPin className="w-2.5 h-2.5 text-[var(--color-text-tertiary)] flex-shrink-0" />
-            <span className="text-[10px] text-[var(--color-text-tertiary)] line-clamp-1">{product.store_governorate}</span>
+            <span className="text-[11px] text-[var(--color-text-tertiary)] line-clamp-1">{product.store_governorate}</span>
           </div>
         )}
       </div>
@@ -113,7 +113,7 @@ export const ProductCard: React.FC<ProductCardProps> = memo(({
         <span className="gradient-primary text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-sm">جديد</span>
       )}
       {product.is_featured && (
-        <span className="gradient-warm text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-sm">مميز</span>
+        <span className="bg-gradient-to-r from-amber-400 to-amber-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-sm inline-flex items-center gap-0.5">⭐ مميز</span>
       )}
     </div>
   ), [product.is_new, product.is_featured]);
@@ -121,7 +121,7 @@ export const ProductCard: React.FC<ProductCardProps> = memo(({
   return (
     <div
       onClick={() => onOpen?.(product)}
-      className="bg-[var(--color-surface)] rounded-2xl overflow-hidden border border-[var(--color-border)] shadow-sm cursor-pointer active:opacity-80"
+      className="bg-[var(--color-surface)] rounded-2xl overflow-hidden border border-[var(--color-border)] shadow-sm hover:shadow-md transition-shadow duration-300 cursor-pointer active:opacity-80"
       style={{ contain: 'layout style' }}
     >
       <div className={`relative ${horizontal ? 'aspect-square' : 'aspect-[4/3]'} bg-gradient-to-br from-emerald-50/50 to-teal-50/50 overflow-hidden`}>
@@ -164,11 +164,11 @@ export const ProductCard: React.FC<ProductCardProps> = memo(({
           )}
         </div>
       </div>
-      <div className="p-3">
+      <div className="p-3.5">
         {storeInfo}
-        <p className="text-sm font-bold text-[var(--color-text)] line-clamp-1">{product.name}</p>
-        <p className="text-xs text-[var(--color-text-tertiary)] mt-0.5 line-clamp-1">{product.category}</p>
-        <p className="text-sm font-black gradient-text-primary mt-2">
+        <p className="text-[15px] font-semibold text-[var(--color-text)] line-clamp-1">{product.name}</p>
+        <p className="text-[13px] text-[var(--color-text-tertiary)] mt-0.5 line-clamp-1">{product.category}</p>
+        <p className="text-lg font-bold gradient-text-primary mt-2">
           {product.price.toLocaleString('ar-SY')} ل.س
         </p>
         {expiryBadge}

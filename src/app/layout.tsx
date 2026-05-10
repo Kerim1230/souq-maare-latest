@@ -88,7 +88,7 @@ export default function RootLayout({
       <body className={`${cairo.variable} antialiased`}>
         <ThemeProvider
           attribute="class"
-          defaultTheme="light"
+          defaultTheme="dark"
           enableSystem={false}
           storageKey="suq-shamel-theme"
         >

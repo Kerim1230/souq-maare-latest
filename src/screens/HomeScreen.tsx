@@ -39,7 +39,7 @@ const DEFAULT_CONTEST_COLOR = '#e11d48'; // rose solid
 // Memoized section header
 const SectionHeader: React.FC<{ title: string; actionLabel?: string; onAction?: () => void; extra?: React.ReactNode }> = memo(({ title, actionLabel, onAction, extra }) => {
   return (
-  <div className="flex items-center justify-between mb-3">
+  <div className="flex items-center justify-between mb-4">
     <h2 className="text-sm font-bold text-[var(--color-text)]">{title}</h2>
     <div className="flex items-center gap-2">
       {extra}
@@ -71,13 +71,13 @@ const StoreCard: React.FC<{ store: Store }> = memo(({ store }) => {
       style={{ width: '88px' }}
     >
       <div
-        className="w-[72px] h-[72px] rounded-2xl overflow-hidden shadow-sm"
+        className="w-16 h-16 rounded-2xl overflow-hidden shadow-sm"
         style={{ border: '2px solid', borderColor }}
       >
         <StoreLogo src={store.logo_url} name={store.name} size="md" className="w-full h-full" />
       </div>
       <div className="flex items-center gap-0.5 max-w-[84px]">
-        <p className="text-[11px] font-bold text-[var(--color-text)] line-clamp-1 text-center">{store.name}</p>
+        <p className="text-xs font-semibold text-[var(--color-text)] line-clamp-1 text-center">{store.name}</p>
         {store.is_verified && <Verified className="w-3 h-3 text-emerald-500 flex-shrink-0" />}
       </div>
     </div>
@@ -459,17 +459,17 @@ export const HomeScreen: React.FC = () => {
       <div className="px-5 -mt-6 relative z-20 mb-2">
         <div
           onClick={() => setActiveTab(2)}
-          className="bg-[var(--color-surface)] rounded-xl flex items-center gap-3 px-4 py-3 border border-[var(--color-border)] cursor-pointer shadow-sm"
+          className="bg-[var(--color-surface)] rounded-2xl flex items-center gap-3 px-4 h-12 border border-[var(--color-border)] cursor-pointer shadow-sm hover:shadow-md transition-shadow duration-300"
         >
           <Search className="w-5 h-5 text-slate-400" />
-          <span className="text-[var(--color-text-tertiary)] text-sm font-medium flex-1">ابحث عن منتجات، متاجر، عروض...</span>
+          <span className="text-[var(--color-text-tertiary)] text-[15px] font-medium flex-1">ابحث عن منتجات، متاجر، عروض...</span>
           <div className="w-9 h-9 gradient-primary rounded-lg flex items-center justify-center shadow-sm">
             <Search className="w-4 h-4 text-white" />
           </div>
         </div>
       </div>
 
-      <main className="px-5 space-y-6 mt-4">
+      <main className="px-5 space-y-8 mt-4">
 
         {/* ═══ 2. OFFERS & CONTESTS 🎁 ═══ */}
         <motion.section
@@ -541,23 +541,23 @@ export const HomeScreen: React.FC = () => {
                           {isContest ? '🏆 مسابقة' : '🎁 عرض'}
                         </span>
 
-                        <h3 className="text-white font-bold text-sm leading-tight line-clamp-1">{offer.title}</h3>
+                        <h3 className="text-white font-semibold text-base leading-tight line-clamp-1">{offer.title}</h3>
 
                         {truncatedDesc && (
-                          <p className="text-white/70 text-[11px] mt-1 line-clamp-2 leading-relaxed">{truncatedDesc}</p>
+                          <p className="text-white/70 text-xs mt-1 line-clamp-2 leading-relaxed">{truncatedDesc}</p>
                         )}
 
                         <div className="flex items-center justify-between mt-2">
                           {offer.store_name && (
                             <div className="flex items-center gap-1">
                               <StoreIcon className="w-3 h-3 text-white/50" />
-                              <span className="text-white/50 text-[10px] font-medium line-clamp-1">{offer.store_name}</span>
+                              <span className="text-white/50 text-[11px] font-medium line-clamp-1">{offer.store_name}</span>
                             </div>
                           )}
                           {offer.expires_at && (() => {
                             const ti = getTimeRemaining(offer.expires_at);
                             if (!ti.isExpired && ti.text) return (
-                              <span className="bg-white/15 backdrop-blur-sm text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full inline-flex items-center gap-0.5 whitespace-nowrap">
+                              <span className="bg-white/15 backdrop-blur-sm text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full inline-flex items-center gap-0.5 whitespace-nowrap">
                                 <Clock className="w-2.5 h-2.5" />{ti.text}
                               </span>
                             );
@@ -660,7 +660,7 @@ export const HomeScreen: React.FC = () => {
               </div>
             }
           />
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-2 gap-4">
             {!dataLoaded
               ? <><SkeletonCard /><SkeletonCard /><SkeletonCard /><SkeletonCard /></>
               : displayedNewProducts.length === 0 ? (
