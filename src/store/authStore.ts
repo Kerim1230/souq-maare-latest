@@ -14,6 +14,7 @@ export interface UserProfile {
   avatar_url?: string | null;
   phone?: string | null;
   city?: string | null;
+  governorate?: string | null;
   created_at?: string | null;
   is_admin?: boolean;
   role?: string;
@@ -98,7 +99,7 @@ function awardWelcomeBonus(userId: string) {
       userId,
       type: 'points',
       category: 'welcome_bonus',
-      title: '🎁 مرحباً بك في سوق مارع!',
+      title: '🎁 مرحباً بك في سوق الحرية!',
       body: `لقد حصلت على ${WELCOME_BONUS_POINTS} نقطة مجانية كمكافأة تسجيل! استخدمها لشراء المنتجات أو توثيق متجرك.`,
       icon: 'Gift',
       priority: 'high',
@@ -168,6 +169,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         avatar_url: data.user.avatar_url,
         phone: data.user.phone,
         city: data.user.city,
+        governorate: data.user.governorate,
         created_at: data.user.created_at,
         is_admin: data.user.is_admin,
         role: data.user.role,
@@ -201,6 +203,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         avatar_url: data.user.avatar_url,
         phone: data.user.phone,
         city: data.user.city,
+        governorate: data.user.governorate,
         created_at: data.user.created_at,
         is_admin: data.user.is_admin,
         role: data.user.role,

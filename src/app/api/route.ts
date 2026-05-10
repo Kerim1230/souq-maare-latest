@@ -5,7 +5,7 @@ import { withRoute } from '@/server/lib/route-wrapper';
 export const GET = withRoute(async () => {
   return success({
     status: 'ok',
-    service: 'سوق مارع',
+    service: 'سوق الحرية',
     version: process.env.npm_package_version || '0.2.0',
     timestamp: new Date().toISOString(),
     uptime: Math.round(process.uptime()),

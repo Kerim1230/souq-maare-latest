@@ -55,9 +55,9 @@ const SplashScreen: React.FC = () => (
     <div className="absolute bottom-[-100px] left-[-60px] w-[250px] h-[250px] rounded-full bg-emerald-600/15 blur-[80px]" />
     <div className="relative z-10">
       <div className="w-24 h-24 rounded-3xl overflow-hidden shadow-xl shadow-emerald-500/30 mb-6 glow-primary">
-        <img src="/app-icon.png" alt="سوق مارع" className="w-full h-full object-cover" />
+        <img src="/app-icon.png" alt="سوق الحرية" className="w-full h-full object-cover" />
       </div>
-      <h1 className="text-[28px] font-black text-white text-center">سوق مارع</h1>
+      <h1 className="text-[28px] font-black text-white text-center">سوق الحرية</h1>
       <p className="text-teal-300/60 text-[14px] mt-1.5 font-medium text-center">الإلكتروني</p>
     </div>
     <div className="mt-8 flex gap-2">

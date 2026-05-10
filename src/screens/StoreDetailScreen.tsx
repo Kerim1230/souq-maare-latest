@@ -3,7 +3,7 @@ import React, { useEffect, useState, useCallback, useMemo, useRef } from 'react'
 import {
   ArrowRight, Star, Users, ShoppingBag, MessageCircle, Loader2, ImageIcon, Package, Gift, Trophy,
   ShieldCheck, Share2, Flag, Clock, Heart, Percent,
-  Eye, Search, SlidersHorizontal, Calendar, Sparkles
+  Eye, Search, SlidersHorizontal, Calendar, Sparkles, MapPin
 } from 'lucide-react';
 import { ChatModal } from '@/components/market/ChatModal';
 import { SafeImage, StoreLogo } from '@/components/market/SafeImage';
@@ -478,6 +478,16 @@ export const StoreDetailScreen: React.FC = () => {
             {/* Description */}
             <p className="text-[var(--color-text-secondary)] text-[13px] leading-relaxed line-clamp-2">{store.description || 'لا يوجد وصف بعد'}</p>
 
+            {/* Location */}
+            {store.governorate && (
+              <div className="flex items-center gap-1.5 mt-2">
+                <MapPin className="w-3.5 h-3.5 text-emerald-500" style={theme.color ? { color: theme.color.solid } : undefined} />
+                <span className="text-[12px] text-[var(--color-text-secondary)]">
+                  {store.governorate}{store.city ? ` - ${store.city}` : ''}
+                </span>
+              </div>
+            )}
+
             {/* Category + Date */}
             <div className="flex items-center gap-3 mt-2.5 flex-wrap">
               {store.category && (
@@ -717,7 +727,7 @@ export const StoreDetailScreen: React.FC = () => {
               {isVerified && (
                 <div className="flex items-center gap-3 p-3 bg-gradient-to-r from-amber-50 to-amber-50/50 dark:from-amber-900/20 dark:to-amber-900/10 rounded-xl border border-amber-200/40 dark:border-amber-800/20">
                   <div className="w-9 h-9 rounded-xl bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center"><ShieldCheck className="w-5 h-5 text-amber-500" /></div>
-                  <div><p className="text-[12px] font-bold text-amber-700 dark:text-amber-300">متجر موثق</p><p className="text-[10px] text-amber-600/70 dark:text-amber-400/70">هذا المتجر موثق من إدارة سوق مارع</p></div>
+                  <div><p className="text-[12px] font-bold text-amber-700 dark:text-amber-300">متجر موثق</p><p className="text-[10px] text-amber-600/70 dark:text-amber-400/70">هذا المتجر موثق من إدارة سوق الحرية</p></div>
                 </div>
               )}
             </div>

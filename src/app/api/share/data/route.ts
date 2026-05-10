@@ -8,7 +8,7 @@ import { withRoute } from '@/server/lib/route-wrapper';
 const VALID_TYPES = ['store', 'product', 'offer', 'contest'] as const;
 type ValidType = (typeof VALID_TYPES)[number];
 
-const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://souq-maare-latest.vercel.app';
+const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://suq-hurriya.vercel.app';
 
 /** Ensure image URL is absolute (for OG tags and share previews). */
 function ensureAbsolute(url: string | null | undefined): string | null {
@@ -64,6 +64,8 @@ export const GET = withRoute(async (request: NextRequest) => {
         logo_url: ensureAbsolute(store.logo_url),
         cover_url: ensureAbsolute(store.cover_url),
         category: store.category,
+        governorate: (store as any).governorate ?? null,
+        city: (store as any).city ?? null,
         products_count: productsCount,
         followers_count: followersCount,
         is_verified: store.is_verified,

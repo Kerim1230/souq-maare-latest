@@ -12,6 +12,6 @@ export default function robots(): MetadataRoute.Robots {
         disallow: ['/api/', '/admin/', '/share/'],
       },
     ],
-    sitemap: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://suq-maraa.com'}/sitemap.xml`,
+    sitemap: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://suq-hurriya.com'}/sitemap.xml`,
   }
 }

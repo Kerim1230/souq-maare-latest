@@ -6,7 +6,7 @@
  *   Error:   { success: false, error: <message> }
  *
  * Automatically includes CSRF token header on mutating requests (POST/PUT/DELETE/PATCH)
- * by reading the `suq_maraa_csrf` cookie set by the server middleware.
+ * by reading the `suq_hurriya_csrf` cookie set by the server middleware.
  *
  * Usage:
  *   const { data, error } = await fetchApi('/api/products');
@@ -26,7 +26,7 @@ export interface FetchApiResult<T = any> {
 }
 
 /** CSRF cookie name — must match the server-side constant */
-const CSRF_COOKIE = 'suq_maraa_csrf';
+const CSRF_COOKIE = 'suq_hurriya_csrf';
 const CSRF_HEADER = 'x-csrf-token';
 
 /**
@@ -75,7 +75,7 @@ function buildHeaders(
 /**
  * Refresh the CSRF cookie by making a lightweight GET request.
  * First clears the old cookie to force the server to issue a fresh token.
- * The server proxy sets the `suq_maraa_csrf` cookie on any response
+ * The server proxy sets the `suq_hurriya_csrf` cookie on any response
  * when the cookie is missing or too short.
  */
 async function refreshCsrfCookie(): Promise<void> {

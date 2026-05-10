@@ -1,7 +1,7 @@
 'use client';
 import React, { useState, useEffect, useMemo } from 'react';
 import {
-  User, Mail, Edit3, Store, LogOut, ChevronLeft, Bell, Globe,
+  User, Mail, Edit3, Store, LogOut, ChevronLeft, Bell, Globe, MapPin, ChevronDown,
   Shield, Wallet, Coins, History, LayoutDashboard, Clock, Crown, ShieldCheck, Share2,
   MessageCircle, Package, Heart, HelpCircle, Phone,
   AlertTriangle, FileText, Settings
@@ -22,6 +22,7 @@ import { useVerificationStore } from '@/store/verificationStore';
 import { UserAvatar } from '@/components/market/SafeImage';
 import toast from 'react-hot-toast';
 import { ReportModal } from '@/components/admin/ReportModal';
+import { getCitiesForGovernorate, getGovernorateNames } from '@/lib/syria-data';
 
 interface MenuItemProps {
   icon: React.ReactNode;
@@ -85,6 +86,10 @@ export const ProfileScreen: React.FC = () => {
   const [editName, setEditName] = useState(user?.full_name || '');
   const [editAvatar, setEditAvatar] = useState<string | null>(user?.avatar_url || null);
   const [savingProfile, setSavingProfile] = useState(false);
+  const [editGovernorate, setEditGovernorate] = useState('');
+  const [editCity, setEditCity] = useState('');
+  const [showCustomCity, setShowCustomCity] = useState(false);
+  const availableCities = useMemo(() => editGovernorate ? getCitiesForGovernorate(editGovernorate) : [], [editGovernorate]);
   const [signingOut, setSigningOut] = useState(false);
   const [reportTarget, setReportTarget] = useState<{ type: 'user'; id: string; name: string } | null>(null);
   const loadStoreVerification = useVerificationStore(s => s.loadStoreVerification);
@@ -127,9 +132,9 @@ export const ProfileScreen: React.FC = () => {
 
       const finalAvatarUrl = avatarUrl || (editAvatar && !editAvatar.startsWith('data:image/') ? editAvatar.trim() : null);
 
-      const { error } = await apiPut('/api/user', { userId: user.id, full_name: editName.trim(), avatar_url: finalAvatarUrl });
+      const { error } = await apiPut('/api/user', { userId: user.id, full_name: editName.trim(), avatar_url: finalAvatarUrl, governorate: editGovernorate, city: editCity });
       if (error) throw new Error(error);
-      updateUser({ full_name: editName.trim(), avatar_url: finalAvatarUrl });
+      updateUser({ full_name: editName.trim(), avatar_url: finalAvatarUrl, governorate: editGovernorate, city: editCity });
       setShowEdit(false);
       toast.success('تم تحديث الملف الشخصي');
     } catch (err) {
@@ -188,15 +193,15 @@ export const ProfileScreen: React.FC = () => {
               className="gradient-primary overflow-hidden shadow-lg shadow-emerald-500/20 rounded-2xl flex-shrink-0"
             />
             <div className="flex-1 min-w-0">
-              <h2 className="text-[16px] font-black text-[var(--color-text)] truncate">{user?.full_name || 'مستخدم سوق مارع'}</h2>
+              <h2 className="text-[16px] font-black text-[var(--color-text)] truncate">{user?.full_name || 'مستخدم سوق الحرية'}</h2>
               <p className="text-[12px] text-[var(--color-text-secondary)] mt-0.5 truncate">{user?.email}</p>
               <div className="flex items-center gap-2 mt-1.5">
                 {isAdmin && <span className="inline-flex items-center gap-1 bg-gradient-to-r from-amber-400 to-amber-500 text-white text-[9px] font-black px-2 py-0.5 rounded-full"><Shield className="w-3 h-3" />مدير</span>}
-                {user?.city && <span className="inline-flex items-center gap-1 bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 text-[9px] font-bold px-2 py-0.5 rounded-full"><Globe className="w-3 h-3" />{user.city}</span>}
+                {(user?.governorate || user?.city) && <span className="inline-flex items-center gap-1 bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 text-[9px] font-bold px-2 py-0.5 rounded-full"><MapPin className="w-3 h-3" />{[user?.governorate, user?.city].filter(Boolean).join(' - ')}</span>}
               </div>
             </div>
             <button
-              onClick={() => { setEditName(user?.full_name || ''); setEditAvatar(user?.avatar_url || null); setShowEdit(true); }}
+              onClick={() => { setEditName(user?.full_name || ''); setEditAvatar(user?.avatar_url || null); const g = user?.governorate || ''; const c = user?.city || ''; setEditGovernorate(g); setEditCity(c); setShowCustomCity(g !== '' && c !== '' && !getCitiesForGovernorate(g).includes(c)); setShowEdit(true); }}
               className="w-8 h-8 bg-emerald-50 dark:bg-emerald-900/20 rounded-xl flex items-center justify-center text-emerald-500 dark:text-emerald-400 hover:bg-emerald-100 dark:hover:bg-emerald-900/30"
             >
               <Edit3 className="w-4 h-4" />
@@ -267,7 +272,7 @@ export const ProfileScreen: React.FC = () => {
           {/* Account Section */}
           <div className="bg-[var(--color-surface)] rounded-2xl px-3.5 py-1 shadow-sm border border-[var(--color-border)]">
             <p className="text-[10px] font-bold text-emerald-300 dark:text-emerald-700 pt-3 pb-0.5 px-1 tracking-wide">الحساب</p>
-            <MenuItem icon={<Edit3 className="w-4 h-4" />} label="تعديل الملف الشخصي" sublabel="الاسم والصورة الشخصية" onClick={() => { setEditName(user?.full_name || ''); setEditAvatar(user?.avatar_url || null); setShowEdit(true); }} color="text-emerald-500" />
+            <MenuItem icon={<Edit3 className="w-4 h-4" />} label="تعديل الملف الشخصي" sublabel="الاسم والصورة والموقع" onClick={() => { setEditName(user?.full_name || ''); setEditAvatar(user?.avatar_url || null); const g = user?.governorate || ''; const c = user?.city || ''; setEditGovernorate(g); setEditCity(c); setShowCustomCity(g !== '' && c !== '' && !getCitiesForGovernorate(g).includes(c)); setShowEdit(true); }} color="text-emerald-500" />
             <div className="border-t border-[var(--color-border)] mx-4" />
             <MenuItem icon={<Store className="w-4 h-4" />} label={myStore ? 'إدارة متجري' : 'إنشاء متجر'} sublabel={myStore ? myStore.name : 'ابدأ البيع الآن'} onClick={() => setActiveTab(1)} color="text-emerald-500" />
             <div className="border-t border-[var(--color-border)] mx-4" />
@@ -340,7 +345,7 @@ export const ProfileScreen: React.FC = () => {
 
           {/* Footer */}
           <div className="text-center pt-1 pb-4">
-            <p className="text-[11px] gradient-text-primary font-semibold">سوق مارع الإلكتروني</p>
+            <p className="text-[11px] gradient-text-primary font-semibold">سوق الحرية الإلكتروني</p>
             <p className="text-[10px] text-[var(--color-text-tertiary)] mt-0.5">الإصدار ١.٠.٠</p>
           </div>
         </div>
@@ -358,6 +363,77 @@ export const ProfileScreen: React.FC = () => {
             </div>
             <p className="text-[11px] text-[var(--color-text-tertiary)] mt-1 mr-6">لا يمكن تغيير البريد الإلكتروني</p>
           </div>
+
+          {/* 📍 Location Section */}
+          <div className="space-y-3">
+            <div className="flex items-center gap-2">
+              <MapPin className="w-4 h-4 text-emerald-500" />
+              <p className="text-[13px] font-bold text-emerald-900 dark:text-emerald-300">📍 الموقع</p>
+            </div>
+
+            {/* Governorate Select */}
+            <div className="flex flex-col gap-1.5">
+              <label className="text-[13px] font-bold text-emerald-900 dark:text-emerald-300 pr-1">المحافظة</label>
+              <div className="relative">
+                <select
+                  value={editGovernorate}
+                  onChange={(e) => { setEditGovernorate(e.target.value); setEditCity(''); setShowCustomCity(false); }}
+                  className="w-full bg-[var(--color-surface)] border border-[var(--color-border)] rounded-xl py-3 pr-3.5 pl-9 text-[14px] text-[var(--color-text)] font-medium outline-none focus:ring-2 focus:ring-emerald-500/15 focus:border-emerald-400 dark:focus:border-emerald-600 hover:border-emerald-300 dark:hover:border-emerald-700 appearance-none cursor-pointer"
+                >
+                  <option value="" disabled>اختر المحافظة</option>
+                  {getGovernorateNames().map(name => (
+                    <option key={name} value={name}>{name}</option>
+                  ))}
+                </select>
+                <div className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none text-emerald-400">
+                  <ChevronDown className="w-4 h-4" />
+                </div>
+              </div>
+            </div>
+
+            {/* City Select */}
+            {editGovernorate && (
+              <div className="flex flex-col gap-1.5">
+                <label className="text-[13px] font-bold text-emerald-900 dark:text-emerald-300 pr-1">المدينة</label>
+                <div className="relative">
+                  <select
+                    value={showCustomCity ? '__custom__' : editCity}
+                    onChange={(e) => {
+                      if (e.target.value === '__custom__') {
+                        setShowCustomCity(true);
+                        setEditCity('');
+                      } else {
+                        setShowCustomCity(false);
+                        setEditCity(e.target.value);
+                      }
+                    }}
+                    className="w-full bg-[var(--color-surface)] border border-[var(--color-border)] rounded-xl py-3 pr-3.5 pl-9 text-[14px] text-[var(--color-text)] font-medium outline-none focus:ring-2 focus:ring-emerald-500/15 focus:border-emerald-400 dark:focus:border-emerald-600 hover:border-emerald-300 dark:hover:border-emerald-700 appearance-none cursor-pointer"
+                  >
+                    <option value="" disabled>اختر المدينة</option>
+                    {availableCities.map(city => (
+                      <option key={city} value={city}>{city}</option>
+                    ))}
+                    <option value="__custom__">أخرى (إدخال يدوي)</option>
+                  </select>
+                  <div className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none text-emerald-400">
+                    <ChevronDown className="w-4 h-4" />
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Custom City Text Input */}
+            {showCustomCity && (
+              <Input
+                label="اسم المدينة"
+                value={editCity}
+                onChange={(e) => setEditCity(e.target.value)}
+                placeholder="أدخل اسم المدينة"
+                icon={<MapPin className="w-4 h-4" />}
+              />
+            )}
+          </div>
+
           <Button fullWidth onClick={handleSaveProfile} loading={savingProfile} disabled={!editName.trim()}>حفظ التغييرات</Button>
         </div>
       </Modal>

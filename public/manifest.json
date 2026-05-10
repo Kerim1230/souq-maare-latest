@@ -1,7 +1,7 @@
 {
-  "name": "سوق مارع",
-  "short_name": "سوق مارع",
-  "description": "سوق مارع — منصة التجارة الإلكترونية المحلية",
+  "name": "سوق الحرية",
+  "short_name": "سوق الحرية",
+  "description": "سوق الحرية — منصة التجارة الإلكترونية المحلية",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",

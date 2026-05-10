@@ -5,7 +5,7 @@ import { optimizeImage } from '@/lib/image-optimize';
 // ISR: Revalidate shared pages every 5 minutes (faster than 1 hour for new products)
 export const revalidate = 300;
 
-const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://souq-maare-latest.vercel.app';
+const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://suq-hurriya.vercel.app';
 const DEFAULT_OG_IMAGE = `${BASE_URL}/app-icon.png`;
 
 interface PageProps {
@@ -15,8 +15,8 @@ interface PageProps {
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { type, id } = await params;
 
-  let title = 'سوق مارع الإلكتروني';
-  let description = 'تسوق بكل سهولة وأمان في سوق مارع';
+  let title = 'سوق الحرية الإلكتروني';
+  let description = 'تسوق بكل سهولة وأمان في سوق الحرية';
   let imageUrl = DEFAULT_OG_IMAGE;
 
   try {
@@ -29,8 +29,8 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
         .eq('id', id)
         .maybeSingle();
       if (store) {
-        title = `${store.name} - سوق مارع`;
-        description = store.description || `${store.name} في سوق مارع الإلكتروني`;
+        title = `${store.name} - سوق الحرية`;
+        description = store.description || `${store.name} في سوق الحرية الإلكتروني`;
         const rawImage = store.logo_url || store.cover_url;
         imageUrl = rawImage ? optimizeImage(rawImage, { width: 1200, height: 630, crop: 'fill', quality: 'auto', format: 'auto' }) : DEFAULT_OG_IMAGE;
       }
@@ -43,7 +43,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       if (product) {
         const storeName = ((product.store as unknown as { name: string } | null)?.name) || '';
         title = `${product.name} - ${storeName}`;
-        description = `${Number(product.price).toLocaleString()} ل.س • ${storeName} • سوق مارع`;
+        description = `${Number(product.price).toLocaleString()} ل.س • ${storeName} • سوق الحرية`;
         imageUrl = product.image_url ? optimizeImage(product.image_url, { width: 1200, height: 630, crop: 'fill', quality: 'auto', format: 'auto' }) : DEFAULT_OG_IMAGE;
       }
     } else if (type === 'offer' || type === 'contest') {
@@ -55,7 +55,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       if (offer) {
         const storeName = ((offer.store as unknown as { name: string } | null)?.name) || '';
         const label = offer.type === 'contest' ? 'مسابقة' : 'عرض';
-        title = `${label}: ${offer.title} - سوق مارع`;
+        title = `${label}: ${offer.title} - سوق الحرية`;
         description = `${offer.description || offer.title} • ${storeName}`;
         imageUrl = offer.image_url ? optimizeImage(offer.image_url, { width: 1200, height: 630, crop: 'fill', quality: 'auto', format: 'auto' }) : DEFAULT_OG_IMAGE;
       }
@@ -75,7 +75,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       description,
       type: 'website',
       locale: 'ar_SY',
-      siteName: 'سوق مارع الإلكتروني',
+      siteName: 'سوق الحرية الإلكتروني',
       images: [{
         url: imageUrl,
         width: 1200,
@@ -330,7 +330,7 @@ export default async function SharePage({ params }: PageProps) {
           {/* CTA Buttons */}
           <div style={{ padding: '20px 20px 24px' }}>
             <a href="/" className="btn-primary" style={{ marginBottom: '10px' }}>
-              🚀 فتح في سوق مارع
+              🚀 فتح في سوق الحرية
             </a>
             <a href="/?signup=true" className="btn-secondary" style={{ marginBottom: '16px' }}>
               📱 إنشاء حساب مجاني
@@ -342,7 +342,7 @@ export default async function SharePage({ params }: PageProps) {
                 <div style={{ width: '24px', height: '24px', borderRadius: '8px', overflow: 'hidden' }}>
                   <img src="/app-icon.png" alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                 </div>
-                <span style={{ fontSize: '13px', fontWeight: 700, color: '#022c22' }}>سوق مارع الإلكتروني</span>
+                <span style={{ fontSize: '13px', fontWeight: 700, color: '#022c22' }}>سوق الحرية الإلكتروني</span>
               </div>
               <p style={{ fontSize: '11px', color: '#cbd5e1' }}>
                 © {new Date().getFullYear()} جميع الحقوق محفوظة
@@ -366,7 +366,7 @@ export default async function SharePage({ params }: PageProps) {
             <span style={{ fontSize: '56px', marginBottom: '16px', display: 'block' }}>🔍</span>
             <h3 style={{ fontSize: '20px', fontWeight: 900, color: '#022c22', marginBottom: '8px' }}>لم يتم العثور على المحتوى</h3>
             <p style={{ fontSize: '14px', color: '#94a3b8', lineHeight: 1.8, marginBottom: '24px' }}>ربما تم حذف هذا العنصر أو الرابط غير صحيح</p>
-            <a href="/" className="btn-primary">🚀 افتح سوق مارع</a>
+            <a href="/" className="btn-primary">🚀 افتح سوق الحرية</a>
           </div>
         </div>
       )}

@@ -32,7 +32,7 @@ function getKey(): Buffer {
   if (process.env.NODE_ENV === 'production') {
     throw new Error('ENCRYPTION_KEY environment variable is required in production');
   }
-  return crypto.createHash('sha256').update('dev-only-encryption-key-souq-maare').digest();
+  return crypto.createHash('sha256').update('dev-only-encryption-key-suq-hurriya').digest();
 }
 
 /**

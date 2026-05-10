@@ -29,6 +29,7 @@ export interface Product {
   store_logo?: string;
   store_verified?: boolean;
   store_chat_enabled?: boolean;
+  store_governorate?: string | null;
 }
 
 // ===== Store Types =====
@@ -47,6 +48,8 @@ export interface Store {
   theme_color_changed_at?: string | null;
   followers_count?: number;
   is_following?: boolean;
+  governorate?: string | null;
+  city?: string | null;
   created_at: string;
 }
 

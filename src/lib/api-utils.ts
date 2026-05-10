@@ -26,6 +26,8 @@ export interface StoreData {
   category: string;
   is_verified: boolean;
   chat_enabled: boolean;
+  governorate: string | null;
+  city: string | null;
   created_at: string;
 }
 
@@ -66,6 +68,8 @@ export function mapStore(store: any): MappedStore {
     category: store.category,
     is_verified: store.is_verified ?? store.isVerified,
     chat_enabled: store.chat_enabled ?? store.chatEnabled ?? false,
+    governorate: store.governorate ?? null,
+    city: store.city ?? null,
     theme_color: (store.theme_color ?? store.themeColor) || null,
     theme_color_changed_at: store.theme_color_changed_at?.toISOString?.() ?? store.themeColorChangedAt?.toISOString?.() ?? store.theme_color_changed_at ?? store.themeColorChangedAt ?? null,
     is_featured: (store.is_featured ?? store.isFeatured) || false,

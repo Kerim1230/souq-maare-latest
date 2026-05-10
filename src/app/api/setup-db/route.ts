@@ -85,6 +85,46 @@ export const POST = withRoute(async (request: NextRequest) => {
     results.push({ table: 'verification_activity_log', action: 'check', status: 'ERROR', error: err.message });
   }
 
+  // ── 4. Check users.governorate / users.city columns ──
+  try {
+    const { data, error } = await sb
+      .from(TABLES.USERS)
+      .select('governorate, city')
+      .limit(1);
+    if (error && (error.message?.includes('governorate') || error.message?.includes('city'))) {
+      results.push({
+        table: 'users.governorate/city',
+        action: 'ADD COLUMNS (manual SQL required)',
+        status: 'MISSING',
+        error: 'Run: ALTER TABLE users ADD COLUMN IF NOT EXISTS governorate TEXT; ALTER TABLE users ADD COLUMN IF NOT EXISTS city TEXT;',
+      });
+    } else {
+      results.push({ table: 'users.governorate/city', action: 'check', status: 'EXISTS' });
+    }
+  } catch (err: any) {
+    results.push({ table: 'users.governorate/city', action: 'check', status: 'ERROR', error: err.message });
+  }
+
+  // ── 5. Check stores.governorate / stores.city columns ──
+  try {
+    const { data, error } = await sb
+      .from(TABLES.STORES)
+      .select('governorate, city')
+      .limit(1);
+    if (error && (error.message?.includes('governorate') || error.message?.includes('city'))) {
+      results.push({
+        table: 'stores.governorate/city',
+        action: 'ADD COLUMNS (manual SQL required)',
+        status: 'MISSING',
+        error: 'Run: ALTER TABLE stores ADD COLUMN IF NOT EXISTS governorate TEXT; ALTER TABLE stores ADD COLUMN IF NOT EXISTS city TEXT;',
+      });
+    } else {
+      results.push({ table: 'stores.governorate/city', action: 'check', status: 'EXISTS' });
+    }
+  } catch (err: any) {
+    results.push({ table: 'stores.governorate/city', action: 'check', status: 'ERROR', error: err.message });
+  }
+
   // ── Build SQL commands for manual execution ──
   const missingItems = results.filter(r => r.status === 'MISSING');
   const sqlCommands: string[] = [];
@@ -123,6 +163,22 @@ CREATE POLICY "Service role full access" ON support_tickets
     sqlCommands.push(`
 -- Add tier column to verifications table
 ALTER TABLE verifications ADD COLUMN IF NOT EXISTS tier TEXT NOT NULL DEFAULT 'bronze';
+`.trim());
+  }
+
+  if (missingItems.some(r => r.table === 'users.governorate/city')) {
+    sqlCommands.push(`
+-- Add governorate and city columns to users table
+ALTER TABLE users ADD COLUMN IF NOT EXISTS governorate TEXT;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS city TEXT;
+`.trim());
+  }
+
+  if (missingItems.some(r => r.table === 'stores.governorate/city')) {
+    sqlCommands.push(`
+-- Add governorate and city columns to stores table
+ALTER TABLE stores ADD COLUMN IF NOT EXISTS governorate TEXT;
+ALTER TABLE stores ADD COLUMN IF NOT EXISTS city TEXT;
 `.trim());
   }
 

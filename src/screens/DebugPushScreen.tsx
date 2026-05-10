@@ -319,7 +319,7 @@ export const DebugPushScreen: React.FC = () => {
 
     try {
       const registration = await navigator.serviceWorker.ready;
-      await registration.showNotification('🔍 إشعار تجريبي — سوق مارع', {
+      await registration.showNotification('🔍 إشعار تجريبي — سوق الحرية', {
         body: 'إذا ترى هذا الإشعار، فالنظام يعمل بشكل صحيح! ✅',
         icon: '/app-icon.png',
         badge: '/app-icon.png',

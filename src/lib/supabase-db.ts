@@ -110,6 +110,8 @@ export interface UserRow {
   avatar_url?: string | null;
   is_admin: boolean;
   points?: number;
+  governorate?: string | null;
+  city?: string | null;
   created_at?: string;
   updated_at?: string;
 }
@@ -175,6 +177,8 @@ export interface StoreRow {
   theme_color?: string | null;
   is_verified?: boolean;
   is_active?: boolean;
+  governorate?: string | null;
+  city?: string | null;
   created_at?: string;
   updated_at?: string;
 }
@@ -202,6 +206,8 @@ export async function createStore(data: {
   cover_url?: string;
   category?: string;
   chat_enabled?: boolean;
+  governorate?: string;
+  city?: string;
 }) {
   const sb = getSupabaseAdmin();
   return handleResponse(

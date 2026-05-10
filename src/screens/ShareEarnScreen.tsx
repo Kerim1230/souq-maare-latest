@@ -67,12 +67,12 @@ export const ShareEarnScreen: React.FC = () => {
   };
 
   const shareWhatsApp = () => {
-    const text = `🏪 سوق مارع الإلكتروني\nسجّل الآن واكتشف أفضل المتاجر والمنتجات المحلية!\n\n${referralLink}`;
+    const text = `🏪 سوق الحرية الإلكتروني\nسجّل الآن واكتشف أفضل المتاجر والمنتجات المحلية!\n\n${referralLink}`;
     window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
   };
 
   const shareTelegram = () => {
-    const text = `🏪 سوق مارع الإلكتروني - سجّل الآن واكتشف أفضل المتاجر والمنتجات المحلية!`;
+    const text = `🏪 سوق الحرية الإلكتروني - سجّل الآن واكتشف أفضل المتاجر والمنتجات المحلية!`;
     window.open(`https://t.me/share/url?url=${encodeURIComponent(referralLink)}&text=${encodeURIComponent(text)}`, '_blank');
   };
 
@@ -294,7 +294,7 @@ export const ShareEarnScreen: React.FC = () => {
                 نسخ رابط المتجر
               </button>
               <a
-                href={`https://wa.me/?text=${encodeURIComponent(`🏪 متجر: ${myStore.name}\n${myStore.description || ''}\n\n🛒 سوق مارع الإلكتروني\n${typeof window !== 'undefined' ? window.location.origin : ''}/share/store/${myStore.id}?ref=${user?.id || ''}`)}`}
+                href={`https://wa.me/?text=${encodeURIComponent(`🏪 متجر: ${myStore.name}\n${myStore.description || ''}\n\n🛒 سوق الحرية الإلكتروني\n${typeof window !== 'undefined' ? window.location.origin : ''}/share/store/${myStore.id}?ref=${user?.id || ''}`)}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex-1 py-3 rounded-xl bg-emerald-500 hover:bg-emerald-600 transition-colors text-[13px] font-bold text-white flex items-center justify-center gap-2 shadow-sm shadow-emerald-500/20"
@@ -308,7 +308,7 @@ export const ShareEarnScreen: React.FC = () => {
 
         {/* Footer */}
         <div className="text-center pt-2 pb-4">
-          <p className="text-[11px] text-[var(--color-text-tertiary)]">نظام الإحالات - سوق مارع الإلكتروني</p>
+          <p className="text-[11px] text-[var(--color-text-tertiary)]">نظام الإحالات - سوق الحرية الإلكتروني</p>
         </div>
       </div>
     </div>

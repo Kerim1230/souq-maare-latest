@@ -30,7 +30,8 @@ export const GET = withRoute(async (request: NextRequest) => {
         full_name: user.full_name,
         avatar_url: user.avatar_url,
         phone: user.phone,
-        city: user.city,
+        governorate: (user as any).governorate ?? null,
+        city: (user as any).city ?? null,
         is_admin: user.is_admin,
         created_at: user.created_at,
       },
@@ -52,7 +53,7 @@ export const PUT = withRoute(async (request: NextRequest) => {
     const sessionUserId = auth.userId;
 
     const body = await request.json();
-    const { userId, full_name, avatar_url, phone, city, currentPassword, newPassword } = body;
+    const { userId, full_name, avatar_url, phone, governorate, city, currentPassword, newPassword } = body;
 
     const userIdCheck = validateId(userId, 'معرف المستخدم');
     if (!userIdCheck.valid) return badRequest(userIdCheck.error!);
@@ -84,6 +85,16 @@ export const PUT = withRoute(async (request: NextRequest) => {
         supabaseUpdate.phone = phoneCheck.value!;
       } else {
         supabaseUpdate.phone = null;
+      }
+    }
+    if (governorate !== undefined) {
+      const trimmedGov = String(governorate).trim();
+      if (trimmedGov) {
+        const govCheck = sanitizeAndValidate(trimmedGov, 100, 'المحافظة');
+        if (!govCheck.valid) return badRequest(govCheck.error!);
+        supabaseUpdate.governorate = govCheck.value!;
+      } else {
+        supabaseUpdate.governorate = null;
       }
     }
     if (city !== undefined) {
@@ -153,7 +164,8 @@ export const PUT = withRoute(async (request: NextRequest) => {
         full_name: updatedUser.full_name,
         avatar_url: updatedUser.avatar_url,
         phone: updatedUser.phone,
-        city: updatedUser.city,
+        governorate: (updatedUser as any).governorate ?? null,
+        city: (updatedUser as any).city ?? null,
         created_at: updatedUser.created_at,
       },
     });

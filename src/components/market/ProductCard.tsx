@@ -1,6 +1,6 @@
 'use client';
 import React, { memo, useCallback, useMemo, useRef, useState } from 'react';
-import { Heart, Loader2, Share2, Flag, Clock, Verified } from 'lucide-react';
+import { Heart, Loader2, Share2, Flag, Clock, Verified, MapPin } from 'lucide-react';
 import { SafeImage, StoreLogo } from '@/components/market/SafeImage';
 import { getTimeRemaining, getUrgencyColors } from '@/store/autoDeleteStore';
 import toast from 'react-hot-toast';
@@ -15,6 +15,7 @@ export interface ProductCardData {
   store_name?: string;
   store_logo?: string;
   store_verified?: boolean;
+  store_governorate?: string | null;
   is_new?: boolean;
   is_featured?: boolean;
   expires_at?: string | null;
@@ -89,13 +90,21 @@ export const ProductCard: React.FC<ProductCardProps> = memo(({
   const storeInfo = useMemo(() => {
     if (!product.store_name) return null;
     return (
-      <div className="flex items-center gap-1 mb-1">
-        {product.store_logo && <StoreLogo src={product.store_logo} name={product.store_name} size="xs" />}
-        <span className="text-[10px] text-emerald-600 font-bold line-clamp-1">{product.store_name}</span>
-        {product.store_verified && <Verified className="w-3 h-3 text-emerald-500 flex-shrink-0" />}
+      <div className="mb-1">
+        <div className="flex items-center gap-1">
+          {product.store_logo && <StoreLogo src={product.store_logo} name={product.store_name} size="xs" />}
+          <span className="text-[10px] text-emerald-600 font-bold line-clamp-1">{product.store_name}</span>
+          {product.store_verified && <Verified className="w-3 h-3 text-emerald-500 flex-shrink-0" />}
+        </div>
+        {product.store_governorate && (
+          <div className="flex items-center gap-0.5 mt-0.5">
+            <MapPin className="w-2.5 h-2.5 text-[var(--color-text-tertiary)] flex-shrink-0" />
+            <span className="text-[10px] text-[var(--color-text-tertiary)] line-clamp-1">{product.store_governorate}</span>
+          </div>
+        )}
       </div>
     );
-  }, [product.store_name, product.store_logo, product.store_verified]);
+  }, [product.store_name, product.store_logo, product.store_verified, product.store_governorate]);
 
   // Memoize badges
   const badges = useMemo(() => (

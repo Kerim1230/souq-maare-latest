@@ -15,16 +15,16 @@ const cairo = Cairo({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_BASE_URL || 'https://souq-maare-latest.vercel.app'),
+  metadataBase: new URL(process.env.NEXT_PUBLIC_BASE_URL || 'https://suq-hurriya.vercel.app'),
   title: {
-    default: 'سوق مارع الإلكتروني | تسوق بكل سهولة وأمان',
-    template: '%s | سوق مارع',
+    default: 'سوق الحرية الإلكتروني | تسوق بكل سهولة وأمان',
+    template: '%s | سوق الحرية',
   },
-  description: 'سوق مارع الإلكتروني - تسوق بكل سهولة وأمان. منتجات متنوعة، متاجر محلية، عروض حصرية وأسعار مناسبة.',
-  keywords: ['سوق مارع', 'تسوق إلكتروني', 'متاجر محلية', 'منتجات', 'عروض', 'مارع'],
-  authors: [{ name: 'سوق مارع' }],
-  creator: 'سوق مارع',
-  publisher: 'سوق مارع',
+  description: 'سوق الحرية الإلكتروني - تسوق بكل سهولة وأمان. منتجات متنوعة، متاجر محلية، عروض حصرية وأسعار مناسبة.',
+  keywords: ['سوق الحرية', 'تسوق إلكتروني', 'متاجر محلية', 'منتجات', 'عروض', 'الحرية'],
+  authors: [{ name: 'سوق الحرية' }],
+  creator: 'سوق الحرية',
+  publisher: 'سوق الحرية',
   formatDetection: {
     email: false,
     address: false,
@@ -33,13 +33,13 @@ export const metadata: Metadata = {
   openGraph: {
     type: 'website',
     locale: 'ar_SY',
-    siteName: 'سوق مارع الإلكتروني',
-    title: 'سوق مارع الإلكتروني',
+    siteName: 'سوق الحرية الإلكتروني',
+    title: 'سوق الحرية الإلكتروني',
     description: 'تسوق بكل سهولة وأمان - منتجات متنوعة ومتاجر محلية',
   },
   twitter: {
     card: 'summary',
-    title: 'سوق مارع الإلكتروني',
+    title: 'سوق الحرية الإلكتروني',
     description: 'تسوق بكل سهولة وأمان',
   },
   robots: {
@@ -80,7 +80,7 @@ export default function RootLayout({
           attribute="class"
           defaultTheme="light"
           enableSystem={false}
-          storageKey="suq-mara3-theme"
+          storageKey="suq-hurriya-theme"
         >
           <PwaInstallListener />
           {children}

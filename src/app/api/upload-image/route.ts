@@ -67,7 +67,7 @@ export const POST = withRoute(async (request: NextRequest) => {
 
     // ── Upload to Cloudinary ─────────────────────────────────────
     const result = await uploadImage(image, {
-      folder: 'souq-maare/uploads',
+      folder: 'suq-hurriya/uploads',
     })
 
     logger.info('Image uploaded to Cloudinary', 'Upload', {

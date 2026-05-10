@@ -197,7 +197,7 @@ export const ShareSheet: React.FC<ShareSheetProps> = memo(({
     if (itemPrice) text += `\n💰 ${itemPrice}`;
     if (discount) text += `\n🔥 خصم ${discount}`;
     if (itemDescription) text += `\n${itemDescription}`;
-    text += `\n\n🛒 سوق مارع الإلكتروني`;
+    text += `\n\n🛒 سوق الحرية الإلكتروني`;
     return text;
   }, [itemType, itemName, storeName, itemPrice, discount, itemDescription]);
 
@@ -249,7 +249,7 @@ export const ShareSheet: React.FC<ShareSheetProps> = memo(({
     if (navigator.share) {
       try {
         await navigator.share({
-          title: `${itemName} - سوق مارع`,
+          title: `${itemName} - سوق الحرية`,
           text: getShareText(),
           url: shareUrl,
         });

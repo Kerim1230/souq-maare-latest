@@ -17,11 +17,15 @@ function escapeIlike(str: string): string {
 }
 
 /**
- * GET /api/search?q=...&limit=10&type=all|products|stores|offers
+ * GET /api/search?q=...&limit=10&type=all|products|stores|offers&governorate=...&city=...
  *
  * Aggregated search endpoint — returns products, stores, and offers
  * in a single request using Supabase/PostgreSQL.
  * Cached for 1 minute — search results are volatile.
+ *
+ * Optional location filters:
+ *   ?governorate=دمشق   — filter stores/products/offers by governorate
+ *   ?city=المزة          — filter stores/products/offers by city
  */
 export const GET = withRoute(async (request: NextRequest) => {
   try {
@@ -32,17 +36,19 @@ export const GET = withRoute(async (request: NextRequest) => {
     const query = searchParams.get('q')?.trim();
     const limit = Math.min(Math.max(parseInt(searchParams.get('limit') || '10', 10) || 10, 1), 50);
     const type = searchParams.get('type') || 'all';
+    const governorate = searchParams.get('governorate')?.trim() || undefined;
+    const city = searchParams.get('city')?.trim() || undefined;
 
     if (!query) {
       return success({ products: [], stores: [], offers: [] });
     }
 
-    // Build cache key from search params
-    const cacheKey = `search:q=${query}:limit=${limit}:type=${type}`;
+    // Build cache key from search params (include location filters if present)
+    const cacheKey = `search:q=${query}:limit=${limit}:type=${type}:gov=${governorate ?? ''}:city=${city ?? ''}`;
 
     const data = await cachedQuery(
       cacheKey,
-      () => searchFromSupabase(query, limit, type),
+      () => searchFromSupabase(query, limit, type, governorate, city),
       CACHE_TTL.SEARCH,
     );
 
@@ -55,20 +61,39 @@ export const GET = withRoute(async (request: NextRequest) => {
 
 // ── Supabase Search ────────────────────────────────────────────────────────────
 
-async function searchFromSupabase(query: string, limit: number, type: string) {
+async function searchFromSupabase(
+  query: string,
+  limit: number,
+  type: string,
+  governorate?: string,
+  city?: string,
+) {
   const sb = getSupabaseAdmin();
   const escaped = escapeIlike(query);
+  const hasLocationFilter = !!(governorate || city);
   const tasks: Promise<void>[] = [];
   let products: any[] = [];
   let stores: any[] = [];
   let offers: any[] = [];
 
   if (type === 'all' || type === 'products') {
+    // When filtering by location, use an inner join with stores so we can
+    // filter on store.governorate / store.city
+    // Note: If governorate/city columns don't exist yet, fall back to regular search
+    const selectFields = hasLocationFilter
+      ? '*, store:stores!inner(governorate, city)'
+      : '*';
+
+    let productQuery = sb
+      .from(TABLES.PRODUCTS)
+      .select(selectFields)
+      .or(`name.ilike.%${escaped}%,description.ilike.%${escaped}%,category.ilike.%${escaped}%`);
+
+    if (hasLocationFilter && governorate) productQuery = productQuery.eq('store.governorate', governorate);
+    if (hasLocationFilter && city) productQuery = productQuery.eq('store.city', city);
+
     tasks.push(
-      sb
-        .from(TABLES.PRODUCTS)
-        .select('*')
-        .or(`name.ilike.%${escaped}%,description.ilike.%${escaped}%,category.ilike.%${escaped}%`)
+      productQuery
         .order('created_at', { ascending: false })
         .limit(limit)
         .then(({ data, error }) => {
@@ -86,11 +111,16 @@ async function searchFromSupabase(query: string, limit: number, type: string) {
   }
 
   if (type === 'all' || type === 'stores') {
+    let storeQuery = sb
+      .from(TABLES.STORES)
+      .select('*')
+      .or(`name.ilike.%${escaped}%,description.ilike.%${escaped}%,category.ilike.%${escaped}%`);
+
+    if (hasLocationFilter && governorate) storeQuery = storeQuery.eq('governorate', governorate);
+    if (hasLocationFilter && city) storeQuery = storeQuery.eq('city', city);
+
     tasks.push(
-      sb
-        .from(TABLES.STORES)
-        .select('*')
-        .or(`name.ilike.%${escaped}%,description.ilike.%${escaped}%,category.ilike.%${escaped}%`)
+      storeQuery
         .order('created_at', { ascending: false })
         .limit(limit)
         .then(({ data, error }) => {
@@ -105,11 +135,21 @@ async function searchFromSupabase(query: string, limit: number, type: string) {
   }
 
   if (type === 'all' || type === 'offers') {
+    // When filtering by location, use an inner join with stores
+    const offerSelect = hasLocationFilter
+      ? '*, store:stores!inner(name, governorate, city)'
+      : '*, store:stores(name)';
+
+    let offerQuery = sb
+      .from(TABLES.STORE_OFFERS)
+      .select(offerSelect)
+      .or(`title.ilike.%${escaped}%,description.ilike.%${escaped}%`);
+
+    if (hasLocationFilter && governorate) offerQuery = offerQuery.eq('store.governorate', governorate);
+    if (hasLocationFilter && city) offerQuery = offerQuery.eq('store.city', city);
+
     tasks.push(
-      sb
-        .from(TABLES.STORE_OFFERS)
-        .select('*, store:stores(name)')
-        .or(`title.ilike.%${escaped}%,description.ilike.%${escaped}%`)
+      offerQuery
         .order('created_at', { ascending: false })
         .limit(limit)
         .then(({ data, error }) => {

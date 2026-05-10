@@ -460,7 +460,7 @@ export const WalletScreen: React.FC = () => {
 
         {/* ===== Footer ===== */}
         <div className="text-center pt-4 pb-4">
-          <p className="text-[11px] gradient-text-primary font-semibold">سوق مارع الإلكتروني</p>
+          <p className="text-[11px] gradient-text-primary font-semibold">سوق الحرية الإلكتروني</p>
           <p className="text-[10px] text-[var(--color-text-tertiary)] mt-0.5">نظام إدارة النقاط</p>
         </div>
       </div>

@@ -27,6 +27,7 @@ import toast from 'react-hot-toast';
 import { apiGet, apiPost, apiPut, apiDelete, ensureCsrfReady, fetchApi } from '@/lib/fetchApi';
 import { useStoreTheme } from '@/hooks/useStoreTheme';
 import { uploadImage } from '@/lib/upload-utils';
+import { getGovernorateNames, getCitiesForGovernorate } from '@/lib/syria-data';
 
 // Sorted category list from CATEGORY_META (same source as CategoryGrid on home page)
 const SORTED_CATEGORIES: string[] = Object.keys(CATEGORY_META).sort((a, b) => a.localeCompare(b, 'ar'));
@@ -89,6 +90,8 @@ export const MyStoreScreen: React.FC = () => {
   const [storeCategory, setStoreCategory] = useState(DEFAULT_CATEGORY);
   const [storeLogo, setStoreLogo] = useState<string | null>(null);
   const [storeCover, setStoreCover] = useState<string | null>(null);
+  const [storeGovernorate, setStoreGovernorate] = useState('');
+  const [storeCity, setStoreCity] = useState('');
   const [creatingStore, setCreatingStore] = useState(false);
 
   // Add Product
@@ -153,6 +156,8 @@ export const MyStoreScreen: React.FC = () => {
   const [editLogo, setEditLogo] = useState<string | null>(null);
   const [editCover, setEditCover] = useState<string | null>(null);
   const [editCategory, setEditCategory] = useState(DEFAULT_CATEGORY);
+  const [editGovernorate, setEditGovernorate] = useState('');
+  const [editCity, setEditCity] = useState('');
   const [savingStore, setSavingStore] = useState(false);
 
   // Delete Store
@@ -194,6 +199,8 @@ export const MyStoreScreen: React.FC = () => {
         setEditLogo(store.logo_url || null);
         setEditCover(store.cover_url || null);
         setEditCategory(store.category || firstCategory);
+        setEditGovernorate(store.governorate || '');
+        setEditCity(store.city || '');
       }
     } catch (err) {
       // API failure (e.g. stores table missing) — treat as "no store yet"
@@ -283,7 +290,7 @@ export const MyStoreScreen: React.FC = () => {
         setCreatingStore(false);
         return;
       }
-      const { data, error } = await apiPost('/api/my-store', { userId: user.id, name: storeName, description: storeDesc, category: storeCategory, logoUrl, coverUrl });
+      const { data, error } = await apiPost('/api/my-store', { userId: user.id, name: storeName, description: storeDesc, category: storeCategory, governorate: storeGovernorate, city: storeCity, logoUrl, coverUrl });
       if (error) {
         console.error('Store API error:', error);
         toast.error(error);
@@ -291,7 +298,7 @@ export const MyStoreScreen: React.FC = () => {
       }
       if (data?.store) { setMyStore(data.store); }
       setShowCreateStore(false);
-      setStoreName(''); setStoreDesc(''); setStoreLogo(null); setStoreCover(null);
+      setStoreName(''); setStoreDesc(''); setStoreLogo(null); setStoreCover(null); setStoreGovernorate(''); setStoreCity('');
       toast.success('تم إنشاء متجرك بنجاح!');
     } catch (err) {
       console.error('Store creation error:', err);
@@ -317,7 +324,7 @@ export const MyStoreScreen: React.FC = () => {
         uploadImage(editLogo),
         uploadImage(editCover),
       ]);
-      const { data, error } = await apiPut('/api/my-store', { storeId: myStore.id, name: editName, description: editDesc, logoUrl, coverUrl, category: editCategory });
+      const { data, error } = await apiPut('/api/my-store', { storeId: myStore.id, name: editName, description: editDesc, logoUrl, coverUrl, category: editCategory, governorate: editGovernorate, city: editCity });
       if (error) {
         toast.error(error);
         return;
@@ -1041,7 +1048,7 @@ export const MyStoreScreen: React.FC = () => {
       {/* ===== MODALS ===== */}
 
       {/* Create Store Modal */}
-      <Modal isOpen={showCreateStore} onClose={() => { setShowCreateStore(false); setStoreName(''); setStoreDesc(''); setStoreLogo(null); setStoreCover(null); }} title="إنشاء متجر جديد" size="lg">
+      <Modal isOpen={showCreateStore} onClose={() => { setShowCreateStore(false); setStoreName(''); setStoreDesc(''); setStoreLogo(null); setStoreCover(null); setStoreGovernorate(''); setStoreCity(''); }} title="إنشاء متجر جديد" size="lg">
         <div className="space-y-4">
           <ImageUploader label="شعار المتجر (اختياري)" value={storeLogo} onChange={setStoreLogo} height="h-28" />
           <ImageUploader label="صورة الغلاف (اختياري)" value={storeCover} onChange={setStoreCover} height="h-32" />
@@ -1051,6 +1058,20 @@ export const MyStoreScreen: React.FC = () => {
             <label className="text-[13px] font-bold text-emerald-900 dark:text-emerald-300 block mb-1.5">فئة المتجر</label>
             <select value={storeCategory} onChange={(e) => setStoreCategory(e.target.value)} className="w-full border border-emerald-100 dark:border-emerald-800 rounded-xl px-3.5 py-3 text-[13px] text-[var(--color-text)] font-medium focus:ring-2 focus:ring-emerald-500/15 focus:border-emerald-400 outline-none bg-[var(--color-surface)]">
               {SORTED_CATEGORIES.map(name => (<option key={name} value={name}>{CATEGORY_META[name].emoji} {name}</option>))}
+            </select>
+          </div>
+          <div>
+            <label className="text-[13px] font-bold text-emerald-900 dark:text-emerald-300 block mb-1.5">المحافظة</label>
+            <select value={storeGovernorate} onChange={(e) => { setStoreGovernorate(e.target.value); setStoreCity(''); }} className="w-full border border-emerald-100 dark:border-emerald-800 rounded-xl px-3.5 py-3 text-[13px] text-[var(--color-text)] font-medium focus:ring-2 focus:ring-emerald-500/15 focus:border-emerald-400 outline-none bg-[var(--color-surface)]">
+              <option value="">اختر المحافظة</option>
+              {getGovernorateNames().map(name => (<option key={name} value={name}>{name}</option>))}
+            </select>
+          </div>
+          <div>
+            <label className="text-[13px] font-bold text-emerald-900 dark:text-emerald-300 block mb-1.5">المدينة</label>
+            <select value={storeCity} onChange={(e) => setStoreCity(e.target.value)} disabled={!storeGovernorate} className="w-full border border-emerald-100 dark:border-emerald-800 rounded-xl px-3.5 py-3 text-[13px] text-[var(--color-text)] font-medium focus:ring-2 focus:ring-emerald-500/15 focus:border-emerald-400 outline-none bg-[var(--color-surface)] disabled:opacity-50 disabled:cursor-not-allowed">
+              <option value="">اختر المدينة</option>
+              {storeGovernorate && getCitiesForGovernorate(storeGovernorate).map(city => (<option key={city} value={city}>{city}</option>))}
             </select>
           </div>
           <Button fullWidth onClick={handleCreateStore} loading={creatingStore} disabled={!storeName.trim()} icon={<Store className="w-5 h-5" />}>إنشاء المتجر</Button>
@@ -1068,6 +1089,20 @@ export const MyStoreScreen: React.FC = () => {
             <label className="text-[13px] font-bold text-emerald-900 dark:text-emerald-300 block mb-1.5">فئة المتجر</label>
             <select value={editCategory} onChange={(e) => setEditCategory(e.target.value)} className="w-full border border-emerald-100 dark:border-emerald-800 rounded-xl px-3.5 py-3 text-[13px] text-[var(--color-text)] font-medium focus:ring-2 focus:ring-emerald-500/15 focus:border-emerald-400 outline-none bg-[var(--color-surface)]">
               {SORTED_CATEGORIES.map(name => (<option key={name} value={name}>{CATEGORY_META[name].emoji} {name}</option>))}
+            </select>
+          </div>
+          <div>
+            <label className="text-[13px] font-bold text-emerald-900 dark:text-emerald-300 block mb-1.5">المحافظة</label>
+            <select value={editGovernorate} onChange={(e) => { setEditGovernorate(e.target.value); setEditCity(''); }} className="w-full border border-emerald-100 dark:border-emerald-800 rounded-xl px-3.5 py-3 text-[13px] text-[var(--color-text)] font-medium focus:ring-2 focus:ring-emerald-500/15 focus:border-emerald-400 outline-none bg-[var(--color-surface)]">
+              <option value="">اختر المحافظة</option>
+              {getGovernorateNames().map(name => (<option key={name} value={name}>{name}</option>))}
+            </select>
+          </div>
+          <div>
+            <label className="text-[13px] font-bold text-emerald-900 dark:text-emerald-300 block mb-1.5">المدينة</label>
+            <select value={editCity} onChange={(e) => setEditCity(e.target.value)} disabled={!editGovernorate} className="w-full border border-emerald-100 dark:border-emerald-800 rounded-xl px-3.5 py-3 text-[13px] text-[var(--color-text)] font-medium focus:ring-2 focus:ring-emerald-500/15 focus:border-emerald-400 outline-none bg-[var(--color-surface)] disabled:opacity-50 disabled:cursor-not-allowed">
+              <option value="">اختر المدينة</option>
+              {editGovernorate && getCitiesForGovernorate(editGovernorate).map(city => (<option key={city} value={city}>{city}</option>))}
             </select>
           </div>
           <Button fullWidth onClick={handleSaveStore} loading={savingStore} icon={<Edit3 className="w-5 h-5" />}>حفظ التغييرات</Button>

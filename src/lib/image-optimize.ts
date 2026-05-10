@@ -17,7 +17,7 @@ export interface ImageOptimizeOptions {
   crop?: 'fill' | 'fit' | 'limit' | 'thumb' | 'scale' | 'pad' | 'lpad' | 'mpad' | 'crop';
 }
 
-const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://souq-maare-latest.vercel.app';
+const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://suq-hurriya.vercel.app';
 
 /**
  * Cloudinary URL pattern:
