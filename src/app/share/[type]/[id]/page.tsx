@@ -82,6 +82,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
         height: 630,
         alt: title,
         type: 'image/jpeg',
+        secureUrl: imageUrl,
       }],
     },
     twitter: {
@@ -96,6 +97,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     other: {
       'og:image:width': '1200',
       'og:image:height': '630',
+      'og:image:type': 'image/jpeg',
     },
   };
 }

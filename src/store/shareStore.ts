@@ -67,7 +67,8 @@ export const useShareStore = create<ShareState>((set, get) => ({
 
   getShareUrl: (type, id) => {
     const base = typeof window !== 'undefined' ? window.location.origin : '';
-    return `${base}/share/${type}/${id}`;
+    // Cache-busting param forces WhatsApp/Facebook crawlers to re-fetch OG data
+    return `${base}/share/${type}/${id}?v=${Date.now()}`;
   },
 
   recordShare: async ({ itemType, itemId, itemName, itemNameAr, storeId, storeName, imageUrl, platform }) => {

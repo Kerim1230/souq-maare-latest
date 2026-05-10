@@ -32,7 +32,7 @@ const PLATFORMS = [
     icon: <MessageCircle className="w-5 h-5" />,
     color: 'bg-emerald-500',
     hoverColor: 'hover:bg-emerald-600',
-    getUrl: (url: string, text: string) => `https://wa.me/?text=${encodeURIComponent(`${text}\n${url}`)}`,
+    getUrl: (url: string, text: string) => `https://wa.me/?text=${encodeURIComponent(text + '\n' + url)}`,
   },
   {
     key: 'telegram',
@@ -204,6 +204,7 @@ export const ShareSheet: React.FC<ShareSheetProps> = memo(({
   const handlePlatformShare = useCallback((platform: typeof PLATFORMS[number]) => {
     const text = getShareText();
     const url = platform.getUrl(shareUrl, text);
+    console.log('[Share] Platform:', platform.key, 'Image:', imageUrl, 'URL:', shareUrl);
     window.open(url, '_blank', 'width=600,height=400');
     recordShare({
       itemType, itemId, itemName, itemNameAr: itemName,
@@ -248,6 +249,38 @@ export const ShareSheet: React.FC<ShareSheetProps> = memo(({
   const handleNativeShare = useCallback(async () => {
     if (navigator.share) {
       try {
+        console.log('[Share] Platform: native', 'Image:', imageUrl);
+
+        // If image is available and Web Share API supports files, share the image directly
+        if (imageUrl && navigator.canShare?.({ files: [] })) {
+          try {
+            const response = await fetch(imageUrl);
+            const blob = await response.blob();
+            const file = new File([blob], 'share.jpg', { type: blob.type || 'image/jpeg' });
+            const shareData: ShareData = {
+              title: `${itemName} - سوق شامل`,
+              text: getShareText(),
+              url: shareUrl,
+              files: [file],
+            };
+            // Check if this share data is supported before sharing
+            if (navigator.canShare(shareData)) {
+              await navigator.share(shareData);
+              recordShare({
+                itemType, itemId, itemName, itemNameAr: itemName,
+                storeId: itemType !== 'store' ? undefined : itemId,
+                storeName, imageUrl, platform: 'native',
+              });
+              onClose();
+              return;
+            }
+          } catch {
+            // If file sharing fails, fall back to text+url sharing
+            console.log('[Share] File sharing not supported, falling back to text+url');
+          }
+        }
+
+        // Fallback: share text + URL without image
         await navigator.share({
           title: `${itemName} - سوق شامل`,
           text: getShareText(),
