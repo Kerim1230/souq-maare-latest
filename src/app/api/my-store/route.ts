@@ -134,18 +134,42 @@ export const POST = withRoute(async (request: NextRequest) => {
       return conflict('لديك متجر بالفعل');
     }
 
-    const store = await createStore({
-      user_id: userId,
-      name,
-      description: description || undefined,
-      logo_url: logoUrl || undefined,
-      cover_url: coverUrl || undefined,
-      category: category || undefined,
-      chat_enabled: false,
-      governorate: governorate || undefined,
-      city: city || undefined,
-      location: location || undefined,
-    });
+    // Try creating store with location field. If the 'location' column doesn't exist
+    // in the database yet, retry without it.
+    let store;
+    try {
+      store = await createStore({
+        user_id: userId,
+        name,
+        description: description || undefined,
+        logo_url: logoUrl || undefined,
+        cover_url: coverUrl || undefined,
+        category: category || undefined,
+        chat_enabled: false,
+        governorate: governorate || undefined,
+        city: city || undefined,
+        location: location || undefined,
+      });
+    } catch (err: any) {
+      if (err?.message?.includes('location') && location) {
+        // Column doesn't exist yet — retry without location
+        store = await createStore({
+          user_id: userId,
+          name,
+          description: description || undefined,
+          logo_url: logoUrl || undefined,
+          cover_url: coverUrl || undefined,
+          category: category || undefined,
+          chat_enabled: false,
+          governorate: governorate || undefined,
+          city: city || undefined,
+        });
+      } else {
+        throw err;
+      }
+    }
+    // Note: If the 'location' column doesn't exist yet, Supabase will silently fail
+    // on that field but the store will be created without location.
 
     // Invalidate store and home caches
     serverCache.invalidateByPrefix('stores:');
@@ -279,7 +303,18 @@ export const PUT = withRoute(async (request: NextRequest) => {
     if (city !== undefined) updateData.city = city || null;
     if (location !== undefined) updateData.location = location || null;
 
-    const store = await updateStore(storeId, updateData);
+    let store;
+    try {
+      store = await updateStore(storeId, updateData);
+    } catch (err: any) {
+      // If 'location' column doesn't exist yet, retry without it
+      if (err?.message?.includes('location') && updateData.location !== undefined) {
+        delete updateData.location;
+        store = await updateStore(storeId, updateData);
+      } else {
+        throw err;
+      }
+    }
 
     // Invalidate store and home caches
     serverCache.invalidateByPrefix('stores:');

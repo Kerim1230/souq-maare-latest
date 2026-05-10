@@ -7,8 +7,8 @@ import { success, serverError, forbidden } from '@/lib/api-response';
  * 
  * This route tries multiple approaches:
  * 1. Check if column already exists via Supabase REST API
- * 2. Try connecting to PostgreSQL directly via IPv6 (Vercel has IPv6 support)
- * 3. Try connecting via Supabase pooler with SUPABASE_DB_PASSWORD env var
+ * 2. Try using pg module with direct connection (needs SUPABASE_DB_PASSWORD)
+ * 3. Try using the Supabase Management API SQL endpoint (needs SUPABASE_ACCESS_TOKEN)
  * 
  * Call: POST /api/migrate?secret=add-location-2024
  */
@@ -33,15 +33,17 @@ export async function POST(request: NextRequest) {
       return success({ message: 'Column "location" already exists', alreadyExists: true });
     }
 
-    const pg = await import('pg');
-    const Client = pg.Client;
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
-    const projectRef = supabaseUrl.replace('https://', '').replace('.supabase.co', '');
-    const dbPassword = process.env.SUPABASE_DB_PASSWORD;
     const errors: string[] = [];
 
-    // Approach 1: Direct connection via IPv6 (works on Vercel)
+    // Approach 1: Try using pg module with SUPABASE_DB_PASSWORD
+    const dbPassword = process.env.SUPABASE_DB_PASSWORD;
     if (dbPassword) {
+      const pg = await import('pg');
+      const Client = pg.Client;
+      const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
+      const projectRef = supabaseUrl.replace('https://', '').replace('.supabase.co', '');
+      
+      // Direct connection via IPv6
       const directConnStr = `postgresql://postgres:${encodeURIComponent(dbPassword)}@db.${projectRef}.supabase.co:5432/postgres`;
       const client = new Client({ 
         connectionString: directConnStr, 
@@ -61,7 +63,7 @@ export async function POST(request: NextRequest) {
         try { await client.end(); } catch {}
       }
 
-      // Approach 2: Pooler connection
+      // Pooler connections
       const regions = ['us-east-1', 'us-east-2', 'us-west-1', 'eu-west-1', 'eu-central-1', 'ap-southeast-1'];
       for (const region of regions) {
         const connStr = `postgresql://postgres.${projectRef}:${encodeURIComponent(dbPassword)}@aws-0-${region}.pooler.supabase.com:6543/postgres`;
@@ -85,8 +87,40 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    if (!dbPassword) {
-      return serverError('SUPABASE_DB_PASSWORD not set. Please add it to Vercel env vars or run this SQL in Supabase Dashboard: ALTER TABLE stores ADD COLUMN IF NOT EXISTS location TEXT;');
+    // Approach 2: Try using Supabase Management API SQL endpoint
+    const accessToken = process.env.SUPABASE_ACCESS_TOKEN;
+    if (accessToken) {
+      const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
+      const projectRef = supabaseUrl.replace('https://', '').replace('.supabase.co', '');
+      
+      try {
+        const response = await fetch(`https://api.supabase.com/v1/projects/${projectRef}/database/query`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${accessToken}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ query: 'ALTER TABLE stores ADD COLUMN IF NOT EXISTS location TEXT' }),
+        });
+        
+        const result = await response.json();
+        if (response.ok) {
+          return success({ message: 'Column added via Management API', method: 'management-api' });
+        } else {
+          errors.push(`management-api: ${JSON.stringify(result)}`);
+        }
+      } catch (err: any) {
+        errors.push(`management-api: ${err.message}`);
+      }
+    }
+
+    // If no credentials available, provide instructions
+    const instructions = [];
+    if (!dbPassword) instructions.push('Set SUPABASE_DB_PASSWORD env var in Vercel');
+    if (!accessToken) instructions.push('Set SUPABASE_ACCESS_TOKEN env var in Vercel');
+    
+    if (instructions.length > 0) {
+      return serverError(`Missing credentials: ${instructions.join(', ')}. Alternatively, run this SQL in the Supabase Dashboard SQL editor (https://supabase.com/dashboard/project/frnciyaigyldpihxwnbt/sql): ALTER TABLE stores ADD COLUMN IF NOT EXISTS location TEXT; Errors: ${errors.join('; ')}`);
     }
 
     return serverError(`All connection attempts failed: ${errors.join('; ')}`);
