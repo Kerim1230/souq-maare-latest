@@ -32,7 +32,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
         title = `${store.name} - سوق شامل`;
         description = store.description || `${store.name} في سوق شامل الإلكتروني`;
         const rawImage = store.logo_url || store.cover_url;
-        imageUrl = rawImage ? optimizeImage(rawImage, { width: 1200, height: 630, crop: 'fill', quality: 'auto', format: 'auto' }) : DEFAULT_OG_IMAGE;
+        imageUrl = rawImage ? optimizeImage(rawImage, { width: 1200, height: 630, crop: 'fill', quality: 'auto', format: 'jpg' }) : DEFAULT_OG_IMAGE;
       }
     } else if (type === 'product') {
       const { data: product } = await sb
@@ -44,7 +44,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
         const storeName = ((product.store as unknown as { name: string } | null)?.name) || '';
         title = `${product.name} - ${storeName}`;
         description = `${Number(product.price).toLocaleString()} ل.س • ${storeName} • سوق شامل`;
-        imageUrl = product.image_url ? optimizeImage(product.image_url, { width: 1200, height: 630, crop: 'fill', quality: 'auto', format: 'auto' }) : DEFAULT_OG_IMAGE;
+        imageUrl = product.image_url ? optimizeImage(product.image_url, { width: 1200, height: 630, crop: 'fill', quality: 'auto', format: 'jpg' }) : DEFAULT_OG_IMAGE;
       }
     } else if (type === 'offer' || type === 'contest') {
       const { data: offer } = await sb
@@ -57,7 +57,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
         const label = offer.type === 'contest' ? 'مسابقة' : 'عرض';
         title = `${label}: ${offer.title} - سوق شامل`;
         description = `${offer.description || offer.title} • ${storeName}`;
-        imageUrl = offer.image_url ? optimizeImage(offer.image_url, { width: 1200, height: 630, crop: 'fill', quality: 'auto', format: 'auto' }) : DEFAULT_OG_IMAGE;
+        imageUrl = offer.image_url ? optimizeImage(offer.image_url, { width: 1200, height: 630, crop: 'fill', quality: 'auto', format: 'jpg' }) : DEFAULT_OG_IMAGE;
       }
     }
   } catch { /* ignore db errors */ }

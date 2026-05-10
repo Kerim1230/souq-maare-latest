@@ -9,9 +9,14 @@ export default function robots(): MetadataRoute.Robots {
       {
         userAgent: '*',
         allow: '/',
-        disallow: ['/api/', '/admin/', '/share/'],
+        disallow: ['/api/', '/admin/'],
+      },
+      // Allow social media crawlers to access share pages for OG previews
+      {
+        userAgent: ['facebookexternalhit', 'Facebot', 'Twitterbot', 'WhatsApp', 'TelegramBot', 'Slackbot', 'Discordbot', 'Googlebot'],
+        allow: '/share/',
       },
     ],
-    sitemap: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://suq-shamel.com'}/sitemap.xml`,
+    sitemap: `${process.env.NEXT_PUBLIC_BASE_URL || 'https://suq-shamel.vercel.app'}/sitemap.xml`,
   }
 }

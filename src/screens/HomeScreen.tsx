@@ -235,13 +235,33 @@ export const HomeScreen: React.FC = () => {
     setShareTarget(null);
   }, []);
 
+  // ── Stale-While-Revalidate: localStorage cache for instant load ──
+  const HOME_CACHE_KEY = 'suq-shamel-home-cache';
+  const HOME_CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+
+  const loadCachedData = useCallback(() => {
+    try {
+      const raw = localStorage.getItem(HOME_CACHE_KEY);
+      if (!raw) return null;
+      const cached = JSON.parse(raw);
+      if (Date.now() - cached.ts > HOME_CACHE_TTL) return null;
+      return cached.data;
+    } catch { return null; }
+  }, []);
+
+  const saveCachedData = useCallback((data: any) => {
+    try {
+      localStorage.setItem(HOME_CACHE_KEY, JSON.stringify({ data, ts: Date.now() }));
+    } catch { /* quota exceeded */ }
+  }, []);
+
   // ── Navigation Fetch Guard — skip re-fetch if user navigated back within 30s ──
   const lastFetchTime = useRef(0);
   const lastFetchSuccess = useRef(false);
   const prevUserIdRef = useRef<string | undefined>(user?.id);
   const HOME_FETCH_COOLDOWN = 30_000; // 30 seconds
 
-  // ── Data fetch: Progressive loading with useTransition ──
+  // ── Data fetch ──
   const fetchHomeData = useCallback(async (signal?: AbortSignal) => {
     const url = `/api/home?userId=${user?.id || ''}&fpPage=1&npPage=1`;
     const { data, error } = await fetchApi(url, { signal });
@@ -249,15 +269,37 @@ export const HomeScreen: React.FC = () => {
     return data;
   }, [user?.id]);
 
-  // Initial load
+  // ── Apply data to state — single batch update, no sequential delays ──
+  const applyHomeData = useCallback((data: any) => {
+    startTransition(() => {
+      setFS(data?.featured_stores || []);
+      setStoresLoaded(true);
+      setFP((data?.featured_products || []) as ProductCardData[]);
+      setNP((data?.new_products || []) as ProductCardData[]);
+      setProductsLoaded(true);
+      setAllOffers(data?.offers || []);
+      setOffersLoaded(true);
+    });
+  }, [startTransition]);
+
+  // Initial load — show cached data instantly, then fetch fresh
   useEffect(() => {
     const userIdChanged = prevUserIdRef.current !== user?.id;
     prevUserIdRef.current = user?.id;
 
     const now = Date.now();
-    // Skip cooldown only if last fetch was successful; always retry on failure
     if (!userIdChanged && lastFetchSuccess.current && now - lastFetchTime.current < HOME_FETCH_COOLDOWN) return;
 
+    // STEP 1: Show cached data immediately if available (instant paint)
+    const cached = loadCachedData();
+    if (cached) {
+      applyHomeData(cached);
+      lastFetchSuccess.current = true;
+      lastFetchTime.current = Date.now();
+      console.log('[HomeScreen] Loaded from cache instantly');
+    }
+
+    // STEP 2: Fetch fresh data from server (stale-while-revalidate)
     console.log('[HomeScreen] Fetching home data...', { userId: user?.id, userIdChanged });
     const controller = new AbortController();
     const { signal } = controller;
@@ -275,45 +317,25 @@ export const HomeScreen: React.FC = () => {
           offers: data?.offers?.length || 0,
         });
 
-        // CRITICAL: Show stores first (visible above the fold)
-        startTransition(() => {
-          setFS(data?.featured_stores || []);
-          setStoresLoaded(true);
-        });
-
-        // DEFERRED: Show products after a micro-delay
-        setTimeout(() => {
-          if (cancelled) return;
-          startTransition(() => {
-            setFP((data?.featured_products || []) as ProductCardData[]);
-            setNP((data?.new_products || []) as ProductCardData[]);
-            setProductsLoaded(true);
-          });
-        }, 50);
-
-        // LAZY: Show offers last
-        setTimeout(() => {
-          if (cancelled) return;
-          startTransition(() => {
-            setAllOffers(data?.offers || []);
-            setOffersLoaded(true);
-          });
-        }, 100);
+        // Apply fresh data and save to cache
+        applyHomeData(data);
+        saveCachedData(data);
       })
       .catch(err => {
         if (!cancelled) {
           console.error('[HomeScreen] Fetch error:', err);
-          // Mark fetch as failed so cooldown doesn't block retry
           lastFetchSuccess.current = false;
-          // Show empty state so skeletons disappear and retry is possible
-          setStoresLoaded(true);
-          setProductsLoaded(true);
-          setOffersLoaded(true);
+          // Only show empty state if we don't have cached data
+          if (!cached) {
+            setStoresLoaded(true);
+            setProductsLoaded(true);
+            setOffersLoaded(true);
+          }
         }
       });
 
     return () => { cancelled = true; controller.abort(); };
-  }, [fetchHomeData]);
+  }, [fetchHomeData, loadCachedData, saveCachedData, applyHomeData]);
 
   // ── Auto-refresh every 60 seconds (silent, with thin progress bar) ──
   // Skips refresh if the user is interacting (modal open, typing in a field)
@@ -334,12 +356,8 @@ export const HomeScreen: React.FC = () => {
           if (!data) return;
           lastFetchTime.current = Date.now();
           lastFetchSuccess.current = true;
-          startTransition(() => {
-            setFS(data?.featured_stores || []);
-            setFP((data?.featured_products || []) as ProductCardData[]);
-            setNP((data?.new_products || []) as ProductCardData[]);
-            setAllOffers(data?.offers || []);
-          });
+          applyHomeData(data);
+          saveCachedData(data);
           console.log('[HomeScreen] Auto-refreshed successfully');
         })
         .catch(() => { /* silent refresh failure */ })
