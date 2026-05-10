@@ -122,7 +122,7 @@ export const ProductCard: React.FC<ProductCardProps> = memo(({
     <div
       onClick={() => onOpen?.(product)}
       className="bg-[var(--color-surface)] rounded-2xl overflow-hidden border border-[var(--color-border)] shadow-sm cursor-pointer active:opacity-80"
-      style={{ contain: 'layout style paint', contentVisibility: 'auto' }}
+      style={{ contain: 'layout style' }}
     >
       <div className={`relative ${horizontal ? 'aspect-square' : 'aspect-[4/3]'} bg-gradient-to-br from-emerald-50/50 to-teal-50/50 overflow-hidden`}>
         <SafeImage src={product.image_url} alt={product.name} className="w-full h-full object-cover" />

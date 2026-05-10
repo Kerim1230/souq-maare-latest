@@ -171,8 +171,13 @@
     animation: shimmer 1.5s infinite;
   }
 
-  /* Bottom nav */
+  /* Bottom nav — fixed to viewport bottom */
   .bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 100;
     background: rgba(255, 255, 255, 0.94);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
@@ -223,21 +228,9 @@
     color-scheme: dark;
   }
 
-  /* Performance: Content visibility for sections below the fold */
-  section, [data-section] {
-    content-visibility: auto;
-    contain-intrinsic-size: 0 300px;
-  }
-
   /* Performance: GPU acceleration hints for frequently animated elements */
   .gradient-primary, .gradient-dark {
     will-change: auto;
-    contain: layout style;
-  }
-
-  /* Performance: Reduce paint complexity for scrollable containers */
-  .scrollbar-hide, .overflow-y-auto, .overflow-x-auto {
-    contain: layout style paint;
   }
 
   /* Performance: Text rendering optimization */
@@ -245,9 +238,9 @@
     text-rendering: optimizeSpeed;
   }
 
-  /* Performance: Image containers */
+  /* Performance: Image containers — no content-visibility to avoid disappearing on scroll */
   img {
-    content-visibility: auto;
+    -webkit-user-drag: none;
   }
 
   /* Mobile performance: Reduce shadow complexity only on heavy scroll containers */

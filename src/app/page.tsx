@@ -62,8 +62,9 @@ const SplashScreen: React.FC = () => {
   const [showText, setShowText] = useState(false);
 
   useEffect(() => {
-    // Render text on next tick after hydration completes
-    setShowText(true);
+    // Render text on next animation frame after hydration completes
+    const raf = requestAnimationFrame(() => setShowText(true));
+    return () => cancelAnimationFrame(raf);
   }, []);
 
   return (
@@ -328,7 +329,8 @@ const MainLayout: React.FC = () => {
   }, [setActiveTab]);
 
   return (
-    <div className="flex flex-col h-screen bg-[var(--color-bg)] overflow-hidden">
+    <div className="flex flex-col bg-[var(--color-bg)] overflow-hidden" style={{ height: '100dvh' }}>
+      {/* Main content area */}
       <div className="flex-1 overflow-hidden relative">
         {memoizedTabScreens.map((Screen, index) => (
           <div
@@ -360,7 +362,7 @@ const MainLayout: React.FC = () => {
               transition: 'transform 250ms ease-out, opacity 200ms ease-in-out',
               transform: subScreenVisible ? 'translateY(0)' : 'translateY(20px)',
               opacity: subScreenVisible ? 1 : 0,
-              // 🔴 FIX: Prevent invisible overlay from blocking clicks during transition
+              // Prevent invisible overlay from blocking clicks during transition
               pointerEvents: subScreenVisible ? 'auto' : 'none',
             }}
           >
@@ -371,9 +373,9 @@ const MainLayout: React.FC = () => {
         )}
       </div>
 
-      {/* Bottom Navigation */}
+      {/* Bottom Navigation — FIXED to viewport bottom */}
       {subScreen === 'none' && (
-        <nav className="bottom-nav flex-shrink-0 pb-safe relative overflow-visible">
+        <nav className="bottom-nav fixed bottom-0 left-0 right-0 z-[100] pb-safe">
           <div className="flex items-center justify-around max-w-lg mx-auto px-2 py-2">
             {tabs.map((tab) => (
               <NavTab
@@ -461,7 +463,7 @@ export default function App() {
     };
 
     loadGlobalData();
-  }, [user?.id]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [user?.id]);
 
   if (!initialized) return <SplashScreen />;
 

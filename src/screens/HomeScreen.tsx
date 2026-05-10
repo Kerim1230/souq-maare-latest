@@ -1,5 +1,5 @@
 'use client';
-import React, { memo, useEffect, useState, useCallback, useMemo, useRef, useTransition } from 'react';
+import React, { memo, useEffect, useState, useCallback, useMemo, useRef } from 'react';
 import { fetchApi, apiPost, apiDelete } from '@/lib/fetchApi';
 import { Search, Star, ChevronLeft, Verified, Flag, Clock, Share2, Bell, Wallet, Gift, Trophy, Store as StoreIcon, Percent } from 'lucide-react';
 import { SkeletonCard } from '@/components/market/Card';
@@ -108,9 +108,6 @@ export const HomeScreen: React.FC = () => {
 
   // Store color resolver — used to get theme color for offer cards
   const getStoreColorById = useStoreColorStore(s => s.getStoreColorById);
-
-  // useTransition for non-critical state updates
-  const [_isPending, startTransition] = useTransition();
 
   // ── Derived state ──
   const unreadNotifCount = useNotificationStore(s =>
@@ -255,13 +252,9 @@ export const HomeScreen: React.FC = () => {
     } catch { /* quota exceeded */ }
   }, []);
 
-  // ── Navigation Fetch Guard — skip re-fetch if user navigated back within 30s ──
-  const lastFetchTime = useRef(0);
-  const lastFetchSuccess = useRef(false);
-  const prevUserIdRef = useRef<string | undefined>(user?.id);
-  const HOME_FETCH_COOLDOWN = 30_000; // 30 seconds
-
   // ── Data fetch ──
+  // Does NOT depend on user?.id — base data is public and cached server-side.
+  // User-specific data (follow status) is a lightweight add-on.
   const fetchHomeData = useCallback(async (signal?: AbortSignal) => {
     const url = `/api/home?userId=${user?.id || ''}&fpPage=1&npPage=1`;
     const { data, error } = await fetchApi(url, { signal });
@@ -269,38 +262,31 @@ export const HomeScreen: React.FC = () => {
     return data;
   }, [user?.id]);
 
-  // ── Apply data to state — single batch update, no sequential delays ──
+  // ── Apply data to state — HIGH PRIORITY, no startTransition delay ──
   const applyHomeData = useCallback((data: any) => {
-    startTransition(() => {
-      setFS(data?.featured_stores || []);
-      setStoresLoaded(true);
-      setFP((data?.featured_products || []) as ProductCardData[]);
-      setNP((data?.new_products || []) as ProductCardData[]);
-      setProductsLoaded(true);
-      setAllOffers(data?.offers || []);
-      setOffersLoaded(true);
-    });
-  }, [startTransition]);
+    setFS(data?.featured_stores || []);
+    setStoresLoaded(true);
+    setFP((data?.featured_products || []) as ProductCardData[]);
+    setNP((data?.new_products || []) as ProductCardData[]);
+    setProductsLoaded(true);
+    setAllOffers(data?.offers || []);
+    setOffersLoaded(true);
+  }, []);
 
-  // Initial load — show cached data instantly, then fetch fresh
+  // ── Initial load — IMMEDIATE, no cooldown guard, no waiting for auth ──
+  // We load cached data instantly for instant paint, then always fetch fresh.
+  const hasFetchedRef = useRef(false);
+
   useEffect(() => {
-    const userIdChanged = prevUserIdRef.current !== user?.id;
-    prevUserIdRef.current = user?.id;
-
-    const now = Date.now();
-    if (!userIdChanged && lastFetchSuccess.current && now - lastFetchTime.current < HOME_FETCH_COOLDOWN) return;
-
-    // STEP 1: Show cached data immediately if available (instant paint)
+    // STEP 1: Show cached data on next frame if available (instant paint, avoids cascading render)
     const cached = loadCachedData();
+    let cacheRaf: number | undefined;
     if (cached) {
-      applyHomeData(cached);
-      lastFetchSuccess.current = true;
-      lastFetchTime.current = Date.now();
-      console.log('[HomeScreen] Loaded from cache instantly');
+      cacheRaf = requestAnimationFrame(() => applyHomeData(cached));
     }
 
-    // STEP 2: Fetch fresh data from server (stale-while-revalidate)
-    console.log('[HomeScreen] Fetching home data...', { userId: user?.id, userIdChanged });
+    // STEP 2: Always fetch fresh data from server on mount
+    console.log('[HomeScreen] Fetching home data...', { userId: user?.id });
     const controller = new AbortController();
     const { signal } = controller;
     let cancelled = false;
@@ -309,8 +295,6 @@ export const HomeScreen: React.FC = () => {
       .then((data) => {
         if (cancelled) return;
 
-        lastFetchTime.current = Date.now();
-        lastFetchSuccess.current = true;
         console.log('[HomeScreen] Data loaded successfully', {
           stores: data?.featured_stores?.length || 0,
           products: data?.featured_products?.length || 0,
@@ -324,7 +308,6 @@ export const HomeScreen: React.FC = () => {
       .catch(err => {
         if (!cancelled) {
           console.error('[HomeScreen] Fetch error:', err);
-          lastFetchSuccess.current = false;
           // Only show empty state if we don't have cached data
           if (!cached) {
             setStoresLoaded(true);
@@ -334,37 +317,49 @@ export const HomeScreen: React.FC = () => {
         }
       });
 
-    return () => { cancelled = true; controller.abort(); };
-  }, [fetchHomeData, loadCachedData, saveCachedData, applyHomeData]);
+    return () => {
+      cancelled = true;
+      controller.abort();
+      if (cacheRaf !== undefined) cancelAnimationFrame(cacheRaf);
+    };
+  }, []); // Run ONCE on mount — fetchHomeData handles userId internally
+
+  // ── Re-fetch when user changes (login/logout) ──
+  useEffect(() => {
+    if (hasFetchedRef.current) {
+      // User changed after initial mount — re-fetch for user-specific data
+      console.log('[HomeScreen] User changed, re-fetching...', { userId: user?.id });
+      fetchHomeData().then((data) => {
+        if (data) {
+          applyHomeData(data);
+          saveCachedData(data);
+        }
+      }).catch(() => {});
+    }
+    hasFetchedRef.current = true;
+  }, [user?.id, fetchHomeData, applyHomeData, saveCachedData]);
 
   // ── Auto-refresh every 60 seconds (silent, with thin progress bar) ──
-  // Skips refresh if the user is interacting (modal open, typing in a field)
   useEffect(() => {
     const interval = setInterval(() => {
       // Skip if user is interacting with a modal or input
       const activeEl = document.activeElement;
       const isTyping = activeEl instanceof HTMLInputElement || activeEl instanceof HTMLTextAreaElement;
       const hasOpenModal = document.querySelector('[role="dialog"][aria-modal="true"]');
-      if (isTyping || hasOpenModal) {
-        console.log('[HomeScreen] Skipping auto-refresh — user is interacting');
-        return;
-      }
+      if (isTyping || hasOpenModal) return;
 
       setIsRefreshing(true);
       fetchHomeData()
         .then((data) => {
           if (!data) return;
-          lastFetchTime.current = Date.now();
-          lastFetchSuccess.current = true;
           applyHomeData(data);
           saveCachedData(data);
-          console.log('[HomeScreen] Auto-refreshed successfully');
         })
         .catch(() => { /* silent refresh failure */ })
         .finally(() => setIsRefreshing(false));
     }, 60_000); // 60 seconds
     return () => clearInterval(interval);
-  }, [fetchHomeData, startTransition]);
+  }, [fetchHomeData, applyHomeData, saveCachedData]);
 
   // ── Memoized skeletons (created once) ──
   const storeSkeletons = useMemo(() => [...Array(5)].map((_, i) => (
@@ -375,7 +370,7 @@ export const HomeScreen: React.FC = () => {
   )), []);
 
   return (
-    <div className="min-h-screen bg-[var(--color-bg)] pb-24">
+    <div className="min-h-screen bg-[var(--color-bg)] pb-28">
       {/* Thin progress bar for silent auto-refresh */}
       {isRefreshing && (
         <div className="fixed top-0 left-0 right-0 z-[200] h-1 bg-emerald-100 dark:bg-emerald-900/30">
@@ -471,7 +466,7 @@ export const HomeScreen: React.FC = () => {
                       key={offer.id}
                       onClick={() => openOfferDetail(offer.id)}
                       className="flex-shrink-0 min-w-[170px] max-w-[200px] snap-start cursor-pointer active:opacity-80"
-                      style={{ contain: 'layout style paint', contentVisibility: 'auto' }}
+                      style={{ contain: 'layout style' }}
                     >
                       <div
                         className="relative h-[210px] rounded-2xl overflow-hidden shadow-sm border border-white/10"
