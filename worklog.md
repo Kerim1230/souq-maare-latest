@@ -24,3 +24,27 @@ Stage Summary:
 - **page.tsx**: SplashScreen uses client-only text rendering (useState + useEffect pattern)
 - **middleware.ts**: Removed (conflicts with proxy.ts in Next.js 16)
 - The hydration error should be resolved: on first load, inline script detects old SW, clears everything, reloads; on second load, fresh JS is loaded without old SW interference
+
+---
+Task ID: 2
+Agent: Main Agent
+Task: Fix share images not appearing when sharing on WhatsApp and Facebook
+
+Work Log:
+- Read and analyzed ShareSheet.tsx, share/[type]/[id]/page.tsx, shareStore.ts, robots.ts
+- Added cache-busting `?v=${Date.now()}` to share URLs in shareStore.ts getShareUrl() - forces WhatsApp/Facebook crawlers to re-fetch OG data instead of using cached version
+- Fixed WhatsApp URL format in ShareSheet.tsx PLATFORMS config - changed from template literal to string concatenation for reliability
+- Enhanced handleNativeShare in ShareSheet.tsx with Web Share API file support - fetches image as Blob, creates File, shares via navigator.share({ files: [file] }) on mobile devices
+- Added fallback logic: if file sharing fails or isn't supported, falls back to text+url sharing
+- Added console.log debugging for share actions (platform, image URL, share URL)
+- Enhanced OG metadata in share/[type]/[id]/page.tsx:
+  - Added `secureUrl` property in images array (og:image:secure_url) for HTTPS crawlers
+  - Added `og:image:type` meta tag (image/jpeg) required by WhatsApp
+- Verified app-icon.png exists in /public/ (36114 bytes) as default OG image fallback
+- Committed and pushed to GitHub (commit 87b7f99)
+
+Stage Summary:
+- **shareStore.ts**: Added `?v=${Date.now()}` cache-busting to share URLs
+- **ShareSheet.tsx**: Fixed WhatsApp URL format, added Web Share API with image file support, added debug console.log
+- **share/[type]/[id]/page.tsx**: Added og:image:secure_url and og:image:type meta tags
+- All changes pushed to GitHub successfully
