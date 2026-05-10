@@ -14,7 +14,7 @@ import { useAppStore } from '@/store/appStore';
 import { useAuthStore } from '@/store/authStore';
 import { useNotificationStore } from '@/store/notificationStore';
 import { usePointsStore } from '@/store/pointsStore';
-import { useStoreColorStore } from '@/store/storeColorStore';
+import { useStoreColorStore, type StoreGradientColor } from '@/store/storeColorStore';
 import { getTimeRemaining } from '@/store/autoDeleteStore';
 import { PwaInstallBanner } from '@/components/PwaInstallBanner';
 import type { Store } from '@/store/appStore';
@@ -55,30 +55,35 @@ const SectionHeader: React.FC<{ title: string; actionLabel?: string; onAction?: 
 SectionHeader.displayName = 'SectionHeader';
 
 // Memoized Store Card — circular logo with themeColor border (manual scroll only)
-const StoreCard: React.FC<{ store: Store }> = memo(({ store }) => {
+const StoreCard: React.FC<{ store: Store; getStoreColorById: (_colorId: string) => StoreGradientColor | undefined }> = memo(({ store, getStoreColorById }) => {
   const handleOpen = useCallback(() => {
     const { setSelectedStoreId, setSubScreen } = useAppStore.getState();
     setSelectedStoreId(store.id);
     setSubScreen('store-detail');
   }, [store.id]);
 
-  const borderColor = store.theme_color || '#e5e7eb';
+  // Resolve theme_color ID (e.g. "emerald", "royal-blue") to actual hex color
+  const resolvedColor = store.theme_color ? getStoreColorById(store.theme_color) : undefined;
+  const borderColor = resolvedColor?.solid || '#e5e7eb';
+  const shadowColor = resolvedColor?.shadowLight || 'transparent';
 
   return (
     <div
       onClick={handleOpen}
-      className="flex-shrink-0 flex flex-col items-center gap-2 cursor-pointer active:opacity-80"
+      className="flex-shrink-0 flex flex-col items-center gap-2 cursor-pointer active:opacity-80 group"
       style={{ width: '88px' }}
     >
       <div
-        className="w-16 h-16 rounded-2xl overflow-hidden shadow-sm"
-        style={{ border: '2px solid', borderColor }}
+        className="w-16 h-16 rounded-2xl overflow-hidden shadow-sm group-hover:shadow-md transition-shadow duration-200"
+        style={{ border: '2.5px solid', borderColor, boxShadow: resolvedColor ? `0 2px 8px ${shadowColor}` : undefined }}
       >
         <StoreLogo src={store.logo_url} name={store.name} size="md" className="w-full h-full" />
       </div>
       <div className="flex items-center gap-0.5 max-w-[84px]">
         <p className="text-xs font-semibold text-[var(--color-text)] line-clamp-1 text-center">{store.name}</p>
-        {store.is_verified && <Verified className="w-3 h-3 text-emerald-500 flex-shrink-0" />}
+        {store.is_verified && (
+          <Verified className="w-3 h-3 flex-shrink-0" style={resolvedColor ? { color: resolvedColor.solid } : undefined} />
+        )}
       </div>
     </div>
   );
@@ -636,7 +641,7 @@ export const HomeScreen: React.FC = () => {
               ) : (
                 featuredStores.slice(0, 5).map((store) => (
                   <div key={store.id} className="snap-start">
-                    <StoreCard store={store} />
+                    <StoreCard store={store} getStoreColorById={getStoreColorById} />
                   </div>
                 ))
               )}
