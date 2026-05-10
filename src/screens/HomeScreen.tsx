@@ -2,7 +2,7 @@
 import React, { memo, useEffect, useState, useCallback, useMemo, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { apiPost, apiDelete } from '@/lib/fetchApi';
-import { Search, Star, ChevronLeft, Verified, Flag, Clock, Share2, Bell, Wallet, Gift, Trophy, Store as StoreIcon, Percent, LogIn } from 'lucide-react';
+import { Star, ChevronLeft, Verified, Flag, Clock, Share2, Bell, Wallet, Gift, Trophy, Store as StoreIcon, Percent, LogIn } from 'lucide-react';
 import { SkeletonCard } from '@/components/market/Card';
 import { SafeImage, StoreLogo } from '@/components/market/SafeImage';
 import { ShareSheet } from '@/components/market/ShareSheet';
@@ -104,7 +104,7 @@ function buildFavSet(favorites: Array<{ product_id?: string }>): Set<string> {
 
 // ── Skeleton Home — full page skeleton for initial load ──
 const SkeletonHome: React.FC = () => (
-  <div className="min-h-screen bg-[var(--color-bg)] bottom-nav-safe">
+  <div className="min-h-screen bg-[var(--color-bg)] top-nav-safe">
     {/* Skeleton header */}
     <div className="gradient-dark px-5 pt-8 pb-10">
       <div className="flex items-center justify-between">
@@ -119,12 +119,7 @@ const SkeletonHome: React.FC = () => (
       </div>
     </div>
 
-    {/* Skeleton search bar */}
-    <div className="px-5 -mt-6 relative z-20 mb-2">
-      <div className="bg-[var(--color-surface)] rounded-xl h-12 animate-pulse border border-[var(--color-border)]" />
-    </div>
-
-    <div className="px-5 space-y-6 mt-4">
+    <div className="px-5 space-y-6 mt-2">
       {/* Skeleton offers */}
       <div>
         <div className="w-32 h-4 bg-[var(--color-surface)] animate-pulse rounded mb-3" />
@@ -412,7 +407,7 @@ export const HomeScreen: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-[var(--color-bg)] bottom-nav-safe">
+    <div className="min-h-screen bg-[var(--color-bg)] top-nav-safe">
       {/* Thin progress bar for silent auto-refresh */}
       {(isRefreshing || homeDataLoading) && (
         <div className="fixed top-0 left-0 right-0 z-[200] h-[2px] transition-all duration-300">
@@ -463,21 +458,7 @@ export const HomeScreen: React.FC = () => {
         </div>
       </header>
 
-      {/* ═══ 1. SEARCH BAR — First thing after header ═══ */}
-      <div className="px-5 -mt-6 relative z-20 mb-2">
-        <div
-          onClick={() => setActiveTab(2)}
-          className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 h-12 px-4 flex items-center gap-3 cursor-pointer hover:shadow-md transition-shadow duration-300 focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
-        >
-          <Search className="w-5 h-5 text-slate-400" />
-          <span className="text-[var(--color-text-tertiary)] text-[15px] font-medium flex-1">ابحث عن منتجات، متاجر، عروض...</span>
-          <div className="w-9 h-9 gradient-primary rounded-lg flex items-center justify-center shadow-sm">
-            <Search className="w-4 h-4 text-white" />
-          </div>
-        </div>
-      </div>
-
-      <main className="px-5 space-y-8 mt-4">
+      <main className="px-5 space-y-8 mt-2">
 
         {/* ═══ 2. OFFERS & CONTESTS 🎁 ═══ */}
         <motion.section

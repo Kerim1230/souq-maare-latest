@@ -222,9 +222,9 @@
 
   /* Mobile performance: Reduce shadow complexity only on heavy scroll containers */
   @media (max-width: 768px) {
-    .bottom-nav, .glow-primary {
-      -webkit-box-shadow: 0 -1px 12px rgba(16, 185, 129, 0.08) !important;
-      box-shadow: 0 -1px 12px rgba(16, 185, 129, 0.08) !important;
+    .top-nav, .glow-primary {
+      -webkit-box-shadow: 0 1px 12px rgba(16, 185, 129, 0.08) !important;
+      box-shadow: 0 1px 12px rgba(16, 185, 129, 0.08) !important;
     }
   }
 }
@@ -234,58 +234,76 @@
    These MUST stay outside any @layer to guarantee they override Tailwind.
    ═══════════════════════════════════════════════════════════════════════════ */
 
-/* Bottom navigation bar — fixed to viewport bottom */
-.bottom-nav {
+/* Top navigation bar — fixed to viewport top (Facebook-style) */
+.top-nav {
   position: fixed !important;
-  bottom: 0 !important;
+  top: 0 !important;
   left: 0 !important;
   right: 0 !important;
   z-index: 100 !important;
   background: rgba(255, 255, 255, 0.94);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
-  border-top: 1px solid #d1fae5;
-  box-shadow: 0 -1px 24px rgba(16, 185, 129, 0.08);
+  border-bottom: 1px solid #d1fae5;
+  box-shadow: 0 1px 24px rgba(16, 185, 129, 0.08);
 }
-.dark .bottom-nav {
+.dark .top-nav {
   background: rgba(10, 22, 18, 0.94);
-  border-top: 1px solid #1a3a2a;
-  box-shadow: 0 -1px 24px rgba(0, 0, 0, 0.3);
+  border-bottom: 1px solid #1a3a2a;
+  box-shadow: 0 1px 24px rgba(0, 0, 0, 0.3);
 }
 
-/* Safe-area padding for the bottom nav itself */
+/* Safe-area padding for the top nav itself (notch/Dynamic Island) */
+.pt-safe {
+  padding-top: env(safe-area-inset-top, 0px) !important;
+}
+
+/* Safe-area padding for the bottom (home indicator on iOS) */
 .pb-safe {
   padding-bottom: env(safe-area-inset-bottom, 0px) !important;
 }
 
-/* Safe bottom padding for tab screen content that must clear the fixed bottom nav.
-   Accounts for: nav bar height (~64px) + safe-area inset + extra margin.
+/* Safe top padding for screen containers that must clear the fixed top nav.
+   Accounts for: nav bar height (~56px) + safe-area inset + extra margin.
    Uses !important to override any Tailwind utility that might conflict. */
-.safe-bottom {
-  padding-bottom: calc(80px + env(safe-area-inset-bottom, 0px)) !important;
+.top-nav-safe {
+  padding-top: calc(56px + env(safe-area-inset-top, 0px)) !important;
 }
 
-/* Robust safe-bottom variant for screen containers.
-   Guarantees buttons are NEVER hidden behind the fixed bottom navigation bar.
-   Value: 100px base + safe-area inset, with !important for maximum specificity. */
+/* Keep bottom-nav-safe for backward compat — now just bottom safe area */
 .bottom-nav-safe {
-  padding-bottom: calc(100px + env(safe-area-inset-bottom, 0px)) !important;
+  padding-bottom: env(safe-area-inset-bottom, 0px) !important;
 }
 
 /* Scroll container padding for the main tab content area.
    Applied to the motion.div that wraps tab screens in page.tsx.
-   This is the PRIMARY mechanism for creating space above the fixed bottom nav.
-   Value accounts for: nav height (~64px) + nav padding + safe-area + generous buffer. */
-.tab-scroll-area {
-  padding-bottom: calc(100px + env(safe-area-inset-bottom, 0px)) !important;
+   Adds top padding so content clears the fixed top navigation bar.
+   Adds small bottom padding for safe area. */
+.top-nav-scroll-area {
+  padding-top: calc(56px + env(safe-area-inset-top, 0px)) !important;
+  padding-bottom: calc(24px + env(safe-area-inset-bottom, 0px)) !important;
 }
 
-/* When the bottom nav is hidden, reduce the padding since there's no nav to clear. */
+/* When the top nav is hidden, reduce the top padding since there's no nav to clear. */
+.top-nav-scroll-area-nav-hidden {
+  padding-top: calc(env(safe-area-inset-top, 0px)) !important;
+  padding-bottom: calc(24px + env(safe-area-inset-bottom, 0px)) !important;
+}
+
+/* Legacy classes kept for any remaining references */
+.safe-bottom {
+  padding-bottom: calc(80px + env(safe-area-inset-bottom, 0px)) !important;
+}
+
+.tab-scroll-area {
+  padding-bottom: calc(24px + env(safe-area-inset-bottom, 0px)) !important;
+}
+
 .tab-scroll-area-nav-hidden {
   padding-bottom: calc(24px + env(safe-area-inset-bottom, 0px)) !important;
 }
 
-/* Bottom nav transition for hide/show animation */
-.bottom-nav {
+/* Top nav transition for hide/show animation */
+.top-nav {
   transition: transform 300ms ease-in-out;
 }

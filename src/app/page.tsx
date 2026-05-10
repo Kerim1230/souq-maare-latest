@@ -97,7 +97,7 @@ const SplashScreen: React.FC = () => {
 const AuthGate: React.FC<{ title: string; description: string }> = ({ title, description }) => {
   const setSubScreen = useAppStore(s => s.setSubScreen);
   return (
-    <div className="min-h-screen bg-[var(--color-bg)] flex flex-col bottom-nav-safe">
+    <div className="min-h-screen bg-[var(--color-bg)] flex flex-col top-nav-safe">
       <div className="gradient-dark px-6 pt-12 pb-14 flex flex-col items-center relative overflow-hidden">
         <div className="absolute top-[-40px] right-[-30px] w-[160px] h-[160px] rounded-full bg-teal-600/20 blur-[60px]" />
         <div className="absolute bottom-[-20px] left-[-20px] w-[100px] h-[100px] rounded-full bg-emerald-600/15 blur-[50px]" />
@@ -363,7 +363,7 @@ const MainLayout: React.FC = () => {
               animate="center"
               exit="exit"
               transition={{ duration: 0.2, ease: [0.25, 0.1, 0.25, 1] }}
-              className={`absolute inset-0 overflow-y-auto tab-scroll-area ${navHidden ? 'tab-scroll-area-nav-hidden' : ''}`}
+              className={`absolute inset-0 overflow-y-auto top-nav-scroll-area ${navHidden ? 'top-nav-scroll-area-nav-hidden' : ''}`}
               style={{ WebkitOverflowScrolling: 'touch' }}
             >
               <ErrorBoundary>
@@ -390,7 +390,7 @@ const MainLayout: React.FC = () => {
               initial="initial"
               animate="animate"
               exit="exit"
-              className="absolute inset-0 overflow-y-auto z-20 bg-[var(--color-bg)] pb-8 tab-scroll-area"
+              className="absolute inset-0 overflow-y-auto z-20 bg-[var(--color-bg)] pt-4 top-nav-scroll-area"
               style={{ WebkitOverflowScrolling: 'touch' }}
             >
               <ErrorBoundary>
@@ -401,27 +401,16 @@ const MainLayout: React.FC = () => {
         </AnimatePresence>
       </div>
 
-      {/* Floating toggle button — visible when nav is hidden */}
-      {subScreen === 'none' && navHidden && (
-        <button
-          onClick={toggleNav}
-          className="fixed bottom-5 left-1/2 -translate-x-1/2 z-[101] w-12 h-12 rounded-full bg-gradient-to-br from-emerald-500 to-teal-600 shadow-lg shadow-emerald-500/30 flex items-center justify-center hover:scale-110 active:scale-95 transition-all duration-200 opacity-80 hover:opacity-100"
-          aria-label="إظهار شريط التنقل"
-        >
-          <ChevronUp className="w-6 h-6 text-white" />
-        </button>
-      )}
-
-      {/* Bottom Navigation — FIXED to viewport bottom, hideable */}
+      {/* Top Navigation — FIXED to viewport top, hideable (Facebook-style) */}
       {subScreen === 'none' && (
-        <nav className={`bottom-nav fixed bottom-0 left-0 right-0 z-[100] pb-safe transition-transform duration-300 ease-in-out bg-white/90 dark:bg-gray-800/90 backdrop-blur-lg border-t border-gray-200 dark:border-gray-700 ${navHidden ? 'translate-y-full' : 'translate-y-0'}`}>
-          {/* Toggle chevron — at the top center of the nav */}
+        <nav className={`top-nav fixed top-0 left-0 right-0 z-[100] pt-safe transition-transform duration-300 ease-in-out bg-white/90 dark:bg-gray-900/90 backdrop-blur-lg border-b border-gray-200 dark:border-gray-700 ${navHidden ? '-translate-y-full' : 'translate-y-0'}`}>
+          {/* Toggle chevron — at the bottom center of the nav */}
           <button
             onClick={toggleNav}
-            className="absolute -top-8 left-1/2 -translate-x-1/2 w-8 h-8 rounded-t-xl bg-white/90 dark:bg-[#0f2318]/90 backdrop-blur-sm border border-b-0 border-[var(--color-border)] flex items-center justify-center hover:bg-emerald-50 dark:hover:bg-emerald-900/30 active:scale-90 transition-all duration-200 shadow-sm"
+            className="absolute -bottom-8 left-1/2 -translate-x-1/2 w-8 h-8 rounded-b-xl bg-white/90 dark:bg-[#0f2318]/90 backdrop-blur-sm border border-t-0 border-[var(--color-border)] flex items-center justify-center hover:bg-emerald-50 dark:hover:bg-emerald-900/30 active:scale-90 transition-all duration-200 shadow-sm"
             aria-label="إخفاء شريط التنقل"
           >
-            <ChevronDown className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+            <ChevronUp className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
           </button>
           <div className="flex items-center justify-around max-w-lg mx-auto px-2 py-2">
             {tabs.map((tab) => (
@@ -434,15 +423,26 @@ const MainLayout: React.FC = () => {
               />
             ))}
           </div>
-          {/* Help Button — attached to nav bar, above حسابي tab */}
+          {/* Help Button — attached to nav bar, below حسابي tab */}
           <button
             onClick={() => useAppStore.getState().setSubScreen('help')}
-            className="absolute -top-12 right-4 w-11 h-11 rounded-full bg-gradient-to-br from-emerald-500 to-teal-600 shadow-lg shadow-emerald-500/30 flex items-center justify-center hover:scale-110 active:scale-95 transition-transform duration-200 animate-pulse z-50"
+            className="absolute -bottom-12 right-4 w-11 h-11 rounded-full bg-gradient-to-br from-emerald-500 to-teal-600 shadow-lg shadow-emerald-500/30 flex items-center justify-center hover:scale-110 active:scale-95 transition-transform duration-200 animate-pulse z-50"
             aria-label="المساعد الذكي"
           >
             <MessageCircle className="w-5 h-5 text-white" />
           </button>
         </nav>
+      )}
+
+      {/* Floating toggle button — visible when nav is hidden */}
+      {subScreen === 'none' && navHidden && (
+        <button
+          onClick={toggleNav}
+          className="fixed top-5 left-1/2 -translate-x-1/2 z-[101] w-12 h-12 rounded-full bg-gradient-to-br from-emerald-500 to-teal-600 shadow-lg shadow-emerald-500/30 flex items-center justify-center hover:scale-110 active:scale-95 transition-all duration-200 opacity-80 hover:opacity-100"
+          aria-label="إظهار شريط التنقل"
+        >
+          <ChevronDown className="w-6 h-6 text-white" />
+        </button>
       )}
     </div>
   );
