@@ -48,7 +48,7 @@ export const ContactSupportScreen: React.FC = () => {
 
   if (submitted) {
     return (
-      <div className="min-h-screen bg-[var(--color-bg)] flex flex-col items-center justify-center px-6">
+      <div className="min-h-[100dvh] bg-[var(--color-bg)] flex flex-col items-center justify-center px-6">
         <div className="w-20 h-20 bg-emerald-50 dark:bg-emerald-900/20 rounded-3xl flex items-center justify-center mb-5">
           <CheckCircle className="w-10 h-10 text-emerald-500" />
         </div>
@@ -63,7 +63,7 @@ export const ContactSupportScreen: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-[var(--color-bg)] pb-8">
+    <div className="min-h-[100dvh] bg-[var(--color-bg)] pb-14">
       {/* Header */}
       <div className="gradient-dark px-5 pt-8 pb-6 relative overflow-hidden">
         <div className="absolute top-[-30px] right-[-20px] w-[140px] h-[140px] rounded-full bg-teal-600/15 blur-[50px]" />

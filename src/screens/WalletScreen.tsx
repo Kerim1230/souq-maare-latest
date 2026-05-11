@@ -240,7 +240,7 @@ export const WalletScreen: React.FC = () => {
   ];
 
   return (
-    <div className="pb-24 min-h-screen bg-[var(--color-bg)]">
+    <div className="pb-14 min-h-[100dvh] bg-[var(--color-bg)]">
       {/* Header */}
       <div className="gradient-dark px-5 pt-8 pb-[4.5rem] relative overflow-hidden">
         <div className="absolute top-[-40px] right-[-30px] w-[180px] h-[180px] rounded-full bg-teal-600/15 blur-[60px]" />

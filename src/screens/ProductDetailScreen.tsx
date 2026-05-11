@@ -109,7 +109,7 @@ export const ProductDetailScreen: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[var(--color-bg)]">
+      <div className="min-h-[100dvh] bg-[var(--color-bg)]">
         {/* Header skeleton */}
         <div className="h-12 bg-[var(--color-surface)] border-b border-[var(--color-border)]" />
         {/* Image skeleton */}
@@ -128,7 +128,7 @@ export const ProductDetailScreen: React.FC = () => {
 
   if (!product) {
     return (
-      <div className="min-h-screen bg-[var(--color-bg)] flex flex-col items-center justify-center">
+      <div className="min-h-[100dvh] bg-[var(--color-bg)] flex flex-col items-center justify-center">
         <div className="w-16 h-16 bg-emerald-50 dark:bg-emerald-900/20 rounded-2xl flex items-center justify-center mb-4">
           <ImageIcon className="w-8 h-8 text-emerald-300" />
         </div>
@@ -142,7 +142,7 @@ export const ProductDetailScreen: React.FC = () => {
   const urgencyColors = getUrgencyColors(timeInfo.urgencyLevel);
 
   return (
-    <div className="min-h-screen bg-[var(--color-bg)] pb-24">
+    <div className="min-h-[100dvh] bg-[var(--color-bg)] pb-14">
       {/* Header */}
       <div className="sticky top-0 z-30 bg-[var(--color-surface)]/80 backdrop-blur-lg border-b border-[var(--color-border)]/60">
         <div className="flex items-center justify-between px-4 py-3">

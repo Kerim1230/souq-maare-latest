@@ -106,7 +106,7 @@ export const ShareEarnScreen: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[var(--color-bg)] pb-24">
+    <div className="min-h-[100dvh] bg-[var(--color-bg)] pb-14">
       {/* Header */}
       <div className="gradient-dark px-5 pt-8 pb-[5rem] relative overflow-hidden">
         <div className="absolute top-[-40px] right-[-30px] w-[180px] h-[180px] rounded-full bg-teal-600/15 blur-[60px]" />

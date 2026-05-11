@@ -349,7 +349,7 @@ export const DebugPushScreen: React.FC = () => {
   const allDone = results.every(r => r.status === 'pass' || r.status === 'fail');
 
   return (
-    <div className="min-h-screen bg-[var(--color-bg)]" dir="rtl">
+    <div className="min-h-[100dvh] bg-[var(--color-bg)]" dir="rtl">
       {/* Header */}
       <header className="gradient-dark px-5 pt-8 pb-6 relative overflow-hidden">
         <div className="absolute top-[-30px] right-[-20px] w-[140px] h-[140px] rounded-full bg-teal-600/15 blur-[50px]" />

@@ -223,18 +223,18 @@ export const StoreDetailScreen: React.FC = () => {
 
   // ── 3-State Rendering: loading → error (only if no data) → content (FIX 1) ──
   if (loading) {
-    return (<div className="bg-[var(--color-bg)] min-h-screen flex items-center justify-center"><Loader2 className="w-6 h-6 text-emerald-500 animate-spin" /></div>);
+    return (<div className="bg-[var(--color-bg)] min-h-[100dvh] flex items-center justify-center"><Loader2 className="w-6 h-6 text-emerald-500 animate-spin" /></div>);
   }
   if (error && !store) {
     return (
-      <div className="bg-[var(--color-bg)] min-h-screen flex flex-col items-center justify-center gap-3">
+      <div className="bg-[var(--color-bg)] min-h-[100dvh] flex flex-col items-center justify-center gap-3">
         <p className="text-[var(--color-text-secondary)]">{error === 'STORE_NOT_FOUND' ? 'لم يتم العثور على المتجر' : 'حدث خطأ في تحميل المتجر'}</p>
         <button onClick={() => setSubScreen('none')} className="text-emerald-500 text-sm font-bold">العودة</button>
       </div>
     );
   }
   if (!store) {
-    return (<div className="bg-[var(--color-bg)] min-h-screen flex items-center justify-center"><Loader2 className="w-6 h-6 text-emerald-500 animate-spin" /></div>);
+    return (<div className="bg-[var(--color-bg)] min-h-[100dvh] flex items-center justify-center"><Loader2 className="w-6 h-6 text-emerald-500 animate-spin" /></div>);
   }
 
   const isStoreOwner = user && user.id === store.user_id;
@@ -402,7 +402,7 @@ export const StoreDetailScreen: React.FC = () => {
   };
 
   return (
-    <div className="bg-[var(--color-bg)] min-h-[100dvh] pb-24">
+    <div className="bg-[var(--color-bg)] min-h-[100dvh] pb-14">
       {/* Cover */}
       <div className="relative h-56 overflow-hidden" style={theme.themeBg ? { background: theme.themeBg } : undefined}>
         {!theme.color && <div className="absolute inset-0 gradient-primary" />}

@@ -371,7 +371,7 @@ export const VerificationScreen: React.FC = () => {
 
   if (!verificationInitialized) {
     return (
-      <div className="min-h-screen bg-[var(--color-bg)] flex items-center justify-center">
+      <div className="min-h-[100dvh] bg-[var(--color-bg)] flex items-center justify-center">
         <div className="w-6 h-6 border-2 border-[var(--color-border)]0 border-t-transparent rounded-full animate-spin" />
       </div>
     );
@@ -388,7 +388,7 @@ export const VerificationScreen: React.FC = () => {
   const paidPlans = VERIFICATION_PLANS.filter(p => p.tier !== 'unverified');
 
   return (
-    <div className="min-h-screen bg-[var(--color-bg)] pb-24">
+    <div className="min-h-[100dvh] bg-[var(--color-bg)] pb-14">
       {/* ===== No-Store Warning Banner ===== */}
       {noStore && (
         <div className="bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-900/30 dark:to-orange-900/30 border-b border-amber-200/60 dark:border-amber-700/40 px-4 py-3">

@@ -98,7 +98,7 @@ export const AuthScreen: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-[var(--color-bg)]">
+    <div className="min-h-[100dvh] flex flex-col bg-[var(--color-bg)]">
       {/* ── Gradient Top Section ── */}
       <div className="gradient-dark px-6 pt-12 pb-14 flex flex-col items-center relative overflow-hidden">
         {/* Decorative orbs */}

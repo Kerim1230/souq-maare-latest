@@ -148,7 +148,7 @@ export const AdminDashboard: React.FC = () => {
 
   if (!hasAccess) {
     return (
-      <div className="min-h-screen bg-[var(--color-bg)] flex flex-col items-center justify-center px-6">
+      <div className="min-h-[100dvh] bg-[var(--color-bg)] flex flex-col items-center justify-center px-6">
         <div className="w-20 h-20 rounded-3xl bg-rose-50 dark:bg-rose-900/20 flex items-center justify-center mb-5">
           <Lock className="w-10 h-10 text-rose-400" />
         </div>
@@ -160,7 +160,7 @@ export const AdminDashboard: React.FC = () => {
   }
 
   return (
-    <div className="pb-8 min-h-screen bg-[var(--color-bg)]">
+    <div className="pb-14 min-h-[100dvh] bg-[var(--color-bg)]">
       {/* Header */}
       <div className="gradient-dark px-5 pt-8 pb-[4.5rem] relative overflow-hidden">
         <div className="absolute top-[-40px] right-[-30px] w-[180px] h-[180px] rounded-full bg-teal-600/15 blur-[60px]" />
