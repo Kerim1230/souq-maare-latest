@@ -159,3 +159,33 @@ Stage Summary:
 - SW cache bumped to v11 — users will get fresh content
 - Deployed: https://suq-shamel.vercel.app
 - IMPORTANT: User should open in Incognito/Private tab to bypass any remaining browser cache
+
+---
+Task ID: 5
+Agent: Main Agent
+Task: Add 3 Syrian-themed features: Real Photo Badge, Syrian Dialect Dictionary, WhatsApp Direct Sharing
+
+Work Log:
+- Feature 4 (📸 حقيقي): Added `is_real_photo` field to ProductCardData, Product type, ProductData interface, and mapProduct function
+- Added "📸 حقيقي" badge in ProductCard — sky-blue badge at top-right of image for products with real photos
+- Added is_real_photo support in /api/products POST (create) and PUT (update) routes
+- Added is_real_photo to createProduct function in supabase-db.ts
+- Added "📸 صورة حقيقية" checkbox in MyStoreScreen Add Product and Edit Product modals
+- Updated ShareSheet ProductPreview to show "📸 حقيقي" badge
+- Feature 5 (🇸🇾 Syrian Dialect): Created src/lib/syrianDialect.ts with 70+ Syrian dialect → Standard Arabic mappings
+- Implemented expandSyrianQuery() for bidirectional expansion (dialect→standard and standard→dialect)
+- Integrated dialect expansion into /api/search route for products, stores, and offers searches
+- When a user searches "بسطال", results for "حذاء رياضي" are also returned
+- Feature 6 (📲 WhatsApp Direct): Added "📲 أرسل للمراجعة على واتساب" button in ShareSheet (product only)
+- Button opens WhatsApp with product info + image link + price pre-filled in the message
+- Green gradient button with Phone + MessageCircle icons, only appears for product sharing
+- Updated ShareSheetProps, ShareSheet component, and all call sites (HomeScreen, MyStoreScreen)
+- All lint checks pass: 0 errors, 8 warnings (pre-existing)
+- Git pushed to origin/main for Vercel auto-deployment
+
+Stage Summary:
+- 3 Syrian features implemented across 10 files with 324 lines added
+- Products can now be marked as having real photos with visible badge
+- Search supports Syrian dialect synonyms (بسطال→حذاء, كندرة→حذاء, etc.)
+- WhatsApp direct sharing button sends product image link + price
+- Deployed via GitHub push: https://suq-shamel.vercel.app
