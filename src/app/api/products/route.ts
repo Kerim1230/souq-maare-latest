@@ -145,6 +145,7 @@ export const POST = withRoute(async (request: NextRequest) => {
       category,
       is_new, isNew,
       is_featured, isFeatured,
+      is_real_photo, isRealPhoto,
       expires_at, expiresAt,
     } = body
 
@@ -154,6 +155,7 @@ export const POST = withRoute(async (request: NextRequest) => {
     const effectiveUserIdParam = user_id || userId;
     const effectiveIsNew = is_new ?? isNew;
     const effectiveIsFeatured = is_featured ?? isFeatured;
+    const effectiveIsRealPhoto = is_real_photo ?? isRealPhoto;
     const effectiveExpiresAt = expires_at || expiresAt;
 
     if (!productName || price === undefined) {
@@ -203,6 +205,7 @@ export const POST = withRoute(async (request: NextRequest) => {
       category: category || undefined,
       is_new: effectiveIsNew ?? true,
       is_featured: effectiveIsFeatured ?? false,
+      is_real_photo: effectiveIsRealPhoto ?? false,
       expires_at: effectiveExpiresAt ? new Date(effectiveExpiresAt).toISOString() : undefined,
     });
 
@@ -280,6 +283,8 @@ export const PUT = withRoute(async (request: NextRequest) => {
     if (updates.category !== undefined) supabaseUpdates.category = updates.category || null;
     if (updates.is_featured !== undefined) supabaseUpdates.is_featured = updates.is_featured;
     if (updates.is_new !== undefined) supabaseUpdates.is_new = updates.is_new;
+    const updateIsRealPhoto = updates.is_real_photo !== undefined ? updates.is_real_photo : updates.isRealPhoto;
+    if (updateIsRealPhoto !== undefined) supabaseUpdates.is_real_photo = updateIsRealPhoto;
     const updateExpiresAt = updates.expires_at || updates.expiresAt;
     if (updateExpiresAt) supabaseUpdates.expires_at = new Date(updateExpiresAt).toISOString();
 

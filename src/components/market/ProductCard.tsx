@@ -18,6 +18,7 @@ export interface ProductCardData {
   store_governorate?: string | null;
   is_new?: boolean;
   is_featured?: boolean;
+  is_real_photo?: boolean;
   expires_at?: string | null;
 }
 
@@ -115,6 +116,9 @@ export const ProductCard: React.FC<ProductCardProps> = memo(({
     if (compact) {
       return (
         <>
+          {product.is_real_photo && (
+            <span className="absolute top-1.5 right-1.5 z-10 bg-sky-500/90 text-white text-[7px] font-bold px-1 py-0.5 rounded-full inline-flex items-center gap-0.5">📸 حقيقي</span>
+          )}
           {product.is_new && (
             <span className="absolute bottom-1.5 right-1.5 z-10 bg-emerald-500/90 text-white text-[8px] font-bold px-1.5 py-0.5 rounded-full">جديد</span>
           )}
@@ -126,6 +130,9 @@ export const ProductCard: React.FC<ProductCardProps> = memo(({
     }
     return (
       <>
+        {product.is_real_photo && (
+          <span className="absolute top-2 right-2 z-10 bg-sky-500/90 text-white text-[10px] font-bold px-2 py-0.5 rounded-full inline-flex items-center gap-0.5 backdrop-blur-sm">📸 حقيقي</span>
+        )}
         {product.is_new && (
           <span className="absolute bottom-2 right-2 z-10 bg-emerald-500/90 text-white text-[10px] font-bold px-2.5 py-0.5 rounded-full">جديد</span>
         )}
@@ -134,7 +141,7 @@ export const ProductCard: React.FC<ProductCardProps> = memo(({
         )}
       </>
     );
-  }, [product.is_new, product.is_featured, compact]);
+  }, [product.is_new, product.is_featured, product.is_real_photo, compact]);
 
   return (
     <div

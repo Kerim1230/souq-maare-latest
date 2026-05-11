@@ -216,7 +216,7 @@ export const HomeScreen: React.FC = () => {
   const [showShareSheet, setShowShareSheet] = useState(false);
   const [shareTarget, setShareTarget] = useState<{
     type: 'store' | 'product' | 'offer' | 'contest'; id: string; name: string;
-    description?: string; price?: string; storeName?: string; imageUrl?: string; discount?: string;
+    description?: string; price?: string; storeName?: string; imageUrl?: string; discount?: string; isRealPhoto?: boolean;
   } | null>(null);
 
   // ── Derive display arrays from centralized homeData ──
@@ -295,7 +295,7 @@ export const HomeScreen: React.FC = () => {
   }, [user, addFavorite, removeFavorite]);
 
   const handleShareProduct = useCallback((product: ProductCardData) => {
-    setShareTarget({ type: 'product', id: product.id, name: product.name, description: product.description || undefined, price: `${product.price.toLocaleString('ar-SY')} ل.س`, storeName: product.store_name || undefined, imageUrl: product.image_url || undefined });
+    setShareTarget({ type: 'product', id: product.id, name: product.name, description: product.description || undefined, price: `${product.price.toLocaleString('ar-SY')} ل.س`, storeName: product.store_name || undefined, imageUrl: product.image_url || undefined, isRealPhoto: product.is_real_photo });
     setShowShareSheet(true);
   }, []);
 
@@ -680,7 +680,7 @@ export const HomeScreen: React.FC = () => {
 
       {/* Share Sheet */}
       {shareTarget && (
-        <ShareSheet isOpen={showShareSheet} onClose={handleCloseShareSheet} itemType={shareTarget.type} itemId={shareTarget.id} itemName={shareTarget.name} itemDescription={shareTarget.description} itemPrice={shareTarget.price} storeName={shareTarget.storeName} imageUrl={shareTarget.imageUrl} discount={shareTarget.discount} />
+        <ShareSheet isOpen={showShareSheet} onClose={handleCloseShareSheet} itemType={shareTarget.type} itemId={shareTarget.id} itemName={shareTarget.name} itemDescription={shareTarget.description} itemPrice={shareTarget.price} storeName={shareTarget.storeName} imageUrl={shareTarget.imageUrl} discount={shareTarget.discount} isRealPhoto={shareTarget.isRealPhoto} />
       )}
 
       {/* PWA Install Banner */}

@@ -5,7 +5,7 @@ import { createPortal } from 'react-dom';
 import { lockScroll, unlockScroll, blockPointerEvents, restorePointerEvents } from '@/lib/scroll-lock';
 import {
   Share2, Copy, Check, X, MessageCircle, Send, ExternalLink,
-  Store, Package, Gift, Trophy, Clock, ChevronLeft
+  Store, Package, Gift, Trophy, Clock, ChevronLeft, Phone
 } from 'lucide-react';
 import { useShareStore, type ShareableType } from '@/store/shareStore';
 import { optimizeImage } from '@/lib/image-optimize';
@@ -23,6 +23,7 @@ interface ShareSheetProps {
   imageUrl?: string;
   discount?: string;
   expiresIn?: string;
+  isRealPhoto?: boolean;
 }
 
 const PLATFORMS = [
@@ -79,7 +80,7 @@ const StorePreview: React.FC<{ name: string; description?: string; imageUrl?: st
   </div>
 );
 
-const ProductPreview: React.FC<{ name: string; price?: string; storeName?: string; imageUrl?: string; isFeatured?: boolean; isNew?: boolean }> = ({ name, price, storeName, imageUrl, isFeatured, isNew }) => (
+const ProductPreview: React.FC<{ name: string; price?: string; storeName?: string; imageUrl?: string; isFeatured?: boolean; isNew?: boolean; isRealPhoto?: boolean }> = ({ name, price, storeName, imageUrl, isFeatured, isNew, isRealPhoto }) => (
   <div className="flex items-center gap-3.5 p-3.5 rounded-2xl bg-gradient-to-br from-emerald-50/80 to-teal-50/60 border border-emerald-100/50">
     <div className="w-16 h-16 rounded-2xl overflow-hidden flex-shrink-0 bg-[var(--color-surface)] shadow-sm border border-[var(--color-border)]/60 relative">
       {imageUrl ? (
@@ -90,6 +91,7 @@ const ProductPreview: React.FC<{ name: string; price?: string; storeName?: strin
         </div>
       )}
       <div className="absolute top-1 right-1 flex gap-0.5">
+        {isRealPhoto && <span className="bg-sky-500 text-white text-[7px] font-bold px-1 py-px rounded">📸</span>}
         {isNew && <span className="gradient-primary text-white text-[7px] font-bold px-1 py-px rounded">جديد</span>}
         {isFeatured && <span className="gradient-warm text-white text-[7px] font-bold px-1 py-px rounded">مميز</span>}
       </div>
@@ -98,6 +100,7 @@ const ProductPreview: React.FC<{ name: string; price?: string; storeName?: strin
       <div className="flex items-center gap-1.5 mb-1">
         <Package className="w-3.5 h-3.5 text-emerald-500" />
         <span className="text-[10px] font-bold text-emerald-500">منتج</span>
+        {isRealPhoto && <span className="text-[9px] font-bold text-sky-500 bg-sky-50 dark:bg-sky-900/20 px-1.5 py-px rounded-full">📸 حقيقي</span>}
       </div>
       <p className="text-[14px] font-black text-[var(--color-text)] truncate">{name}</p>
       {storeName && <p className="text-[11px] text-[var(--color-text-tertiary)] mt-0.5 truncate flex items-center gap-1"><Store className="w-3 h-3" /> {storeName}</p>}
@@ -150,6 +153,7 @@ const OfferPreview: React.FC<{ name: string; description?: string; storeName?: s
 export const ShareSheet: React.FC<ShareSheetProps> = memo(({
   isOpen, onClose, itemType, itemId, itemName,
   itemDescription, itemPrice, storeName, imageUrl, discount,
+  isRealPhoto,
 }) => {
   const getShareUrl = useShareStore(s => s.getShareUrl);
   const recordShare = useShareStore(s => s.recordShare);
@@ -212,6 +216,24 @@ export const ShareSheet: React.FC<ShareSheetProps> = memo(({
       storeName, imageUrl, platform: platform.key,
     });
     toast.success(`تمت المشاركة عبر ${platform.label}`);
+    onClose();
+  }, [getShareText, shareUrl, recordShare, itemType, itemId, itemName, storeName, imageUrl, onClose]);
+
+  // 📲 WhatsApp Direct — sends product info with image to a specific WhatsApp number
+  const handleWhatsAppDirect = useCallback(() => {
+    const text = getShareText();
+    // Build WhatsApp URL with pre-filled message including product image link
+    const message = imageUrl
+      ? `${text}\n\n🖼️ صورة المنتج: ${imageUrl}`
+      : text;
+    const url = `https://wa.me/?text=${encodeURIComponent(message)}`;
+    window.open(url, '_blank', 'width=600,height=400');
+    recordShare({
+      itemType, itemId, itemName, itemNameAr: itemName,
+      storeId: itemType !== 'store' ? undefined : itemId,
+      storeName, imageUrl, platform: 'whatsapp',
+    });
+    toast.success('تم فتح واتساب للمشاركة 📲');
     onClose();
   }, [getShareText, shareUrl, recordShare, itemType, itemId, itemName, storeName, imageUrl, onClose]);
 
@@ -320,6 +342,7 @@ export const ShareSheet: React.FC<ShareSheetProps> = memo(({
             price={itemPrice}
             storeName={storeName}
             imageUrl={imageUrl}
+            isRealPhoto={isRealPhoto}
           />
         );
       case 'offer':
@@ -444,6 +467,23 @@ export const ShareSheet: React.FC<ShareSheetProps> = memo(({
             </div>
             <Share2 className="w-4 h-4 text-emerald-300/60" />
           </button>
+
+          {/* 📲 WhatsApp Direct — with product image */}
+          {itemType === 'product' && (
+            <button
+              onClick={handleWhatsAppDirect}
+              className="w-full flex items-center gap-3 py-3.5 px-4 rounded-2xl bg-gradient-to-r from-green-600 to-green-700 text-white hover:from-green-500 hover:to-green-600 transition-all active:scale-[0.98] shadow-md shadow-green-600/20"
+            >
+              <div className="w-9 h-9 rounded-xl bg-white/15 flex items-center justify-center">
+                <Phone className="w-4 h-4" />
+              </div>
+              <div className="flex-1 text-right">
+                <p className="text-[13px] font-bold">📲 أرسل للمراجعة على واتساب</p>
+                <p className="text-[10px] text-green-200/70">{imageUrl ? 'الصورة والسعر مرفقين' : 'السعر ورابط المنتج'}</p>
+              </div>
+              <MessageCircle className="w-4 h-4 text-green-200/70" />
+            </button>
+          )}
         </div>
       </div>
     </>

@@ -255,6 +255,7 @@ export async function createProduct(data: {
   category?: string;
   is_featured?: boolean;
   is_new?: boolean;
+  is_real_photo?: boolean;
   expires_at?: string;
 }) {
   const sb = getSupabaseAdmin();

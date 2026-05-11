@@ -11,6 +11,7 @@ export interface ProductData {
   category: string;
   is_featured: boolean;
   is_new: boolean;
+  is_real_photo: boolean;
   views: number;
   expires_at: string | null;
   created_at: string;
@@ -45,6 +46,7 @@ export function mapProduct(product: any): ProductData {
     category: product.category,
     is_featured: product.is_featured ?? product.isFeatured,
     is_new: product.is_new ?? product.isNew,
+    is_real_photo: product.is_real_photo ?? product.isRealPhoto ?? false,
     views: product.views ?? 0,
     expires_at: typeof product.expires_at === 'string' ? product.expires_at : product.expiresAt?.toISOString?.() ?? product.expires_at ?? null,
     created_at: typeof product.created_at === 'string' ? product.created_at : product.createdAt?.toISOString?.() ?? product.created_at,

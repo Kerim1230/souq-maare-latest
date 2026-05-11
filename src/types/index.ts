@@ -22,6 +22,7 @@ export interface Product {
   category?: string;
   is_featured: boolean;
   is_new: boolean;
+  is_real_photo?: boolean;
   views?: number;
   expires_at?: string | null;
   created_at: string;

@@ -7,6 +7,7 @@ import { withRoute } from '@/server/lib/route-wrapper';
 import { getSupabaseAdmin, TABLES } from '@/lib/supabase-db';
 import { mapProduct, mapStore, mapOffer } from '@/lib/api-utils';
 import { cachedQuery, CACHE_TTL } from '@/lib/cache';
+import { expandSyrianQuery } from '@/lib/syrianDialect';
 
 /**
  * Escape special characters in a search query for PostgreSQL ILIKE patterns.
@@ -84,10 +85,19 @@ async function searchFromSupabase(
       ? '*, store:stores!inner(governorate, city)'
       : '*';
 
+    // 🇸🇾 Syrian dialect expansion — search includes dialect synonyms
+    const expandedTerms = expandSyrianQuery(query);
+    const allEscapedTerms = expandedTerms.map(t => escapeIlike(t));
+
+    // Build OR filter: original query OR any Syrian synonym
+    const orFilters = allEscapedTerms.flatMap(term =>
+      [`name.ilike.%${term}%`, `description.ilike.%${term}%`, `category.ilike.%${term}%`]
+    ).join(',');
+
     let productQuery = sb
       .from(TABLES.PRODUCTS)
       .select(selectFields)
-      .or(`name.ilike.%${escaped}%,description.ilike.%${escaped}%,category.ilike.%${escaped}%`);
+      .or(orFilters);
 
     if (hasLocationFilter && governorate) productQuery = productQuery.eq('store.governorate', governorate);
     if (hasLocationFilter && city) productQuery = productQuery.eq('store.city', city);
@@ -111,10 +121,17 @@ async function searchFromSupabase(
   }
 
   if (type === 'all' || type === 'stores') {
+    // 🇸🇾 Syrian dialect expansion for stores
+    const expandedStoreTerms = expandSyrianQuery(query);
+    const allEscapedStoreTerms = expandedStoreTerms.map(t => escapeIlike(t));
+    const storeOrFilters = allEscapedStoreTerms.flatMap(term =>
+      [`name.ilike.%${term}%`, `description.ilike.%${term}%`, `category.ilike.%${term}%`]
+    ).join(',');
+
     let storeQuery = sb
       .from(TABLES.STORES)
       .select('*')
-      .or(`name.ilike.%${escaped}%,description.ilike.%${escaped}%,category.ilike.%${escaped}%`);
+      .or(storeOrFilters);
 
     if (hasLocationFilter && governorate) storeQuery = storeQuery.eq('governorate', governorate);
     if (hasLocationFilter && city) storeQuery = storeQuery.eq('city', city);
@@ -140,10 +157,17 @@ async function searchFromSupabase(
       ? '*, store:stores!inner(name, governorate, city)'
       : '*, store:stores(name)';
 
+    // 🇸🇾 Syrian dialect expansion for offers
+    const expandedOfferTerms = expandSyrianQuery(query);
+    const allEscapedOfferTerms = expandedOfferTerms.map(t => escapeIlike(t));
+    const offerOrFilters = allEscapedOfferTerms.flatMap(term =>
+      [`title.ilike.%${term}%`, `description.ilike.%${term}%`]
+    ).join(',');
+
     let offerQuery = sb
       .from(TABLES.STORE_OFFERS)
       .select(offerSelect)
-      .or(`title.ilike.%${escaped}%,description.ilike.%${escaped}%`);
+      .or(offerOrFilters);
 
     if (hasLocationFilter && governorate) offerQuery = offerQuery.eq('store.governorate', governorate);
     if (hasLocationFilter && city) offerQuery = offerQuery.eq('store.city', city);

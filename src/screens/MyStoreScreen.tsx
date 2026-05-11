@@ -104,6 +104,7 @@ export const MyStoreScreen: React.FC = () => {
   const [productCategory, setProductCategory] = useState(DEFAULT_CATEGORY);
   const [productImage, setProductImage] = useState<string | null>(null);
   const [productDuration, setProductDuration] = useState<DurationDays>(7);
+  const [productIsRealPhoto, setProductIsRealPhoto] = useState(false);
   const [addingProduct, setAddingProduct] = useState(false);
 
   // AI Description Writer
@@ -118,6 +119,7 @@ export const MyStoreScreen: React.FC = () => {
   const [editProductPrice, setEditProductPrice] = useState('');
   const [editProductCategory, setEditProductCategory] = useState(DEFAULT_CATEGORY);
   const [editProductImage, setEditProductImage] = useState<string | null>(null);
+  const [editProductIsRealPhoto, setEditProductIsRealPhoto] = useState(false);
   const [savingProduct, setSavingProduct] = useState(false);
 
   // Add Offer
@@ -149,7 +151,7 @@ export const MyStoreScreen: React.FC = () => {
   const [showCommentsProduct, setShowCommentsProduct] = useState<string | null>(null);
   const [showCommentsOffer, setShowCommentsOffer] = useState<string | null>(null);
   const [showShareSheet, setShowShareSheet] = useState(false);
-  const [shareTarget, setShareTarget] = useState<{ type: 'store' | 'product' | 'offer' | 'contest'; id: string; name: string; description?: string; price?: string; storeName?: string; imageUrl?: string; discount?: string } | null>(null);
+  const [shareTarget, setShareTarget] = useState<{ type: 'store' | 'product' | 'offer' | 'contest'; id: string; name: string; description?: string; price?: string; storeName?: string; imageUrl?: string; discount?: string; isRealPhoto?: boolean } | null>(null);
 
   // Edit Store
   const [showEditStore, setShowEditStore] = useState(false);
@@ -434,6 +436,7 @@ export const MyStoreScreen: React.FC = () => {
     setEditProductPrice(String(product.price));
     setEditProductCategory(product.category || firstCategory);
     setEditProductImage(product.image_url || null);
+    setEditProductIsRealPhoto(product.is_real_photo ?? false);
     setShowEditProduct(true);
   };
 
@@ -456,7 +459,7 @@ export const MyStoreScreen: React.FC = () => {
     try {
       // Upload image before saving
       const imageUrl = await uploadImage(productImage);
-      const { data, error: addError } = await apiPost('/api/products', { userId: user.id, storeId: myStore.id, name: productName, description: productDesc, price: parseFloat(productPrice) || 0, category: productCategory, imageUrl, expiresAt: getExpiryDate(productDuration) });
+      const { data, error: addError } = await apiPost('/api/products', { userId: user.id, storeId: myStore.id, name: productName, description: productDesc, price: parseFloat(productPrice) || 0, category: productCategory, imageUrl, isRealPhoto: productIsRealPhoto, expiresAt: getExpiryDate(productDuration) });
       if (addError) { toast.error(addError); return; }
       if (data?.product) { setMyProducts([data.product, ...myProducts]); useVerificationStore.getState().recordProductCreation(myStore.id, myStore.name); }
       // Create notifications for store followers
@@ -464,7 +467,7 @@ export const MyStoreScreen: React.FC = () => {
         const { useNotificationStore } = await import('@/store/notificationStore');
         data.notifications.forEach((n: any) => useNotificationStore.getState().createNotification(n));
       }
-      setShowAddProduct(false); setProductName(''); setProductDesc(''); setProductPrice(''); setProductImage(null); setProductDuration(7);
+      setShowAddProduct(false); setProductName(''); setProductDesc(''); setProductPrice(''); setProductImage(null); setProductCategory(firstCategory); setProductDuration(7); setProductIsRealPhoto(false);
       toast.success('تمت إضافة المنتج بنجاح!');
     } catch { toast.error('حدث خطأ'); } finally { setAddingProduct(false); }
   };
@@ -475,7 +478,7 @@ export const MyStoreScreen: React.FC = () => {
     try {
       // Upload image before saving
       const imageUrl = await uploadImage(editProductImage);
-      const { data: saveData, error: saveError } = await apiPut('/api/products', { productId: editingProduct.id, name: editProductName, description: editProductDesc, price: parseFloat(editProductPrice) || 0, category: editProductCategory, imageUrl });
+      const { data: saveData, error: saveError } = await apiPut('/api/products', { productId: editingProduct.id, name: editProductName, description: editProductDesc, price: parseFloat(editProductPrice) || 0, category: editProductCategory, imageUrl, isRealPhoto: editProductIsRealPhoto });
       if (saveError) { toast.error(saveError); return; }
       if (saveData?.product) {
         setMyProducts(myProducts.map(p => p.id === editingProduct.id ? { ...p, name: saveData.product.name, description: saveData.product.description, price: saveData.product.price, category: saveData.product.category, image_url: saveData.product.image_url } : p));
@@ -884,7 +887,7 @@ export const MyStoreScreen: React.FC = () => {
                           <button onClick={() => setShowCommentsProduct(showCommentsProduct === product.id ? null : product.id)} className="flex-1 flex items-center justify-center gap-1 py-2.5 text-[11px] font-bold text-purple-600 dark:text-purple-400 hover:bg-purple-50/50 border-l border-[var(--color-border)]/60">
                             <MessageCircle className="w-3.5 h-3.5" /> تعليقات
                           </button>
-                          <button onClick={() => { setShareTarget({ type: 'product', id: product.id, name: product.name, price: `${product.price.toLocaleString('ar-SY')} ل.س`, storeName: myStore?.name, imageUrl: product.image_url }); setShowShareSheet(true); }} className="flex-1 flex items-center justify-center gap-1 py-2.5 text-[11px] font-bold text-emerald-500 hover:bg-emerald-50/50 border-l border-[var(--color-border)]/60">
+                          <button onClick={() => { setShareTarget({ type: 'product', id: product.id, name: product.name, price: `${product.price.toLocaleString('ar-SY')} ل.س`, storeName: myStore?.name, imageUrl: product.image_url, isRealPhoto: product.is_real_photo }); setShowShareSheet(true); }} className="flex-1 flex items-center justify-center gap-1 py-2.5 text-[11px] font-bold text-emerald-500 hover:bg-emerald-50/50 border-l border-[var(--color-border)]/60">
                             <Share2 className="w-3.5 h-3.5" /> مشاركة
                           </button>
                           <button onClick={() => handleDeleteProduct(product.id)} className="flex-1 flex items-center justify-center gap-1 py-2.5 text-[11px] font-bold text-rose-500 dark:text-rose-400 hover:bg-rose-50 dark:bg-rose-900/20/50">
@@ -1132,7 +1135,7 @@ export const MyStoreScreen: React.FC = () => {
       </Modal>
 
       {/* Add Product Modal */}
-      <Modal isOpen={showAddProduct} onClose={() => { setShowAddProduct(false); setProductName(''); setProductDesc(''); setProductPrice(''); setProductImage(null); setProductCategory(firstCategory); setProductDuration(7); }} title="إضافة منتج جديد" size="lg">
+      <Modal isOpen={showAddProduct} onClose={() => { setShowAddProduct(false); setProductName(''); setProductDesc(''); setProductPrice(''); setProductImage(null); setProductCategory(firstCategory); setProductDuration(7); setProductIsRealPhoto(false); }} title="إضافة منتج جديد" size="lg">
         <div className="space-y-4">
           <ImageUploader label="صورة المنتج (اختياري)" value={productImage} onChange={setProductImage} />
           <Input label="اسم المنتج *" placeholder="اسم المنتج" value={productName} onChange={(e) => setProductName(e.target.value)} />
@@ -1221,6 +1224,19 @@ export const MyStoreScreen: React.FC = () => {
               <p className="text-[11px] text-amber-600 dark:text-amber-400 font-medium">سيتم حذف المنتج تلقائياً بعد انتهاء المدة المحددة</p>
             </div>
           </div>
+          {/* 📸 Real Photo Badge */}
+          <label className="flex items-center gap-3 bg-sky-50/60 dark:bg-sky-900/20 rounded-xl p-3 border border-sky-100/50 dark:border-sky-800/30 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={productIsRealPhoto}
+              onChange={(e) => setProductIsRealPhoto(e.target.checked)}
+              className="w-4 h-4 rounded border-sky-300 text-sky-500 focus:ring-sky-500/30 accent-sky-500"
+            />
+            <div className="flex-1">
+              <p className="text-[13px] font-bold text-sky-700 dark:text-sky-400">📸 صورة حقيقية</p>
+              <p className="text-[11px] text-sky-600/70 dark:text-sky-400/60">سيظهر وسم "حقيقي" على المنتج لتأكيد أن الصورة حقيقية وليست من الإنترنت</p>
+            </div>
+          </label>
           <Button fullWidth onClick={handleAddProduct} loading={addingProduct} disabled={!productName.trim() || !productPrice || parseFloat(productPrice) <= 0} icon={<Package className="w-5 h-5" />}>إضافة المنتج</Button>
         </div>
       </Modal>
@@ -1282,6 +1298,19 @@ export const MyStoreScreen: React.FC = () => {
               {SORTED_CATEGORIES.map(name => (<option key={name} value={name}>{CATEGORY_META[name].emoji} {name}</option>))}
             </select>
           </div>
+          {/* 📸 Real Photo Badge */}
+          <label className="flex items-center gap-3 bg-sky-50/60 dark:bg-sky-900/20 rounded-xl p-3 border border-sky-100/50 dark:border-sky-800/30 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={editProductIsRealPhoto}
+              onChange={(e) => setEditProductIsRealPhoto(e.target.checked)}
+              className="w-4 h-4 rounded border-sky-300 text-sky-500 focus:ring-sky-500/30 accent-sky-500"
+            />
+            <div className="flex-1">
+              <p className="text-[13px] font-bold text-sky-700 dark:text-sky-400">📸 صورة حقيقية</p>
+              <p className="text-[11px] text-sky-600/70 dark:text-sky-400/60">سيظهر وسم "حقيقي" على المنتج لتأكيد أن الصورة حقيقية وليست من الإنترنت</p>
+            </div>
+          </label>
           <Button fullWidth onClick={handleSaveProduct} loading={savingProduct} disabled={!editProductName.trim()} icon={<Edit3 className="w-5 h-5" />}>حفظ التغييرات</Button>
         </div>
       </Modal>
@@ -1392,6 +1421,7 @@ export const MyStoreScreen: React.FC = () => {
           storeName={shareTarget.storeName}
           imageUrl={shareTarget.imageUrl}
           discount={shareTarget.discount}
+          isRealPhoto={shareTarget.isRealPhoto}
         />
       )}
     </div>
