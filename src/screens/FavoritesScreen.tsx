@@ -162,7 +162,7 @@ export const FavoritesScreen: React.FC = () => {
   // Hydration-aware loading: show skeleton until global init has hydrated data.
   if (!isHydrated('favorites') && !forceShow) {
     return (
-      <div className="bg-[var(--color-bg)] min-h-[100dvh] pb-14">
+      <div className="bg-[var(--color-bg)] min-h-[100dvh] pb-20">
         <div className="gradient-dark px-3 pt-8 pb-6 relative overflow-hidden">
           <div className="absolute top-[-30px] right-[-20px] w-[140px] h-[140px] rounded-full bg-rose-600/15 blur-[50px]" />
           <div className="relative z-10 flex items-center gap-3">
@@ -194,7 +194,7 @@ export const FavoritesScreen: React.FC = () => {
   }
 
   return (
-    <div className="bg-[var(--color-bg)] min-h-[100dvh] pb-14">
+    <div className="bg-[var(--color-bg)] min-h-[100dvh] pb-20">
       {/* Header */}
       <div className="gradient-dark px-3 pt-8 pb-6 relative overflow-hidden">
         <div className="absolute top-[-30px] right-[-20px] w-[140px] h-[140px] rounded-full bg-rose-600/15 blur-[50px]" />
@@ -500,15 +500,15 @@ export const FavoritesScreen: React.FC = () => {
 
       {/* ===== Clear All Confirmation Modal ===== */}
       {showClearAll && (
-        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4">
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
           <div
-            className="absolute inset-0 bg-black/30 dark:bg-black/50 backdrop-blur-[2px]"
+            className="absolute inset-0 bg-black/50 backdrop-blur-sm"
             onClick={() => setShowClearAll(false)}
           />
           <div
             role="dialog"
             aria-modal="true"
-            className="relative w-full max-w-sm bg-[var(--color-surface)] rounded-t-2xl sm:rounded-2xl shadow-xl overflow-hidden z-10"
+            className="relative w-full max-w-sm bg-[var(--color-surface)] rounded-2xl shadow-xl overflow-hidden z-10"
           >
             {/* Header */}
             <div className="flex items-center justify-between px-5 py-4 border-b border-[var(--color-border)]">
