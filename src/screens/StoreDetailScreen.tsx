@@ -402,7 +402,7 @@ export const StoreDetailScreen: React.FC = () => {
   };
 
   return (
-    <div className="bg-[var(--color-bg)] min-h-screen pb-24 top-nav-safe">
+    <div className="bg-[var(--color-bg)] min-h-[100dvh] pb-24">
       {/* Cover */}
       <div className="relative h-56 overflow-hidden" style={theme.themeBg ? { background: theme.themeBg } : undefined}>
         {!theme.color && <div className="absolute inset-0 gradient-primary" />}

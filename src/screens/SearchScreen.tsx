@@ -371,7 +371,7 @@ export const SearchScreen: React.FC = () => {
   const hasMoreProducts = products.length % PAGE_SIZE === 0 && products.length > 0;
 
   return (
-    <div className="bg-[var(--color-bg)] min-h-screen top-nav-safe">
+    <div className="bg-[var(--color-bg)] min-h-[100dvh] pb-14">
       {/* Header */}
       <div className="gradient-dark px-5 pt-8 pb-6 relative overflow-hidden">
         <div className="absolute top-[-30px] right-[-20px] w-[140px] h-[140px] rounded-full bg-teal-600/15 blur-[50px]" />

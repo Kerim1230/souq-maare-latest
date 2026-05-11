@@ -3,7 +3,7 @@
 import React, { useEffect, useRef, useState, lazy, Suspense, useCallback, useMemo } from 'react';
 import { Toaster } from 'react-hot-toast';
 import { AnimatePresence, motion } from 'framer-motion';
-import { Home, Store, Search, Heart, User, MessageCircle, LogIn, ChevronDown, ChevronUp } from 'lucide-react';
+import { Home, Store, Search, Heart, User, MessageCircle, LogIn } from 'lucide-react';
 import { useAuthStore } from '@/store/authStore';
 import { useAppStore } from '@/store/appStore';
 import { useAutoDeleteStore } from '@/store/autoDeleteStore';
@@ -97,7 +97,7 @@ const SplashScreen: React.FC = () => {
 const AuthGate: React.FC<{ title: string; description: string }> = ({ title, description }) => {
   const setSubScreen = useAppStore(s => s.setSubScreen);
   return (
-    <div className="min-h-screen bg-[var(--color-bg)] flex flex-col top-nav-safe">
+    <div className="min-h-[100dvh] bg-[var(--color-bg)] flex flex-col pb-14">
       <div className="gradient-dark px-6 pt-12 pb-14 flex flex-col items-center relative overflow-hidden">
         <div className="absolute top-[-40px] right-[-30px] w-[160px] h-[160px] rounded-full bg-teal-600/20 blur-[60px]" />
         <div className="absolute bottom-[-20px] left-[-20px] w-[100px] h-[100px] rounded-full bg-emerald-600/15 blur-[50px]" />
@@ -138,29 +138,29 @@ const tabs = [
   { id: 4, label: 'حسابي', icon: User, requiresAuth: true },
 ] as const;
 
-// Memoized nav tab — Facebook-style active/inactive states
-const NavTab = React.memo(({ tab, isActive, onClick, isLoggedIn: _isLoggedIn }: { tab: typeof tabs[number]; isActive: boolean; onClick: (_id: number) => void; isLoggedIn: boolean }) => {
+// Memoized bottom nav tab — Facebook/Instagram-style
+const BottomNavTab = React.memo(({ tab, isActive, onClick, isLoggedIn: _isLoggedIn }: { tab: typeof tabs[number]; isActive: boolean; onClick: (_id: number) => void; isLoggedIn: boolean }) => {
   const Icon = tab.icon;
   return (
     <button
       onClick={() => onClick(tab.id)}
-      className={`flex flex-col items-center justify-center gap-1 rounded-xl transition-all duration-200 ${
+      className={`relative flex flex-col items-center justify-center gap-0.5 min-w-[56px] py-1 rounded-xl transition-all duration-200 ${
         isActive
-          ? 'bg-emerald-600 text-white px-4 py-1.5 shadow-lg shadow-emerald-600/30'
-          : 'text-gray-400 dark:text-gray-500 hover:bg-gray-800 hover:text-white px-4 py-1.5'
+          ? 'bg-emerald-600/20'
+          : 'hover:bg-gray-800/50'
       }`}
     >
       <Icon
-        className={`w-7 h-7 ${isActive ? 'text-white' : 'text-gray-400 dark:text-gray-500'} transition-colors duration-200`}
+        className={`w-6 h-6 transition-colors duration-200 ${isActive ? 'text-emerald-400' : 'text-gray-500'}`}
         strokeWidth={isActive ? 2.5 : 1.8}
       />
-      <span className={`text-[11px] ${isActive ? 'text-white font-bold' : 'text-gray-400 dark:text-gray-500 font-medium'} transition-colors duration-200`}>
+      <span className={`text-[10px] transition-colors duration-200 ${isActive ? 'font-medium text-emerald-400' : 'text-gray-500'}`}>
         {tab.label}
       </span>
     </button>
   );
 });
-NavTab.displayName = 'NavTab';
+BottomNavTab.displayName = 'BottomNavTab';
 
 // ── Framer Motion variants ──
 const tabVariants = {
@@ -310,22 +310,6 @@ const MainLayout: React.FC = () => {
     };
   }, [user?.id, initAutoDelete, startAutoDeleteTimer, archiveAndCleanup, stopAutoDeleteTimer]);
 
-  // ── Bottom Nav Hide/Show State ──
-  const [navHidden, setNavHidden] = useState(() => {
-    if (typeof window === 'undefined') return false;
-    try {
-      return localStorage.getItem('souq_nav_hidden') === 'true';
-    } catch { return false; }
-  });
-
-  const toggleNav = useCallback(() => {
-    setNavHidden(prev => {
-      const next = !prev;
-      try { localStorage.setItem('souq_nav_hidden', String(next)); } catch {}
-      return next;
-    });
-  }, []);
-
   const handleTabChange = useCallback((tabId: number) => {
     // If user is not logged in and tries to access a protected tab, show auth gate
     const tab = tabs.find(t => t.id === tabId);
@@ -341,10 +325,13 @@ const MainLayout: React.FC = () => {
   const currentTabConfig = tabs.find(t => t.id === activeTab);
   const showAuthGate = currentTabConfig?.requiresAuth && !user;
 
+  // Show bottom nav only on main tabs (not on sub-screens)
+  const showBottomNav = subScreen === 'none';
+
   return (
-    <div className="flex flex-col bg-[var(--color-bg)] overflow-hidden" style={{ height: '100dvh' }}>
-      {/* Main content area */}
-      <div className="flex-1 overflow-hidden relative">
+    <div className="flex flex-col bg-[var(--color-bg)]" style={{ minHeight: '100dvh' }}>
+      {/* ── Main scrollable content area ── */}
+      <main className={`flex-1 overflow-y-auto ${showBottomNav ? 'pb-14' : ''}`} style={{ WebkitOverflowScrolling: 'touch' }}>
         <AnimatePresence mode="wait">
           {subScreen === 'none' && (
             <motion.div
@@ -354,8 +341,6 @@ const MainLayout: React.FC = () => {
               animate="center"
               exit="exit"
               transition={{ duration: 0.2, ease: [0.25, 0.1, 0.25, 1] }}
-              className={`absolute inset-0 overflow-y-auto top-nav-scroll-area ${navHidden ? 'top-nav-scroll-area-nav-hidden' : ''}`}
-              style={{ WebkitOverflowScrolling: 'touch' }}
             >
               <ErrorBoundary>
                 {showAuthGate ? (
@@ -381,8 +366,6 @@ const MainLayout: React.FC = () => {
               initial="initial"
               animate="animate"
               exit="exit"
-              className="absolute inset-0 overflow-y-auto z-20 bg-[var(--color-bg)] pt-4 top-nav-scroll-area"
-              style={{ WebkitOverflowScrolling: 'touch' }}
             >
               <ErrorBoundary>
                 <SubScreenLoader subScreen={subScreen} />
@@ -390,60 +373,36 @@ const MainLayout: React.FC = () => {
             </motion.div>
           )}
         </AnimatePresence>
-      </div>
+      </main>
 
-      {/* Top Navigation — FIXED to viewport top, hideable (Facebook-style) — Black bg */}
-      {subScreen === 'none' && (
-        <nav className={`top-nav fixed top-0 left-0 right-0 z-[100] pt-safe transition-transform duration-300 ease-in-out bg-black border-b border-gray-800 ${navHidden ? '-translate-y-full' : 'translate-y-0'}`}>
-          {/* Toggle chevron — at the bottom-left corner of the nav */}
-          <button
-            onClick={toggleNav}
-            className="absolute -bottom-8 left-2 w-8 h-8 rounded-b-xl bg-black/90 backdrop-blur-sm border border-t-0 border-gray-800 flex items-center justify-center hover:bg-gray-800 active:scale-90 transition-all duration-200 shadow-sm"
-            aria-label="إخفاء شريط التنقل"
-          >
-            <ChevronUp className="w-4 h-4 text-emerald-400" />
-          </button>
-          <div className="flex items-center max-w-lg mx-auto px-2 py-2 gap-1">
-            {/* App Logo — right side (RTL start) */}
-            <div className="flex items-center gap-2 ml-3 shrink-0">
-              <div className="w-8 h-8 rounded-lg overflow-hidden shadow-md shadow-emerald-500/20">
-                <img src="/app-icon.png" alt="سوق شامل" className="w-full h-full object-cover" />
-              </div>
-              <span className="text-white font-bold text-sm whitespace-nowrap hidden sm:inline">سوق شامل</span>
-            </div>
-            {/* Tabs */}
-            <div className="flex items-center justify-around flex-1">
-              {tabs.map((tab) => (
-                <NavTab
-                  key={tab.id}
-                  tab={tab}
-                  isActive={activeTab === tab.id}
-                  onClick={handleTabChange}
-                  isLoggedIn={!!user}
-                />
-              ))}
-            </div>
-          </div>
-          {/* Help Button — attached to nav bar, below حسابي tab */}
+      {/* ── Bottom Navigation Bar — FIXED to viewport bottom (Facebook/Instagram-style) ── */}
+      {showBottomNav && (
+        <nav className="fixed bottom-0 left-0 right-0 z-50 bg-black border-t border-gray-800 safe-bottom">
+          {/* Drag indicator */}
+          <div className="h-1 w-10 bg-gray-600 rounded-full mx-auto mt-1" />
+
+          {/* Help Button — floating above the nav */}
           <button
             onClick={() => useAppStore.getState().setSubScreen('help')}
-            className="absolute -bottom-12 right-4 w-11 h-11 rounded-full bg-gradient-to-br from-emerald-500 to-teal-600 shadow-lg shadow-emerald-500/30 flex items-center justify-center hover:scale-110 active:scale-95 transition-transform duration-200 animate-pulse z-50"
+            className="absolute -top-6 left-4 w-10 h-10 rounded-full bg-gradient-to-br from-emerald-500 to-teal-600 shadow-lg shadow-emerald-500/30 flex items-center justify-center hover:scale-110 active:scale-95 transition-transform duration-200 z-50"
             aria-label="المساعد الذكي"
           >
             <MessageCircle className="w-5 h-5 text-white" />
           </button>
-        </nav>
-      )}
 
-      {/* Floating toggle button — visible when nav is hidden */}
-      {subScreen === 'none' && navHidden && (
-        <button
-          onClick={toggleNav}
-          className="fixed top-5 left-3 z-[101] w-12 h-12 rounded-full bg-black border border-gray-700 shadow-lg shadow-black/50 flex items-center justify-center hover:scale-110 active:scale-95 transition-all duration-200 opacity-80 hover:opacity-100"
-          aria-label="إظهار شريط التنقل"
-        >
-          <ChevronDown className="w-6 h-6 text-emerald-400" />
-        </button>
+          {/* Tab buttons */}
+          <div className="flex justify-around items-center h-14 px-2">
+            {tabs.map((tab) => (
+              <BottomNavTab
+                key={tab.id}
+                tab={tab}
+                isActive={activeTab === tab.id}
+                onClick={handleTabChange}
+                isLoggedIn={!!user}
+              />
+            ))}
+          </div>
+        </nav>
       )}
     </div>
   );

@@ -2,7 +2,7 @@
 import React, { memo, useEffect, useState, useCallback, useMemo, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { apiPost, apiDelete } from '@/lib/fetchApi';
-import { Star, ChevronLeft, Verified, Flag, Clock, Share2, Bell, Wallet, Gift, Trophy, Store as StoreIcon, Percent, LogIn } from 'lucide-react';
+import { Star, ChevronLeft, Verified, Flag, Clock, Share2, Bell, Wallet, Gift, Trophy, Store as StoreIcon, Percent, LogIn, Search } from 'lucide-react';
 import { SkeletonCard } from '@/components/market/Card';
 import { SafeImage, StoreLogo } from '@/components/market/SafeImage';
 import { ShareSheet } from '@/components/market/ShareSheet';
@@ -104,7 +104,7 @@ function buildFavSet(favorites: Array<{ product_id?: string }>): Set<string> {
 
 // ── Skeleton Home — full page skeleton for initial load ──
 const SkeletonHome: React.FC = () => (
-  <div className="min-h-screen bg-[var(--color-bg)] top-nav-safe">
+  <div className="min-h-[100dvh] bg-[var(--color-bg)] pb-14">
     {/* Skeleton header */}
     <div className="gradient-dark px-5 pt-8 pb-10">
       <div className="flex items-center justify-between">
@@ -407,7 +407,7 @@ export const HomeScreen: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-[var(--color-bg)] top-nav-safe">
+    <div className="min-h-[100dvh] bg-[var(--color-bg)] pb-14">
       {/* Thin progress bar for silent auto-refresh */}
       {(isRefreshing || homeDataLoading) && (
         <div className="fixed top-0 left-0 right-0 z-[200] h-[2px] transition-all duration-300">
@@ -415,50 +415,62 @@ export const HomeScreen: React.FC = () => {
         </div>
       )}
 
-      {/* HEADER — Always visible, no loading dependency */}
-      <header className="gradient-dark px-5 pt-8 pb-10 relative overflow-hidden">
-        <div className="absolute top-[-30px] right-[-20px] w-[140px] h-[140px] rounded-full bg-teal-600/15 blur-[50px]" />
-        <div className="absolute bottom-[-15px] left-[-10px] w-[100px] h-[100px] rounded-full bg-emerald-600/10 blur-[40px]" />
-        <div className="relative z-10">
-          <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl overflow-hidden shadow-lg shadow-emerald-500/30 flex-shrink-0">
-                <img src="/app-icon.png" alt="سوق شامل" className="w-full h-full object-cover" />
-              </div>
-              <div className="flex items-baseline gap-1.5">
-                <span className="text-white font-black text-lg leading-none tracking-tight">سوق شامل</span>
-                <span className="text-teal-400/50 text-xs">/</span>
-                <span className="text-teal-300 dark:text-teal-600/60 text-sm font-semibold">الإلكتروني</span>
-              </div>
-            </div>
-            <div className="flex items-center gap-2">
-              {!user && (
-                <button onClick={() => setSubScreen('auth')} className="relative w-10 h-10 bg-emerald-400/20 backdrop-blur-sm rounded-xl flex items-center justify-center hover:bg-emerald-400/30 transition-colors border border-emerald-400/20" aria-label="تسجيل الدخول">
-                  <LogIn className="w-[18px] h-[18px] text-emerald-300" />
-                </button>
-              )}
-              <button onClick={() => setSubScreen('wallet')} className="relative w-10 h-10 bg-[var(--color-surface)]/10 backdrop-blur-sm rounded-xl flex items-center justify-center hover:bg-[var(--color-surface)]/20 transition-colors" aria-label="محفظة النقاط">
-                <Wallet className="w-[18px] h-[18px] text-teal-300 dark:text-teal-600/70" />
-                {walletBalance > 0 && (
-                  <span className="absolute -top-1.5 -left-1 min-w-[20px] h-5 bg-emerald-400 rounded-full flex items-center justify-center text-[9px] font-black text-white px-1.5 shadow-sm shadow-emerald-500/30">
-                    {walletBalance > 999 ? `${Math.floor(walletBalance / 1000)}k` : walletBalance}
-                  </span>
-                )}
-              </button>
-              <button onClick={() => setSubScreen('notifications')} className="relative w-10 h-10 bg-[var(--color-surface)]/10 backdrop-blur-sm rounded-xl flex items-center justify-center hover:bg-[var(--color-surface)]/20 transition-colors">
-                <Bell className="w-[18px] h-[18px] text-teal-300 dark:text-teal-600/70" />
-                {unreadNotifCount > 0 && (
-                  <span className="absolute -top-1 -left-1 min-w-[18px] h-[18px] bg-rose-500 rounded-full flex items-center justify-center text-[9px] font-black text-white px-1 animate-pulse">
-                    {unreadNotifCount > 99 ? '99+' : unreadNotifCount}
-                  </span>
-                )}
-              </button>
-            </div>
+      {/* HEADER — Sticky header with logo, wallet, notifications */}
+      <header className="sticky top-0 z-40 bg-black/95 backdrop-blur-md px-3 py-2 flex items-center justify-between border-b border-gray-800">
+        {/* Logo + app name */}
+        <div className="flex items-center gap-2">
+          <div className="w-8 h-8 rounded-lg overflow-hidden shadow-md shadow-emerald-500/20">
+            <img src="/app-icon.png" alt="سوق شامل" className="w-full h-full object-cover" />
           </div>
+          <div className="flex items-baseline gap-1">
+            <span className="text-white font-black text-sm leading-none">سوق شامل</span>
+            <span className="text-emerald-400/50 text-[10px]">الإلكتروني</span>
+          </div>
+        </div>
+        {/* Action icons */}
+        <div className="flex items-center gap-1.5">
+          {!user && (
+            <button onClick={() => setSubScreen('auth')} className="w-9 h-9 bg-emerald-400/20 rounded-xl flex items-center justify-center hover:bg-emerald-400/30 transition-colors" aria-label="تسجيل الدخول">
+              <LogIn className="w-[16px] h-[16px] text-emerald-300" />
+            </button>
+          )}
+          <button onClick={() => setSubScreen('wallet')} className="relative w-9 h-9 bg-gray-800 rounded-xl flex items-center justify-center hover:bg-gray-700 transition-colors" aria-label="محفظة النقاط">
+            <Wallet className="w-[16px] h-[16px] text-teal-300" />
+            {walletBalance > 0 && (
+              <span className="absolute -top-1 -left-1 min-w-[18px] h-4 bg-emerald-400 rounded-full flex items-center justify-center text-[8px] font-black text-white px-1">
+                {walletBalance > 999 ? `${Math.floor(walletBalance / 1000)}k` : walletBalance}
+              </span>
+            )}
+          </button>
+          <button onClick={() => setSubScreen('notifications')} className="relative w-9 h-9 bg-gray-800 rounded-xl flex items-center justify-center hover:bg-gray-700 transition-colors">
+            <Bell className="w-[16px] h-[16px] text-teal-300" />
+            {unreadNotifCount > 0 && (
+              <span className="absolute -top-1 -left-1 min-w-[16px] h-4 bg-rose-500 rounded-full flex items-center justify-center text-[8px] font-black text-white px-1">
+                {unreadNotifCount > 99 ? '99+' : unreadNotifCount}
+              </span>
+            )}
+          </button>
         </div>
       </header>
 
-      <main className="px-5 space-y-8 mt-2">
+      {/* Search bar */}
+      <div className="px-3 pt-2 pb-1">
+        <button
+          onClick={() => { setSearchQuery(''); setActiveTab(2); }}
+          className="w-full h-11 bg-gray-900 rounded-xl px-4 flex items-center gap-2 text-gray-400 hover:bg-gray-800 transition-colors"
+        >
+          <Search className="w-4 h-4" />
+          <span className="text-sm">ابحث عن منتج أو متجر...</span>
+        </button>
+      </div>
+
+      {/* Decorative gradient banner below the sticky header */}
+      <div className="gradient-dark px-5 pt-4 pb-6 relative overflow-hidden">
+        <div className="absolute top-[-30px] right-[-20px] w-[140px] h-[140px] rounded-full bg-teal-600/15 blur-[50px]" />
+        <div className="absolute bottom-[-15px] left-[-10px] w-[100px] h-[100px] rounded-full bg-emerald-600/10 blur-[40px]" />
+      </div>
+
+      <main className="px-3 space-y-4 mt-2">
 
         {/* ═══ 2. OFFERS & CONTESTS 🎁 ═══ */}
         <motion.section
