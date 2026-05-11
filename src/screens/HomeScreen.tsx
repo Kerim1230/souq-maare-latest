@@ -146,10 +146,10 @@ const SkeletonHome: React.FC = () => (
       {/* Skeleton featured products */}
       <div>
         <div className="w-28 h-4 bg-[var(--color-surface)] animate-pulse rounded mb-3" />
-        <div className="flex gap-3 overflow-hidden">
-          <div className="flex-shrink-0 w-40 h-52 bg-[var(--color-surface)] rounded-2xl animate-pulse border border-[var(--color-border)]" />
-          <div className="flex-shrink-0 w-40 h-52 bg-[var(--color-surface)] rounded-2xl animate-pulse border border-[var(--color-border)]" />
-          <div className="flex-shrink-0 w-40 h-52 bg-[var(--color-surface)] rounded-2xl animate-pulse border border-[var(--color-border)]" />
+        <div className="flex gap-2 overflow-hidden">
+          <div className="flex-shrink-0 w-[130px] h-44 bg-[var(--color-surface)] rounded-xl animate-pulse border border-[var(--color-border)]" />
+          <div className="flex-shrink-0 w-[130px] h-44 bg-[var(--color-surface)] rounded-xl animate-pulse border border-[var(--color-border)]" />
+          <div className="flex-shrink-0 w-[130px] h-44 bg-[var(--color-surface)] rounded-xl animate-pulse border border-[var(--color-border)]" />
         </div>
       </div>
 
@@ -592,9 +592,9 @@ export const HomeScreen: React.FC = () => {
         >
           <SectionHeader title="منتجات مميزة ⭐" actionLabel="الكل" onAction={handleViewAllFeatured} />
           {!dataLoaded ? (
-            <div className="flex gap-3 overflow-hidden">
+            <div className="flex gap-2 overflow-hidden">
               {[...Array(3)].map((_, i) => (
-                <div key={`fp-sk-${i}`} className="flex-shrink-0 w-40 h-52 bg-[var(--color-surface)] rounded-2xl animate-pulse border border-[var(--color-border)]" />
+                <div key={`fp-sk-${i}`} className="flex-shrink-0 w-[130px] h-44 bg-[var(--color-surface)] rounded-xl animate-pulse border border-[var(--color-border)]" />
               ))}
             </div>
           ) : displayedFeaturedProducts.length === 0 ? (
@@ -602,11 +602,12 @@ export const HomeScreen: React.FC = () => {
               <p className="text-[var(--color-text-tertiary)] text-sm">لا توجد منتجات مميزة حالياً</p>
             </div>
           ) : (
-            <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide snap-x snap-mandatory">
+            <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide snap-x snap-mandatory">
               {displayedFeaturedProducts.map((product) => (
-                <div key={product.id} className="flex-shrink-0 w-[140px] snap-start">
+                <div key={product.id} className="flex-shrink-0 w-[130px] snap-start">
                   <ProductCard
                     product={product}
+                    featured
                     isFavorite={favSet.has(product.id)}
                     onReport={handleReportProduct}
                     onShare={handleShareProduct}
