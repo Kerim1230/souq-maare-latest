@@ -43,7 +43,6 @@ export const FavoritesScreen: React.FC = () => {
   const [forceShow, setForceShow] = useState(false);
 
   // Consumer-only pattern: Only fetch if global init has NOT loaded data yet.
-  // This is a safety fallback — normally page.tsx global init handles this.
   const fallbackFetchDone = useRef(false);
   useEffect(() => {
     if (fallbackFetchDone.current || !user) return;
@@ -63,7 +62,6 @@ export const FavoritesScreen: React.FC = () => {
   }, []);
 
   // Close sort menu when clicking outside
-  // Note: No more independent loadFavorites — data comes from appStore (global init)
   useEffect(() => {
     if (!showSortMenu) return;
     const handler = () => setShowSortMenu(false);
@@ -134,7 +132,6 @@ export const FavoritesScreen: React.FC = () => {
     const sorted = [...productFavs];
     switch (sortBy) {
       case 'newest':
-        // Items are already newest first from API, but sort by id desc as fallback
         sorted.sort((a, b) => b.id.localeCompare(a.id));
         break;
       case 'name':
@@ -163,11 +160,10 @@ export const FavoritesScreen: React.FC = () => {
   }, [user, notifications, followedStores]);
 
   // Hydration-aware loading: show skeleton until global init has hydrated data.
-  // This prevents the flash: empty → data that causes favorites flicker.
   if (!isHydrated('favorites') && !forceShow) {
     return (
       <div className="bg-[var(--color-bg)] min-h-[100dvh] pb-14">
-        <div className="gradient-dark px-5 pt-8 pb-6 relative overflow-hidden">
+        <div className="gradient-dark px-3 pt-8 pb-6 relative overflow-hidden">
           <div className="absolute top-[-30px] right-[-20px] w-[140px] h-[140px] rounded-full bg-rose-600/15 blur-[50px]" />
           <div className="relative z-10 flex items-center gap-3">
             <div className="w-9 h-9 rounded-xl bg-white/10 animate-pulse" />
@@ -177,16 +173,14 @@ export const FavoritesScreen: React.FC = () => {
             </div>
           </div>
         </div>
-        <div className="px-4 -mt-4 space-y-3">
-          <div className="bg-[var(--color-surface)] rounded-xl p-1 border border-[var(--color-border)]">
-            <div className="flex gap-1">
-              <div className="flex-1 h-10 bg-slate-100 dark:bg-slate-800 rounded-lg animate-pulse" />
-              <div className="flex-1 h-10 bg-slate-100 dark:bg-slate-800 rounded-lg animate-pulse" />
-            </div>
+        <div className="px-3 -mt-4 space-y-3">
+          <div className="flex gap-3">
+            <div className="flex-1 h-11 bg-slate-100 dark:bg-slate-800 rounded-xl animate-pulse" />
+            <div className="flex-1 h-11 bg-slate-100 dark:bg-slate-800 rounded-xl animate-pulse" />
           </div>
           {[1, 2, 3].map((i) => (
-            <div key={i} className="bg-[var(--color-surface)] rounded-2xl p-3.5 border border-[var(--color-border)] flex items-center gap-3.5 animate-pulse">
-              <div className="w-[72px] h-[72px] bg-slate-100 dark:bg-slate-800 rounded-xl" />
+            <div key={i} className="bg-[var(--color-surface)] rounded-2xl p-2.5 border border-[var(--color-border)] flex items-center gap-3 animate-pulse">
+              <div className="w-14 h-14 bg-slate-100 dark:bg-slate-800 rounded-xl" />
               <div className="flex-1 space-y-2">
                 <div className="h-4 w-3/4 bg-slate-100 dark:bg-slate-800 rounded" />
                 <div className="h-3 w-1/2 bg-slate-100 dark:bg-slate-800 rounded" />
@@ -202,7 +196,7 @@ export const FavoritesScreen: React.FC = () => {
   return (
     <div className="bg-[var(--color-bg)] min-h-[100dvh] pb-14">
       {/* Header */}
-      <div className="gradient-dark px-5 pt-8 pb-6 relative overflow-hidden">
+      <div className="gradient-dark px-3 pt-8 pb-6 relative overflow-hidden">
         <div className="absolute top-[-30px] right-[-20px] w-[140px] h-[140px] rounded-full bg-rose-600/15 blur-[50px]" />
         <div className="absolute bottom-[-20px] left-[-10px] w-[100px] h-[100px] rounded-full bg-teal-600/10 blur-[40px]" />
         <div className="relative z-10 flex items-center gap-3">
@@ -230,55 +224,53 @@ export const FavoritesScreen: React.FC = () => {
         </div>
       </div>
 
-      <div className="px-4 -mt-4 space-y-3.5">
-        {/* Tab Switcher */}
-        <div className="bg-[var(--color-surface)] rounded-xl p-1.5 border border-[var(--color-border)] shadow-sm">
-          <div className="flex gap-1.5">
-            <button
-              onClick={() => setTab('favorites')}
-              className={`flex-1 py-2.5 rounded-lg text-[13px] font-bold flex items-center justify-center gap-1.5 transition-all duration-150 whitespace-nowrap px-3 ${
-                tab === 'favorites'
-                  ? 'gradient-rose text-white shadow-md shadow-rose-500/20'
-                  : 'text-[var(--color-text-tertiary)] hover:text-emerald-700'
-              }`}
-            >
-              <Heart className="w-3.5 h-3.5 flex-shrink-0" />
-              <span>المفضلة</span>
-              {productFavs.length > 0 && (
-                <span className={`text-[10px] px-1.5 py-0.5 rounded-full flex-shrink-0 ${
-                  tab === 'favorites' ? 'bg-white/20' : 'bg-rose-50 dark:bg-rose-900/20 text-rose-500 dark:text-rose-400'
-                }`}>
-                  {productFavs.length}
-                </span>
-              )}
-            </button>
-            <button
-              onClick={() => setTab('following')}
-              className={`flex-1 py-2.5 rounded-lg text-[13px] font-bold flex items-center justify-center gap-1.5 transition-all duration-150 whitespace-nowrap px-3 ${
-                tab === 'following'
-                  ? 'gradient-primary text-white shadow-md shadow-emerald-500/20'
-                  : 'text-[var(--color-text-tertiary)] hover:text-emerald-700'
-              }`}
-            >
-              <Users className="w-3.5 h-3.5 flex-shrink-0" />
-              <span>المتابَعة</span>
-              {followedStores.length > 0 && (
-                <span className={`text-[10px] px-1.5 py-0.5 rounded-full flex-shrink-0 ${
-                  tab === 'following' ? 'bg-white/20' : 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-500'
-                }`}>
-                  {followedStores.length}
-                </span>
-              )}
-            </button>
-          </div>
+      <div className="px-3 -mt-4 space-y-3">
+        {/* Tab Switcher — larger, clearer tabs */}
+        <div className="flex gap-3">
+          <button
+            onClick={() => setTab('favorites')}
+            className={`flex-1 flex items-center justify-center gap-2 px-4 py-2 text-sm font-bold rounded-xl transition-all duration-150 ${
+              tab === 'favorites'
+                ? 'bg-emerald-600 text-white shadow-md'
+                : 'text-gray-400 hover:bg-gray-800 rounded-xl'
+            }`}
+          >
+            <Heart className="w-5 h-5 flex-shrink-0" />
+            <span>المفضلة</span>
+            {productFavs.length > 0 && (
+              <span className={`text-[10px] px-1.5 py-0.5 rounded-full flex-shrink-0 ${
+                tab === 'favorites' ? 'bg-white/20' : 'bg-gray-700 text-gray-400'
+              }`}>
+                {productFavs.length}
+              </span>
+            )}
+          </button>
+          <button
+            onClick={() => setTab('following')}
+            className={`flex-1 flex items-center justify-center gap-2 px-4 py-2 text-sm font-bold rounded-xl transition-all duration-150 ${
+              tab === 'following'
+                ? 'bg-emerald-600 text-white shadow-md'
+                : 'text-gray-400 hover:bg-gray-800 rounded-xl'
+            }`}
+          >
+            <Users className="w-5 h-5 flex-shrink-0" />
+            <span>المتابَعة</span>
+            {followedStores.length > 0 && (
+              <span className={`text-[10px] px-1.5 py-0.5 rounded-full flex-shrink-0 ${
+                tab === 'following' ? 'bg-white/20' : 'bg-gray-700 text-gray-400'
+              }`}>
+                {followedStores.length}
+              </span>
+            )}
+          </button>
         </div>
 
         {/* ===== Favorites Tab (Products) ===== */}
         {tab === 'favorites' && (
-          <div className="space-y-2.5">
+          <div className="space-y-3">
             {/* Sort & Clear All Bar */}
             {productFavs.length > 0 && (
-              <div className="flex items-center justify-between bg-[var(--color-surface)] rounded-xl p-2.5 border border-[var(--color-border)] shadow-sm">
+              <div className="flex items-center justify-between gap-2">
                 {/* Sort Button */}
                 <div className="relative">
                   <button
@@ -286,13 +278,13 @@ export const FavoritesScreen: React.FC = () => {
                       e.stopPropagation();
                       setShowSortMenu(!showSortMenu);
                     }}
-                    className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-[12px] font-bold text-slate-500 dark:text-slate-400 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 transition-colors"
+                    className="flex items-center gap-1.5 px-3 py-1.5 text-xs rounded-lg bg-gray-800 text-gray-300 hover:bg-gray-700 transition-colors font-bold"
                   >
-                    <ArrowUpDown className="w-3.5 h-3.5 text-emerald-500" />
+                    <ArrowUpDown className="w-3.5 h-3.5" />
                     {sortLabels[sortBy]}
                   </button>
                   {showSortMenu && (
-                    <div className="absolute top-full left-0 right-0 mt-1 bg-[var(--color-surface)] rounded-xl border border-[var(--color-border)] shadow-lg z-30 overflow-hidden min-w-[160px]">
+                    <div className="absolute top-full left-0 mt-1 bg-[var(--color-surface)] rounded-xl border border-[var(--color-border)] shadow-lg z-30 overflow-hidden min-w-[160px]">
                       {(Object.keys(sortLabels) as SortOption[]).map((option) => (
                         <button
                           key={option}
@@ -317,7 +309,7 @@ export const FavoritesScreen: React.FC = () => {
                 {/* Clear All Button */}
                 <button
                   onClick={() => setShowClearAll(true)}
-                  className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-[12px] font-bold text-rose-500 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-900/20 transition-colors"
+                  className="flex items-center gap-1.5 px-3 py-1.5 text-xs rounded-lg bg-red-600 text-white hover:bg-red-700 transition-colors font-bold"
                 >
                   <Trash2 className="w-3.5 h-3.5" />
                   حذف الكل
@@ -327,48 +319,51 @@ export const FavoritesScreen: React.FC = () => {
 
             {productFavs.length === 0 ? (
               <div className="bg-[var(--color-surface)] rounded-2xl p-8 text-center border border-[var(--color-border)] shadow-sm">
-                <div className="w-14 h-14 bg-rose-50/60 dark:bg-rose-900/20 rounded-xl flex items-center justify-center mx-auto mb-3">
-                  <Heart className="w-7 h-7 text-rose-300" />
+                <div className="w-16 h-16 bg-rose-50/60 dark:bg-rose-900/20 rounded-2xl flex items-center justify-center mx-auto mb-3">
+                  <Heart className="w-8 h-8 text-rose-300" />
                 </div>
-                <p className="text-emerald-900 dark:text-emerald-300 font-bold text-[14px]">لا توجد منتجات مفضلة</p>
-                <p className="text-[var(--color-text-tertiary)] text-[12px] mt-0.5">اضغط على أيقونة القلب في المنتجات لحفظها هنا</p>
+                <p className="text-[var(--color-text)] font-medium text-base">لا توجد منتجات مفضلة</p>
+                <p className="text-sm text-gray-500 mt-1">اضغط على أيقونة القلب في المنتجات لحفظها هنا</p>
               </div>
             ) : sortedFavorites.map((fav) => (
               <div
                 key={fav.id}
                 onClick={() => handleOpenProduct(fav)}
-                className="bg-[var(--color-surface)] rounded-2xl flex items-center gap-3.5 p-3.5 border border-[var(--color-border)] shadow-sm cursor-pointer hover:shadow-md hover:shadow-emerald-500/8 transition-shadow active:scale-[0.98]"
+                className="bg-[var(--color-surface)] rounded-2xl flex items-center gap-3 p-2.5 border border-[var(--color-border)] shadow-sm cursor-pointer hover:shadow-md transition-shadow active:scale-[0.98]"
               >
-                <div className="w-[72px] h-[72px] rounded-xl bg-gradient-to-br from-emerald-50/50 to-teal-50/50 overflow-hidden flex-shrink-0">
+                {/* Product image — smaller for mobile */}
+                <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-emerald-50/50 to-teal-50/50 overflow-hidden flex-shrink-0">
                   <SafeImage
                     src={fav.product?.image_url}
                     alt={fav.product?.name || ''}
                     className="w-full h-full object-cover"
-                    fallback={<div className="w-full h-full flex items-center justify-center"><ImageIcon className="w-6 h-6 text-emerald-300" /></div>}
+                    widthHint={120}
+                    fallback={<div className="w-full h-full flex items-center justify-center"><ImageIcon className="w-5 h-5 text-emerald-300" /></div>}
                   />
                 </div>
+                {/* Product info */}
                 <div className="flex-1 min-w-0">
-                  <p className="font-bold text-[var(--color-text)] text-[13px] line-clamp-1">{fav.product?.name}</p>
-                  <p className="text-[11px] text-[var(--color-text-tertiary)] mt-0.5">{fav.product?.category}</p>
-                  <p className="text-[13px] font-bold gradient-text-primary mt-1.5">{fav.product?.price.toLocaleString('ar-SY')} ل.س</p>
+                  <p className="text-sm font-medium text-[var(--color-text)] line-clamp-1">{fav.product?.name}</p>
+                  <p className="text-sm font-bold text-emerald-400 mt-0.5">{fav.product?.price.toLocaleString('ar-SY')} ل.س</p>
                   {fav.product?.store_name && (
-                    <p className="text-[10px] text-emerald-600/70 mt-0.5 flex items-center gap-1">
+                    <p className="text-[11px] text-gray-500 mt-0.5 flex items-center gap-1">
                       <StoreIcon className="w-2.5 h-2.5" />
                       {fav.product.store_name}
                     </p>
                   )}
                 </div>
+                {/* Delete button */}
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
                     handleRemoveFavorite(fav);
                   }}
                   disabled={removing === fav.id}
-                  className="w-9 h-9 flex items-center justify-center rounded-xl bg-rose-50 dark:bg-rose-900/20 hover:bg-rose-100 dark:hover:bg-rose-900/30 flex-shrink-0 border border-rose-100 dark:border-rose-900/30 transition-colors"
+                  className="w-8 h-8 flex items-center justify-center rounded-full bg-red-600/20 text-red-400 hover:bg-red-600/30 flex-shrink-0 transition-colors"
                 >
                   {removing === fav.id
-                    ? <Loader2 className="w-4 h-4 text-rose-400 animate-spin" />
-                    : <Trash2 className="w-4 h-4 text-rose-400" />
+                    ? <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                    : <Trash2 className="w-3.5 h-3.5" />
                   }
                 </button>
               </div>
@@ -378,13 +373,13 @@ export const FavoritesScreen: React.FC = () => {
 
         {/* ===== Following Tab (Stores + Notifications) ===== */}
         {tab === 'following' && (
-          <div className="space-y-4">
+          <div className="space-y-3">
             {/* Store Notifications Section */}
             {storeNotifications.length > 0 && (
               <div>
-                <div className="flex items-center gap-2 mb-2.5">
+                <div className="flex items-center gap-2 mb-2">
                   <Bell className="w-4 h-4 text-emerald-500" />
-                  <h3 className="text-[13px] font-bold text-[var(--color-text)]">إشعارات المتاجر المتابعة</h3>
+                  <h3 className="text-sm font-bold text-[var(--color-text)]">إشعارات المتاجر المتابعة</h3>
                   <span className="text-[10px] bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 font-bold px-2 py-0.5 rounded-full">
                     {storeNotifications.length}
                   </span>
@@ -427,57 +422,62 @@ export const FavoritesScreen: React.FC = () => {
 
             {/* Followed Stores Section */}
             <div>
-              <div className="flex items-center gap-2 mb-2.5">
+              <div className="flex items-center gap-2 mb-2">
                 <Users className="w-4 h-4 text-emerald-500" />
-                <h3 className="text-[13px] font-bold text-[var(--color-text)]">المتاجر المتابعة</h3>
+                <h3 className="text-sm font-bold text-[var(--color-text)]">المتاجر المتابعة</h3>
               </div>
               {followedStores.length === 0 ? (
                 <div className="bg-[var(--color-surface)] rounded-2xl p-8 text-center border border-[var(--color-border)] shadow-sm">
-                  <div className="w-14 h-14 bg-emerald-50/60 dark:bg-emerald-900/20 rounded-xl flex items-center justify-center mx-auto mb-3">
-                    <Users className="w-7 h-7 text-emerald-300" />
+                  <div className="w-16 h-16 bg-emerald-50/60 dark:bg-emerald-900/20 rounded-2xl flex items-center justify-center mx-auto mb-3">
+                    <Users className="w-8 h-8 text-emerald-300" />
                   </div>
-                  <p className="text-emerald-900 dark:text-emerald-300 font-bold text-[14px]">لا توجد متاجر متابعة</p>
-                  <p className="text-[var(--color-text-tertiary)] text-[12px] mt-0.5">تابع المتاجر لتصلك إشعاراتها الجديدة</p>
+                  <p className="text-[var(--color-text)] font-medium text-base">لا توجد متاجر متابعة</p>
+                  <p className="text-sm text-gray-500 mt-1">تابع المتاجر لتصلك إشعاراتها الجديدة</p>
                 </div>
               ) : followedStores.map((store) => (
-                <div key={store.id} className="bg-[var(--color-surface)] rounded-2xl overflow-hidden border border-[var(--color-border)] shadow-sm mb-2.5">
-                  <div
-                    onClick={() => handleOpenStore(store.id)}
-                    className="cursor-pointer hover:shadow-md hover:shadow-emerald-500/8 transition-shadow active:scale-[0.98]"
-                  >
-                    <div className="h-20 bg-gradient-to-br from-emerald-50 dark:from-emerald-900/20 to-teal-100 relative overflow-hidden">
-                      <SafeImage src={store.cover_url} alt="" className="w-full h-full object-cover opacity-80" fallback={null} />
+                <div
+                  key={store.id}
+                  className="bg-[var(--color-surface)] rounded-2xl p-2.5 border border-[var(--color-border)] shadow-sm mb-2.5"
+                >
+                  <div className="flex items-center gap-3">
+                    {/* Circular store logo */}
+                    <div
+                      onClick={() => handleOpenStore(store.id)}
+                      className="cursor-pointer flex-shrink-0"
+                    >
+                      <StoreLogo src={store.logo_url} name={store.name || ''} size="sm" className="!rounded-full border-2 border-emerald-500/20" />
                     </div>
-                    <div className="p-3.5 flex items-center gap-3">
-                      <div className="-mt-8 flex-shrink-0">
-                        <StoreLogo src={store.logo_url} name={store.name || ''} size="sm" className="border-[3px] border-[var(--color-surface)] shadow-sm" />
+                    {/* Store info */}
+                    <div
+                      onClick={() => handleOpenStore(store.id)}
+                      className="flex-1 min-w-0 cursor-pointer"
+                    >
+                      <div className="flex items-center gap-1">
+                        <p className="text-sm font-medium text-[var(--color-text)] line-clamp-1">{store.name}</p>
+                        {store.is_verified && <Verified className="w-3.5 h-3.5 text-emerald-500 flex-shrink-0" />}
                       </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-1">
-                          <p className="font-bold text-[var(--color-text)] text-[13px] line-clamp-1">{store.name}</p>
-                          {store.is_verified && <Verified className="w-3.5 h-3.5 text-emerald-500 flex-shrink-0" />}
-                        </div>
-                        <p className="text-[11px] text-[var(--color-text-tertiary)] mt-0.5">{store.category || 'متجر إلكتروني'}</p>
-                        {(store.followers_count ?? 0) > 0 && (
-                          <p className="text-[10px] text-[var(--color-text-tertiary)] mt-0.5 flex items-center gap-0.5">
-                            <Users className="w-2.5 h-2.5" />
-                            {store.followers_count} متابع
-                          </p>
-                        )}
-                      </div>
+                      <p className="text-[11px] text-gray-500 line-clamp-1 mt-0.5">{store.category || store.description || 'متجر إلكتروني'}</p>
+                    </div>
+                    {/* Action buttons */}
+                    <div className="flex flex-col gap-1.5 flex-shrink-0">
+                      <button
+                        onClick={() => handleOpenStore(store.id)}
+                        className="px-3 py-1.5 text-[11px] rounded-lg bg-emerald-600/20 text-emerald-400 font-bold hover:bg-emerald-600/30 transition-colors"
+                      >
+                        عرض المتجر
+                      </button>
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
                           handleUnfollow(store.id);
                         }}
                         disabled={unfollowing === store.id}
-                        className="px-3 py-1.5 rounded-lg bg-slate-50 dark:bg-slate-800/50 hover:bg-rose-50 dark:hover:bg-rose-900/20 border border-slate-100 hover:border-rose-100 text-[11px] font-bold text-slate-400 hover:text-rose-500 dark:text-rose-400 flex items-center gap-1 transition-colors flex-shrink-0"
+                        className="px-3 py-1.5 text-[11px] rounded-lg bg-red-600/20 text-red-400 font-bold hover:bg-red-600/30 transition-colors flex items-center justify-center gap-1"
                       >
                         {unfollowing === store.id
                           ? <Loader2 className="w-3 h-3 animate-spin" />
-                          : <Users className="w-3 h-3" />
+                          : 'إلغاء المتابعة'
                         }
-                        إلغاء المتابعة
                       </button>
                     </div>
                   </div>
