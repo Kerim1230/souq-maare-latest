@@ -225,44 +225,46 @@ export const FavoritesScreen: React.FC = () => {
       </div>
 
       <div className="px-3 -mt-4 space-y-3">
-        {/* Tab Switcher — larger, clearer tabs */}
-        <div className="flex gap-3">
-          <button
-            onClick={() => setTab('favorites')}
-            className={`flex-1 flex items-center justify-center gap-2 px-4 py-2 text-sm font-bold rounded-xl transition-all duration-150 ${
-              tab === 'favorites'
-                ? 'bg-emerald-600 text-white shadow-md'
-                : 'text-gray-400 hover:bg-gray-800 rounded-xl'
-            }`}
-          >
-            <Heart className="w-5 h-5 flex-shrink-0" />
-            <span>المفضلة</span>
-            {productFavs.length > 0 && (
-              <span className={`text-[10px] px-1.5 py-0.5 rounded-full flex-shrink-0 ${
-                tab === 'favorites' ? 'bg-white/20' : 'bg-gray-700 text-gray-400'
-              }`}>
-                {productFavs.length}
-              </span>
-            )}
-          </button>
-          <button
-            onClick={() => setTab('following')}
-            className={`flex-1 flex items-center justify-center gap-2 px-4 py-2 text-sm font-bold rounded-xl transition-all duration-150 ${
-              tab === 'following'
-                ? 'bg-emerald-600 text-white shadow-md'
-                : 'text-gray-400 hover:bg-gray-800 rounded-xl'
-            }`}
-          >
-            <Users className="w-5 h-5 flex-shrink-0" />
-            <span>المتابَعة</span>
-            {followedStores.length > 0 && (
-              <span className={`text-[10px] px-1.5 py-0.5 rounded-full flex-shrink-0 ${
-                tab === 'following' ? 'bg-white/20' : 'bg-gray-700 text-gray-400'
-              }`}>
-                {followedStores.length}
-              </span>
-            )}
-          </button>
+        {/* Tab Switcher — visible background container with clear tabs */}
+        <div className="bg-[var(--color-surface)] rounded-xl p-1.5 border border-[var(--color-border)] shadow-sm">
+          <div className="flex gap-1.5">
+            <button
+              onClick={() => setTab('favorites')}
+              className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-bold transition-all duration-150 ${
+                tab === 'favorites'
+                  ? 'bg-emerald-600 text-white shadow-md'
+                  : 'text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800'
+              }`}
+            >
+              <Heart className="w-5 h-5 flex-shrink-0" />
+              <span>المفضلة</span>
+              {productFavs.length > 0 && (
+                <span className={`text-[10px] px-1.5 py-0.5 rounded-full flex-shrink-0 ${
+                  tab === 'favorites' ? 'bg-white/20' : 'bg-rose-50 dark:bg-rose-900/20 text-rose-500 dark:text-rose-400'
+                }`}>
+                  {productFavs.length}
+                </span>
+              )}
+            </button>
+            <button
+              onClick={() => setTab('following')}
+              className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-bold transition-all duration-150 ${
+                tab === 'following'
+                  ? 'bg-emerald-600 text-white shadow-md'
+                  : 'text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800'
+              }`}
+            >
+              <Users className="w-5 h-5 flex-shrink-0" />
+              <span>المتابَعة</span>
+              {followedStores.length > 0 && (
+                <span className={`text-[10px] px-1.5 py-0.5 rounded-full flex-shrink-0 ${
+                  tab === 'following' ? 'bg-white/20' : 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-500'
+                }`}>
+                  {followedStores.length}
+                </span>
+              )}
+            </button>
+          </div>
         </div>
 
         {/* ===== Favorites Tab (Products) ===== */}

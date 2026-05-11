@@ -228,6 +228,14 @@ const MainLayout: React.FC = () => {
   const stopAutoDeleteTimer = useAutoDeleteStore(s => s.stopAutoDeleteTimer);
   const archiveAndCleanup = useAutoDeleteStore(s => s.archiveAndCleanup);
   const timerStarted = useRef(false);
+  const mainRef = useRef<HTMLElement>(null);
+
+  // ── Scroll main to top when tab changes ──
+  useEffect(() => {
+    if (mainRef.current) {
+      mainRef.current.scrollTop = 0;
+    }
+  }, [activeTab, subScreen]);
 
   // ── Deep link handler ──
   const setSubScreen = useAppStore(s => s.setSubScreen);
@@ -331,7 +339,7 @@ const MainLayout: React.FC = () => {
   return (
     <div className="flex flex-col bg-[var(--color-bg)]" style={{ minHeight: '100dvh' }}>
       {/* ── Main scrollable content area ── */}
-      <main className={`flex-1 overflow-y-auto ${showBottomNav ? 'pb-14' : ''}`} style={{ WebkitOverflowScrolling: 'touch' }}>
+      <main ref={mainRef} className={`flex-1 overflow-y-auto ${showBottomNav ? 'pb-14' : ''}`} style={{ WebkitOverflowScrolling: 'touch' }}>
         <AnimatePresence mode="wait">
           {subScreen === 'none' && (
             <motion.div
