@@ -402,11 +402,22 @@ export const StoreDetailScreen: React.FC = () => {
   };
 
   return (
-    <div className="bg-[var(--color-bg)] min-h-[100dvh] pb-14">
+    <div className="bg-[var(--color-bg)] min-h-[100dvh] pb-20">
       {/* Cover */}
-      <div className="relative h-56 overflow-hidden" style={theme.themeBg ? { background: theme.themeBg } : undefined}>
-        {!theme.color && <div className="absolute inset-0 gradient-primary" />}
-        <SafeImage src={store.cover_url} alt="" className="w-full h-full object-cover" fallback={null} />
+      <div className="relative h-32 md:h-40">
+        {/* Cover image or gradient fallback */}
+        {(store.cover_url || store.coverUrl) ? (
+          <img
+            src={store.cover_url || store.coverUrl}
+            alt="غلاف المتجر"
+            className="w-full h-full object-cover"
+            onError={(e) => { e.currentTarget.style.display = 'none'; }}
+          />
+        ) : (
+          <div className="w-full h-full" style={theme.themeBg ? { background: theme.themeBg } : undefined}>
+            {!theme.color && <div className="w-full h-full gradient-primary" />}
+          </div>
+        )}
         <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-black/20 to-transparent" />
         
         {/* Top actions */}
@@ -442,9 +453,9 @@ export const StoreDetailScreen: React.FC = () => {
         <div className="bg-[var(--color-surface)] rounded-2xl border border-[var(--color-border)] shadow-lg shadow-black/5 dark:shadow-black/20">
           <div className="px-5 pb-5">
             {/* Logo */}
-            <div className="-mt-8 mb-3 relative z-10 flex items-end justify-between">
-              <div style={theme.color ? { boxShadow: `0 4px 14px ${theme.color.shadowLight}` } : { boxShadow: '0 4px 14px rgba(16, 185, 129, 0.2)' }}>
-                <StoreLogo src={store.logo_url} name={store.name} size="lg" className="border-4 border-white dark:border-gray-800 shadow-lg" />
+            <div className="-mt-10 mb-3 relative z-10 flex items-end justify-between">
+              <div className="w-20 h-20 rounded-2xl overflow-hidden border-4 border-white dark:border-gray-800 shadow-lg" style={theme.color ? { boxShadow: `0 4px 14px ${theme.color.shadowLight}` } : { boxShadow: '0 4px 14px rgba(16, 185, 129, 0.2)' }}>
+                <StoreLogo src={store.logo_url} name={store.name} size="lg" className="w-full h-full" />
               </div>
               {!isStoreOwner && (
                 <button
@@ -464,7 +475,7 @@ export const StoreDetailScreen: React.FC = () => {
 
             {/* Name + Badges */}
             <div className="flex items-center gap-2 mb-1.5 flex-wrap">
-              <h2 className="text-2xl font-black text-[var(--color-text)]">{store.name}</h2>
+              <h2 className="text-lg font-black text-[var(--color-text)]">{store.name}</h2>
               {isVerified && (
                 <span className="inline-flex items-center gap-1 bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 text-[10px] font-black px-2.5 py-1 rounded-full shadow-sm">
                   <ShieldCheck className="w-3.5 h-3.5" />متجر موثق
@@ -478,7 +489,7 @@ export const StoreDetailScreen: React.FC = () => {
             </div>
 
             {/* Description */}
-            <p className="text-sm text-gray-600 dark:text-gray-400 text-center line-clamp-3 leading-relaxed mt-1">{store.description || 'لا يوجد وصف بعد'}</p>
+            <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-3 leading-relaxed mt-1">{store.description || 'لا يوجد وصف بعد'}</p>
 
             {/* Location */}
             {(store.governorate || store.district || store.location) && (
@@ -547,12 +558,12 @@ export const StoreDetailScreen: React.FC = () => {
 
       <div className="px-4 mt-4 space-y-4">
         {/* Tabs */}
-        <div className="flex justify-center gap-2 mb-6 px-4">
+        <div className="flex flex-wrap gap-1 mb-3">
             {tabs.map((tab) => (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`flex items-center gap-1.5 px-6 py-2.5 rounded-full text-sm font-medium whitespace-nowrap transition-all duration-200 flex-shrink-0 ${
+                className={`flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-all duration-200 ${
                   activeTab === tab.id
                     ? 'bg-emerald-600 text-white shadow-md'
                     : 'text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800'
@@ -621,7 +632,7 @@ export const StoreDetailScreen: React.FC = () => {
                 <p className="text-[var(--color-text-tertiary)] text-[12px] mt-1">{searchQuery ? 'جرب البحث بكلمات أخرى' : 'سيتم إضافة منتجات قريباً'}</p>
               </div>
             ) : (
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-2 gap-2">
                 {filteredProducts.map((product) => <ProductCard key={product.id} product={product} />)}
               </div>
             )}
@@ -638,7 +649,7 @@ export const StoreDetailScreen: React.FC = () => {
                 <p className="text-[var(--color-text-tertiary)] text-[12px] mt-1">المنتجات المميزة ستظهر هنا</p>
               </div>
             ) : (
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-2 gap-2">
                 {featuredProducts.map((product) => <ProductCard key={product.id} product={product} />)}
               </div>
             )}
