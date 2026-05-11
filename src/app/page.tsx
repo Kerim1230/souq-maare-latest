@@ -138,34 +138,25 @@ const tabs = [
   { id: 4, label: 'حسابي', icon: User, requiresAuth: true },
 ] as const;
 
-// Memoized bottom nav tab — prevents re-render on every state change
+// Memoized nav tab — Facebook-style active/inactive states
 const NavTab = React.memo(({ tab, isActive, onClick, isLoggedIn: _isLoggedIn }: { tab: typeof tabs[number]; isActive: boolean; onClick: (_id: number) => void; isLoggedIn: boolean }) => {
   const Icon = tab.icon;
   return (
     <button
       onClick={() => onClick(tab.id)}
-      className={`flex flex-col items-center gap-0.5 px-4 py-1.5 rounded-xl transition-all duration-150 ${
+      className={`flex flex-col items-center justify-center gap-1 rounded-xl transition-all duration-200 ${
         isActive
-          ? 'text-emerald-600 dark:text-emerald-400'
-          : 'text-slate-400 dark:text-slate-500 hover:text-emerald-700 dark:hover:text-emerald-300 hover:bg-gray-100 dark:hover:bg-gray-800'
+          ? 'bg-emerald-600 text-white px-4 py-1.5 shadow-lg shadow-emerald-600/30'
+          : 'text-gray-400 dark:text-gray-500 hover:bg-gray-800 hover:text-white px-4 py-1.5'
       }`}
     >
-      <div className={`p-1 rounded-xl transition-all duration-150 ${
-        isActive
-          ? 'bg-emerald-50 dark:bg-emerald-900/30 shadow-sm'
-          : 'hover:bg-gray-100 dark:hover:bg-gray-800'
-      }`}>
-        <Icon
-          className={`w-6 h-6 ${isActive ? 'text-emerald-600 dark:text-emerald-400' : ''}`}
-          strokeWidth={isActive ? 2.5 : 1.8}
-        />
-      </div>
-      <span className={`text-[10px] font-medium ${isActive ? 'text-emerald-600 dark:text-emerald-400' : ''}`}>
+      <Icon
+        className={`w-7 h-7 ${isActive ? 'text-white' : 'text-gray-400 dark:text-gray-500'} transition-colors duration-200`}
+        strokeWidth={isActive ? 2.5 : 1.8}
+      />
+      <span className={`text-[11px] ${isActive ? 'text-white font-bold' : 'text-gray-400 dark:text-gray-500 font-medium'} transition-colors duration-200`}>
         {tab.label}
       </span>
-      {isActive && (
-        <div className="w-1 h-1 rounded-full gradient-primary mt-[-2px]" />
-      )}
     </button>
   );
 });
@@ -401,27 +392,37 @@ const MainLayout: React.FC = () => {
         </AnimatePresence>
       </div>
 
-      {/* Top Navigation — FIXED to viewport top, hideable (Facebook-style) */}
+      {/* Top Navigation — FIXED to viewport top, hideable (Facebook-style) — Black bg */}
       {subScreen === 'none' && (
-        <nav className={`top-nav fixed top-0 left-0 right-0 z-[100] pt-safe transition-transform duration-300 ease-in-out bg-white/90 dark:bg-gray-900/90 backdrop-blur-lg border-b border-gray-200 dark:border-gray-700 ${navHidden ? '-translate-y-full' : 'translate-y-0'}`}>
+        <nav className={`top-nav fixed top-0 left-0 right-0 z-[100] pt-safe transition-transform duration-300 ease-in-out bg-black border-b border-gray-800 ${navHidden ? '-translate-y-full' : 'translate-y-0'}`}>
           {/* Toggle chevron — at the bottom-left corner of the nav */}
           <button
             onClick={toggleNav}
-            className="absolute -bottom-8 left-2 w-8 h-8 rounded-b-xl bg-white/90 dark:bg-[#0f2318]/90 backdrop-blur-sm border border-t-0 border-[var(--color-border)] flex items-center justify-center hover:bg-emerald-50 dark:hover:bg-emerald-900/30 active:scale-90 transition-all duration-200 shadow-sm"
+            className="absolute -bottom-8 left-2 w-8 h-8 rounded-b-xl bg-black/90 backdrop-blur-sm border border-t-0 border-gray-800 flex items-center justify-center hover:bg-gray-800 active:scale-90 transition-all duration-200 shadow-sm"
             aria-label="إخفاء شريط التنقل"
           >
-            <ChevronUp className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+            <ChevronUp className="w-4 h-4 text-emerald-400" />
           </button>
-          <div className="flex items-center justify-around max-w-lg mx-auto px-2 py-2">
-            {tabs.map((tab) => (
-              <NavTab
-                key={tab.id}
-                tab={tab}
-                isActive={activeTab === tab.id}
-                onClick={handleTabChange}
-                isLoggedIn={!!user}
-              />
-            ))}
+          <div className="flex items-center max-w-lg mx-auto px-2 py-2 gap-1">
+            {/* App Logo — right side (RTL start) */}
+            <div className="flex items-center gap-2 ml-3 shrink-0">
+              <div className="w-8 h-8 rounded-lg overflow-hidden shadow-md shadow-emerald-500/20">
+                <img src="/app-icon.png" alt="سوق شامل" className="w-full h-full object-cover" />
+              </div>
+              <span className="text-white font-bold text-sm whitespace-nowrap hidden sm:inline">سوق شامل</span>
+            </div>
+            {/* Tabs */}
+            <div className="flex items-center justify-around flex-1">
+              {tabs.map((tab) => (
+                <NavTab
+                  key={tab.id}
+                  tab={tab}
+                  isActive={activeTab === tab.id}
+                  onClick={handleTabChange}
+                  isLoggedIn={!!user}
+                />
+              ))}
+            </div>
           </div>
           {/* Help Button — attached to nav bar, below حسابي tab */}
           <button
@@ -438,10 +439,10 @@ const MainLayout: React.FC = () => {
       {subScreen === 'none' && navHidden && (
         <button
           onClick={toggleNav}
-          className="fixed top-5 left-3 z-[101] w-12 h-12 rounded-full bg-gradient-to-br from-emerald-500 to-teal-600 shadow-lg shadow-emerald-500/30 flex items-center justify-center hover:scale-110 active:scale-95 transition-all duration-200 opacity-80 hover:opacity-100"
+          className="fixed top-5 left-3 z-[101] w-12 h-12 rounded-full bg-black border border-gray-700 shadow-lg shadow-black/50 flex items-center justify-center hover:scale-110 active:scale-95 transition-all duration-200 opacity-80 hover:opacity-100"
           aria-label="إظهار شريط التنقل"
         >
-          <ChevronDown className="w-6 h-6 text-white" />
+          <ChevronDown className="w-6 h-6 text-emerald-400" />
         </button>
       )}
     </div>
