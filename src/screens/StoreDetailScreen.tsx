@@ -405,20 +405,25 @@ export const StoreDetailScreen: React.FC = () => {
     <div className="bg-[var(--color-bg)] min-h-[100dvh] pb-20">
       {/* Cover */}
       <div className="relative h-32 md:h-40">
-        {/* Cover image or gradient fallback */}
-        {(store.cover_url || store.coverUrl) ? (
+        {/* Background layer — always visible as fallback */}
+        <div
+          className="w-full h-32 md:h-40"
+          style={{ background: theme.themeBg || 'linear-gradient(135deg, #065f46, #0f766e)' }}
+        />
+
+        {/* Cover image layer — renders on top of background */}
+        {(store.cover_url || store.coverUrl) && (
           <img
             src={store.cover_url || store.coverUrl}
             alt="غلاف المتجر"
-            className="w-full h-full object-cover"
+            className="w-full h-32 md:h-40 object-cover"
+            style={{ position: 'absolute', top: 0, left: 0, right: 0 }}
             onError={(e) => { e.currentTarget.style.display = 'none'; }}
           />
-        ) : (
-          <div className="w-full h-full" style={theme.themeBg ? { background: theme.themeBg } : undefined}>
-            {!theme.color && <div className="w-full h-full gradient-primary" />}
-          </div>
         )}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-black/20 to-transparent" />
+
+        {/* Gradient overlay */}
+        <div className="absolute top-0 left-0 right-0 bottom-0 bg-gradient-to-t from-black/50 via-black/20 to-transparent pointer-events-none" />
         
         {/* Top actions */}
         <div className="absolute top-4 right-4 z-20">
@@ -693,7 +698,7 @@ export const StoreDetailScreen: React.FC = () => {
         {/* Info Tab */}
         {activeTab === 'info' && (
           <section>
-            <div className="bg-white dark:bg-gray-800/60 rounded-2xl shadow-sm p-6 mx-4 mb-6 space-y-4">
+            <div className="bg-white dark:bg-gray-800/60 rounded-2xl shadow-sm p-4 md:p-6 mb-4 space-y-4">
               <div>
                 <h3 className="text-[13px] font-bold text-emerald-600 dark:text-emerald-400 mb-3 flex items-center gap-2" style={theme.color ? { color: theme.color.solid } : undefined}><Sparkles className="w-4 h-4" />عن المتجر</h3>
                 <div className="space-y-0">
